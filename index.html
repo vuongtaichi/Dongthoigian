@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nhật Ký Lính Thông Tin</title>
+
+  <!-- Fonts chosen for solid Vietnamese diacritic rendering:
+       Literata (serif, reading body) + Be Vietnam Pro (UI / sans, Vietnamese-native design) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="progress-track" aria-hidden="true">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="app">
+    <button class="drawer-toggle" id="drawerToggle" aria-label="Mở mục lục" aria-expanded="false">
+      <span class="bars"><span></span><span></span><span></span></span>
+      Mục lục
+    </button>
+
+    <nav class="sidebar" id="sidebar" aria-label="Mục lục nhật ký">
+      <div class="masthead">
+        <h1 class="masthead-title">Nhật Ký<br>Lính Thông Tin</h1>
+        <p class="masthead-count" id="mastheadCount"></p>
+        <div class="search-box">
+          <input type="search" id="searchInput" class="search-input" placeholder="Tìm chương, tên, nội dung..." aria-label="Tìm kiếm trong nhật ký" />
+        </div>
+      </div>
+      <ol class="toc" id="toc"></ol>
+      <div class="sidebar-footer">
+        <p>Tên đơn vị và các nhân vật xuất hiện trong nhật ký đều đã được thay đổi để đảm bảo sự riêng tư.</p>
+        <p class="copyright">&copy; 2027</p>
+      </div>
+    </nav>
+
+    <div class="scrim" id="scrim"></div>
+
+    <main class="reader" id="reader"></main>
+  </div>
+
+  <!-- data.js defines the `chapters` array (the diary content) -->
+  <script src="data.js"></script>
+  <!-- app.js renders the sidebar + reader and wires up navigation -->
+  <script src="app.js"></script>
+</body>
+</html>

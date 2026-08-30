@@ -1,0 +1,591 @@
+/* ==========================================================================
+   Nhật Ký Lính Thông Tin — stylesheet
+   Color tokens live in :root / the dark-mode blocks below.
+   Change the hex values there to re-theme the whole site.
+
+   Fonts: 'Literata' (serif, reading body) + 'Be Vietnam Pro' (UI / sans) —
+   both have solid Vietnamese diacritic coverage, loaded via Google Fonts
+   in index.html. Change --font-body / --font-ui below to swap them.
+   ========================================================================== */
+
+:root {
+  /* Light theme (default) */
+  --paper: #f5f7fb;
+  --card: #ffffff;
+  --ink: #1b2436;
+  --ink-soft: #4b5670;
+  --ink-faint: #7a869e;
+  --accent: #2951a3;
+  --accent-strong: #1c3b7a;
+  --accent-soft-bg: #e8edf9;
+  --border: #dce3f0;
+
+  --sidebar-bg: #0f1b33;
+  --sidebar-bg-elevated: #17264a;
+  --sidebar-active-bg: #26406f;
+  --sidebar-text: #c7d2e8;
+  --sidebar-text-dim: #7c8aae;
+  --sidebar-active-text: #ffffff;
+  --sidebar-accent: #6fa0e8;
+  --sidebar-border: #223256;
+
+  --shadow: 0 8px 28px rgba(15, 27, 51, 0.10);
+
+  /* 'Times New Roman' sits before Georgia on purpose: Georgia's Windows
+     build is missing composed glyphs for several Vietnamese tone-mark
+     combinations, so Chrome fakes them by stitching the base letter and
+     the mark together as two glyphs — and mispositions the mark when it
+     does. Times New Roman (and Segoe UI, in the UI stack) both have full,
+     correctly-composed Vietnamese coverage on Windows. */
+  --font-body: 'Literata', 'Times New Roman', Georgia, 'Iowan Old Style', serif;
+  --font-ui: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Dark theme: applied automatically when the OS/browser prefers dark
+   AND the page hasn't been explicitly forced to light via [data-theme="light"] */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0b1220;
+    --card: #101a2c;
+    --ink: #e4e9f5;
+    --ink-soft: #a3aecb;
+    --ink-faint: #7482a3;
+    --accent: #8ab4ff;
+    --accent-strong: #a9c6ff;
+    --accent-soft-bg: #16223c;
+    --border: #223151;
+
+    --sidebar-bg: #060b16;
+    --sidebar-bg-elevated: #111d34;
+    --sidebar-active-bg: #1d3157;
+    --sidebar-text: #a9b7d6;
+    --sidebar-text-dim: #5c6b8f;
+    --sidebar-active-text: #ffffff;
+    --sidebar-accent: #7fb0ff;
+    --sidebar-border: #16223c;
+
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Explicit dark mode: add data-theme="dark" to <html> to force it regardless
+   of OS setting (e.g. from a theme toggle button you add later). */
+:root[data-theme="dark"] {
+  --paper: #0b1220;
+  --card: #101a2c;
+  --ink: #e4e9f5;
+  --ink-soft: #a3aecb;
+  --ink-faint: #7482a3;
+  --accent: #8ab4ff;
+  --accent-strong: #a9c6ff;
+  --accent-soft-bg: #16223c;
+  --border: #223151;
+
+  --sidebar-bg: #060b16;
+  --sidebar-bg-elevated: #111d34;
+  --sidebar-text: #a9b7d6;
+  --sidebar-text-dim: #5c6b8f;
+  --sidebar-active-text: #ffffff;
+  --sidebar-accent: #7fb0ff;
+  --sidebar-border: #16223c;
+
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* ---------- Reading progress bar ---------- */
+
+.progress-track {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 50;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width .12s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill { transition: none; }
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+  flex: 0 0 300px;
+  width: 300px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid var(--sidebar-border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+}
+
+/* Header and footer are fixed; only the chapter list (.toc) scrolls. */
+.masthead {
+  flex: 0 0 auto;
+  padding: 2.25rem 1.75rem 1.5rem;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.masthead-title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--sidebar-active-text);
+  text-wrap: balance;
+}
+
+.masthead-count {
+  margin: .5rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  color: var(--sidebar-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.search-box {
+  margin-top: 1.1rem;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--sidebar-border);
+  color: var(--sidebar-active-text);
+  border-radius: 8px;
+  padding: .55rem .75rem;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+}
+
+.search-input::placeholder { color: var(--sidebar-text-dim); }
+
+.search-input:focus {
+  outline: 2px solid var(--sidebar-accent);
+  outline-offset: 1px;
+}
+
+.toc {
+  list-style: none;
+  margin: 0;
+  padding: .75rem 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+
+  /* Modern thin scrollbar (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* Modern thin scrollbar (Chrome / Edge / Safari) — track hidden until
+   hover, slim rounded thumb, like the Claude/ChatGPT sidebar. Buttons are
+   explicitly hidden, otherwise Chromium keeps drawing its native up/down
+   arrow buttons around our custom thumb. */
+.toc::-webkit-scrollbar {
+  width: 20px;
+}
+
+.toc::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.toc::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 8px;
+}
+
+.toc:hover {
+  scrollbar-color: var(--sidebar-text) transparent;
+}
+
+.toc:hover::-webkit-scrollbar-thumb {
+  background-color: var(--sidebar-text);
+  background-clip: padding-box;
+}
+
+.toc::-webkit-scrollbar-thumb:hover {
+  background-color: var(--sidebar-active-text);
+  background-clip: padding-box;
+}
+
+/* Touch devices (phones/tablets) never fire :hover, so the thumb-on-hover
+   trick above leaves the scrollbar permanently invisible there. Show it
+   always on touch instead. */
+@media (hover: none) {
+  .toc {
+    scrollbar-color: var(--sidebar-text) transparent;
+  }
+
+  .toc::-webkit-scrollbar-thumb {
+    background-color: var(--sidebar-text);
+    background-clip: padding-box;
+  }
+}
+
+.toc-item {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: .8rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--sidebar-text);
+  padding: .68rem 1.5rem .68rem 1.45rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.toc-item:hover { background: var(--sidebar-bg-elevated); }
+
+.toc-item.active {
+  background: var(--sidebar-active-bg);
+  border-left-color: var(--sidebar-accent);
+}
+
+.toc-item.active .toc-title { color: var(--sidebar-active-text); }
+
+.toc-item.hidden { display: none; }
+
+.toc-empty {
+  padding: 1rem 1.5rem;
+  font-size: .85rem;
+  color: var(--sidebar-text-dim);
+}
+
+.toc-num {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.02rem;
+  color: var(--sidebar-text);
+  padding-top: .15rem;
+  flex: 0 0 1.8em;
+}
+
+.toc-text { display: flex; flex-direction: column; gap: .18rem; min-width: 0; }
+
+.toc-title {
+  font-size: 1.02rem;
+  line-height: 1.35;
+  color: var(--sidebar-text);
+}
+
+.sidebar-footer {
+  flex: 0 0 auto;
+  padding: 1.1rem 1.75rem 1.5rem;
+  border-top: 1px solid var(--sidebar-border);
+  font-size: .88rem;
+  line-height: 1.55;
+  color: var(--sidebar-text);
+}
+
+.sidebar-footer p { margin: 0 0 .5rem; }
+.sidebar-footer p:last-child { margin-bottom: 0; }
+
+.sidebar-footer .copyright {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+.drawer-toggle {
+  display: none;
+}
+
+.scrim { display: none; }
+
+/* ---------- Reader ---------- */
+
+.reader {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.chapter {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 5.5rem 2rem 7rem;
+}
+
+.chapter-kicker {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.chapter-title {
+  margin: .6rem 0 0;
+  font-family: var(--font-body);
+  font-size: clamp(1.9rem, 3.2vw, 2.5rem);
+  line-height: 1.22;
+  font-weight: 600;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.chapter-lead-rule {
+  width: 3rem;
+  height: 3px;
+  background: var(--accent);
+  border: none;
+  margin: 1.6rem 0 2.4rem;
+  border-radius: 2px;
+}
+
+.entry-body p {
+  margin: 0 0 1.3em;
+  font-size: 1.3rem;
+  line-height: 1.8;
+  color: var(--ink);
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.entry-body p:last-child { margin-bottom: 0; }
+
+.subentry { margin-top: 2.7rem; }
+.subentry:first-child { margin-top: 0; }
+
+.divider {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin: 2.8rem 0;
+  color: var(--ink-faint);
+  font-size: .85rem;
+  letter-spacing: .4em;
+}
+
+.subentry-heading {
+  margin: 0 0 .9rem;
+  font-size: 1.24rem;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: .65rem;
+}
+
+.subentry-heading .tag {
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft-bg);
+  padding: .22rem .55rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.signature {
+  text-align: right;
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 1.18rem;
+  margin: 2.2rem 0 0;
+}
+
+.note {
+  margin-top: 2.4rem;
+  background: var(--accent-soft-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 1.3rem 1.5rem 1.4rem;
+}
+
+.note-label {
+  margin: 0 0 .6rem;
+  font-family: var(--font-ui);
+  font-size: .85rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.note p {
+  margin: 0 0 .85em;
+  font-size: 1.18rem;
+  line-height: 1.7;
+  font-style: italic;
+  color: var(--ink-soft);
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.note p:last-child { margin-bottom: 0; }
+
+.note dl {
+  margin: 0;
+  font-size: 1.16rem;
+  line-height: 1.7;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.note dl div { display: flex; gap: .5em; }
+.note dl dt { font-weight: 700; flex: 0 0 auto; }
+.note dl dd { margin: 0; }
+
+.chapter-nav {
+  margin-top: 4.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-ui);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: 0;
+  max-width: 48%;
+}
+
+.nav-btn:disabled { visibility: hidden; }
+
+.nav-btn .nav-dir {
+  font-size: .85rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.nav-btn .nav-chapter {
+  font-size: 1rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-btn .nav-title {
+  font-size: 1.1rem;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.nav-btn.next { text-align: right; align-items: flex-end; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+  .app { display: block; }
+
+  .drawer-toggle {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 30;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-active-text);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 999px;
+    padding: .55rem 1rem .55rem .85rem;
+    font-family: var(--font-ui);
+    font-size: .8rem;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+
+  .drawer-toggle .bars { display: flex; flex-direction: column; gap: 3px; }
+  .drawer-toggle .bars span { width: 15px; height: 2px; background: var(--sidebar-active-text); display: block; border-radius: 2px; }
+
+  .sidebar {
+    position: fixed;
+    z-index: 40;
+    left: 0; top: 0; bottom: 0;
+    transform: translateX(-100%);
+    width: min(86vw, 340px);
+    transition: transform .28s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar.open { transform: translateX(0); }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 11, 22, 0.5);
+    z-index: 35;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s ease;
+  }
+
+  .scrim.open { opacity: 1; pointer-events: auto; }
+
+  .reader { height: auto; }
+
+  .chapter { padding: 6.5rem 1.25rem 5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader { scroll-behavior: auto; }
+  .sidebar, .scrim { transition: none; }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

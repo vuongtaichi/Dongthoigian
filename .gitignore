@@ -1,0 +1,11 @@
+# Local backups
+*.bak
+*.bak-*
+data.js.bak-*
+
+# Internal working notes — kept local, never pushed
+README.internal.md
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
