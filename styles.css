@@ -677,6 +677,11 @@ body {
     position: fixed;
     z-index: 40;
     left: 0; top: 0; bottom: 0;
+    /* the base rule sets height:100vh, which on mobile is the *large* viewport
+       (behind the URL bar) — that pushes the footer off-screen. Track the
+       visible viewport instead so the footer stays pinned. */
+    height: 100vh;
+    height: 100dvh;
     transform: translateX(-100%);
     width: min(86vw, 340px);
     transition: transform .28s ease;
