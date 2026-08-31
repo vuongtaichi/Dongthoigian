@@ -356,7 +356,11 @@
   function displayNameFromUser(u) {
     if (!u) return 'Người đọc';
     var m = u.user_metadata || {};
-    return m.full_name || m.name || (u.email ? u.email.split('@')[0] : 'Người đọc');
+    if (m.full_name || m.name) return m.full_name || m.name;
+    if (u.email && /@phone\.nkltt$/i.test(u.email)) {
+      return '+' + u.email.replace(/@.*$/, '').replace(/^p/, '');  // p61… → +61…
+    }
+    return u.email ? u.email.split('@')[0] : 'Người đọc';
   }
   // Sets `authUser` from the session, then fills in the display name, avatar and
   // is_admin flag from the profiles row (calls `done` again once that lands).
@@ -963,18 +967,32 @@
     });
   }
 
+  var PHONE_DOMAIN = 'phone.nkltt';
+
+  // A phone number (with country code, e.g. +61…) → a synthetic email so it
+  // rides the existing email/password flow. No SMS. Returns null if invalid.
+  function phoneToEmail(raw) {
+    var s = (raw || '').replace(/[^\d+]/g, '');
+    if (!/^\+\d{6,15}$/.test(s)) return null;
+    return 'p' + s.slice(1) + '@' + PHONE_DOMAIN;
+  }
+
   function renderEmailForm() {
     var bar = document.getElementById('authBar');
     if (!bar) return;
     bar.classList.remove('is-guest');
     bar.innerHTML =
-      '<form class="auth-email-form" id="authEmailForm" data-mode="signin" autocomplete="on">' +
+      '<form class="auth-email-form" id="authEmailForm" data-mode="signin" data-idtype="email" autocomplete="on">' +
         '<div class="auth-tabs">' +
           '<button type="button" class="auth-tab is-active" data-action="tab" data-mode="signin">Đăng nhập</button>' +
           '<button type="button" class="auth-tab" data-action="tab" data-mode="signup">Đăng ký</button>' +
         '</div>' +
+        '<div class="auth-idtype">' +
+          '<button type="button" class="auth-idbtn is-active" data-action="idtype" data-type="email">Email</button>' +
+          '<button type="button" class="auth-idbtn" data-action="idtype" data-type="phone">Số điện thoại</button>' +
+        '</div>' +
         '<input type="text" id="authName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" hidden />' +
-        '<input type="email" id="authEmail" class="auth-input" placeholder="Email" required autocomplete="email" />' +
+        '<input type="email" id="authIdentity" class="auth-input" placeholder="Email" required autocomplete="email" inputmode="email" />' +
         '<input type="password" id="authPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required minlength="6" autocomplete="current-password" />' +
         '<div class="auth-email-row">' +
           '<span class="auth-msg" id="authMsg" role="status"></span>' +
@@ -1014,6 +1032,25 @@
     if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
     var submit = form.querySelector('#authSubmit');
     if (submit) submit.textContent = (mode === 'signup') ? 'Đăng ký' : 'Đăng nhập';
+  }
+
+  function switchIdType(type) {
+    var form = document.getElementById('authEmailForm');
+    if (!form) return;
+    var phone = (type === 'phone');
+    form.setAttribute('data-idtype', phone ? 'phone' : 'email');
+    Array.prototype.forEach.call(form.querySelectorAll('.auth-idbtn'), function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-type') === (phone ? 'phone' : 'email'));
+    });
+    var id = form.querySelector('#authIdentity');
+    if (!id) return;
+    id.type = phone ? 'tel' : 'email';
+    id.placeholder = phone ? '+84 9xx xxx xxx' : 'Email';
+    id.setAttribute('inputmode', phone ? 'tel' : 'email');
+    id.setAttribute('autocomplete', phone ? 'tel' : 'email');
+    id.value = '';
+    var m = form.querySelector('#authMsg');
+    if (m) m.textContent = '';
   }
 
   function renderCompose() {
@@ -1244,13 +1281,26 @@
 
   function onAuthEmailSubmit(form) {
     var mode = form.getAttribute('data-mode') || 'signin';
-    var email = fieldVal(form, '#authEmail');
+    var idtype = form.getAttribute('data-idtype') || 'email';
+    var identity = fieldVal(form, '#authIdentity');
     var pass = fieldVal(form, '#authPassword');
     var name = fieldVal(form, '#authName');
     var msg = form.querySelector('#authMsg');
     var submit = form.querySelector('#authSubmit');
-    if (!email || pass.length < 6) {
-      if (msg) msg.textContent = 'Kiểm tra lại email và mật khẩu (tối thiểu 6 ký tự).';
+
+    var email;
+    if (idtype === 'phone') {
+      email = phoneToEmail(identity);
+      if (!email) {
+        if (msg) msg.textContent = 'Số điện thoại phải kèm mã quốc gia, ví dụ +84…';
+        return;
+      }
+    } else {
+      email = identity;
+      if (!email) { if (msg) msg.textContent = 'Nhập email của bạn.'; return; }
+    }
+    if (pass.length < 6) {
+      if (msg) msg.textContent = 'Mật khẩu cần tối thiểu 6 ký tự.';
       return;
     }
     if (mode === 'signup' && nameLooksLikeAdmin(name, email)) {
@@ -1529,6 +1579,7 @@
       else if (act === 'email') renderEmailForm();
       else if (act === 'cancel') renderAuthBar(readerEl.getAttribute('data-chapter-id'));
       else if (act === 'tab') switchAuthTab(a.getAttribute('data-mode'));
+      else if (act === 'idtype') switchIdType(a.getAttribute('data-type'));
       else if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);

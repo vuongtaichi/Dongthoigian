@@ -145,8 +145,8 @@ body {
 /* ---------- Sidebar ---------- */
 
 .sidebar {
-  flex: 0 0 300px;
-  width: 300px;
+  flex: 0 0 330px;
+  width: 330px;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
@@ -698,7 +698,7 @@ body {
     height: 100vh;
     height: 100dvh;
     transform: translateX(-100%);
-    width: min(86vw, 340px);
+    width: min(88vw, 374px);
     transition: transform .28s ease;
     box-shadow: var(--shadow);
   }
@@ -955,6 +955,31 @@ body {
 .auth-tab.is-active {
   color: var(--ink);
   border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Email / phone toggle — a small segmented control */
+.auth-idtype {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.auth-idbtn {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: .9em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: .28rem .8rem;
+  border-radius: 999px;
+}
+.auth-idbtn.is-active {
+  background: var(--accent);
+  color: var(--paper);
   font-weight: 600;
 }
 
