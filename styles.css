@@ -3,9 +3,13 @@
    Color tokens live in :root / the dark-mode blocks below.
    Change the hex values there to re-theme the whole site.
 
-   Fonts: 'Literata' (serif, reading body) + 'Be Vietnam Pro' (UI / sans) —
-   both have solid Vietnamese diacritic coverage, loaded via Google Fonts
-   in index.html. Change --font-body / --font-ui below to swap them.
+   Fonts: system fonts only, no web fonts. The reading body uses the local
+   serif (Times New Roman on Windows) and the UI uses the local sans
+   (Segoe UI on Windows) — both have full, correctly-composed Vietnamese
+   diacritic coverage. This is deliberate: it keeps the hosted site
+   (GitHub Pages / Vercel) rendering identically to the published Claude
+   Artifact, which can't load web fonts. Change --font-body / --font-ui
+   below to swap them.
    ========================================================================== */
 
 :root {
@@ -37,8 +41,8 @@
      the mark together as two glyphs — and mispositions the mark when it
      does. Times New Roman (and Segoe UI, in the UI stack) both have full,
      correctly-composed Vietnamese coverage on Windows. */
-  --font-body: 'Literata', 'Times New Roman', Georgia, 'Iowan Old Style', serif;
-  --font-ui: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Times New Roman', Georgia, 'Iowan Old Style', serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Dark theme: applied automatically when the OS/browser prefers dark
