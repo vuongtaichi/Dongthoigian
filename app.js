@@ -393,25 +393,42 @@
       .replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  // Avatar colour palette for the initials circle. A mix of mid-tone and
+  // light/pastel colours; the stored `avatar_hue` is an INDEX into this list
+  // (0..N-1). Light entries (l >= 62) get dark text.
+  var AVATAR_PALETTE = [
+    { h: 8,   l: 46 }, { h: 28,  l: 46 }, { h: 145, l: 40 }, { h: 200, l: 44 },
+    { h: 235, l: 50 }, { h: 280, l: 46 }, { h: 330, l: 46 }, { h: 95,  l: 40 },
+    { h: 8,   l: 80 }, { h: 38,  l: 78 }, { h: 95,  l: 76 }, { h: 150, l: 76 },
+    { h: 195, l: 78 }, { h: 250, l: 82 }, { h: 300, l: 80 }, { h: 340, l: 82 }
+  ];
+
+  function avatarVars(idx) {
+    var n = AVATAR_PALETTE.length;
+    var c = AVATAR_PALETTE[((idx % n) + n) % n];
+    var fg = c.l >= 62 ? '#1b2436' : '#fff';
+    return '--avatar-bg:hsl(' + c.h + ' 58% ' + c.l + '%);--avatar-fg:' + fg;
+  }
+
+  function idToPaletteIndex(id, name) {
+    var s = String(id || name || '?');
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 4096;
+    return h % AVATAR_PALETTE.length;
+  }
+
   // A round avatar: the profile photo if there is one (Google sign-ins),
-  // otherwise the first letter of the name on a colour. The colour is the
-  // saved `hue` if given, else one derived from the user id.
-  function avatarHtml(name, url, id, cls, hue) {
+  // otherwise the first letter of the name on a colour — the saved palette
+  // index if given, else one derived from the user id.
+  function avatarHtml(name, url, id, cls, idx) {
     var extra = cls ? ' ' + cls : '';
     if (url) {
       return '<img class="avatar' + extra + '" src="' + escapeAttr(url) +
         '" alt="" loading="lazy" referrerpolicy="no-referrer">';
     }
     var initial = String(name || '?').trim().charAt(0).toUpperCase() || '?';
-    var h;
-    if (hue != null) {
-      h = hue;
-    } else {
-      var s = String(id || name || '?');
-      h = 0;
-      for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
-    }
-    return '<span class="avatar avatar-initial' + extra + '" style="--avatar-h:' + h +
+    var pi = (idx != null) ? idx : idToPaletteIndex(id, name);
+    return '<span class="avatar avatar-initial' + extra + '" style="' + avatarVars(pi) +
       '" aria-hidden="true">' + escapeHtml(initial) + '</span>';
   }
 
@@ -754,15 +771,14 @@
 
   // ---- profile editor (display name + avatar colour — no image upload) ----
 
-  var AVATAR_HUES = [8, 32, 90, 150, 190, 235, 280, 330];
-  var _profileDraftHue = null;
+  var _profileDraftHue = null;   // palette index chosen in the editor
 
   function ensureProfileModal() {
     if (document.getElementById('profileModal')) return;
     var host = document.querySelector('.app') || document.body;
-    var swatches = AVATAR_HUES.map(function (h) {
-      return '<button type="button" class="profile-swatch" data-hue="' + h +
-        '" style="--avatar-h:' + h + '" aria-label="Màu ' + h + '"></button>';
+    var swatches = AVATAR_PALETTE.map(function (_c, i) {
+      return '<button type="button" class="profile-swatch" data-hue="' + i +
+        '" style="' + avatarVars(i) + '" aria-label="Màu ' + (i + 1) + '"></button>';
     }).join('');
     var m = document.createElement('div');
     m.className = 'profile-modal';
@@ -782,7 +798,7 @@
         '</div>' +
         '<p class="profile-modal-msg" id="profileMsg" role="status"></p>' +
         '<div class="profile-modal-btns">' +
-          '<button type="button" class="profile-signout" data-action="signout">Đăng xuất</button>' +
+          '<button type="button" class="auth-btn profile-signout" data-action="signout">Đăng xuất</button>' +
           '<span class="profile-modal-btns-right">' +
             '<button type="button" class="comment-act" data-action="profile-cancel">Huỷ</button>' +
             '<button type="button" class="auth-btn" data-action="profile-save">Lưu</button>' +
@@ -817,7 +833,9 @@
     var m = document.getElementById('profileModal');
     document.getElementById('profileName').value = authUser.name || '';
     document.getElementById('profileMsg').textContent = '';
-    _profileDraftHue = (authUser.avatarHue != null) ? authUser.avatarHue : null;
+    _profileDraftHue = (authUser.avatarHue != null)
+      ? authUser.avatarHue
+      : idToPaletteIndex(authUser.id, authUser.name);
     // Colour choice only matters when there's no photo (i.e. email sign-ups).
     var colourBlock = document.getElementById('profileColour');
     colourBlock.hidden = !!authUser.avatar;
@@ -841,7 +859,10 @@
     if (!name) { if (msg) msg.textContent = 'Tên không được để trống.'; return; }
     var patch = {};
     if (name !== authUser.name) patch.display_name = name;
-    if (!authUser.avatar && _profileDraftHue != null && _profileDraftHue !== authUser.avatarHue) {
+    var currentIdx = (authUser.avatarHue != null)
+      ? authUser.avatarHue
+      : idToPaletteIndex(authUser.id, authUser.name);
+    if (!authUser.avatar && _profileDraftHue != null && _profileDraftHue !== currentIdx) {
       patch.avatar_hue = _profileDraftHue;
     }
     if (!Object.keys(patch).length) { closeProfileModal(); return; }
