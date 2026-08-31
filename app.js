@@ -718,20 +718,19 @@
     }
   }
 
-  // Avatar + "Xin chào, {name}  ·  Đăng xuất" under the site title in the
-  // sidebar. The avatar + name open the profile editor. Runs on auth change.
+  // Avatar + "Xin chào, {name}" under the site title. Clicking it opens the
+  // profile editor (which is also where "Đăng xuất" now lives). On auth change.
   function renderMastheadAuth() {
     var el = document.getElementById('mastheadAuth');
     if (!el) return;
     if (authUser) {
       el.hidden = false;
       el.innerHTML =
-        '<button type="button" class="masthead-profile" data-action="profile" title="Chỉnh sửa hồ sơ">' +
+        '<button type="button" class="masthead-profile" data-action="profile" title="Hồ sơ của bạn">' +
           avatarHtml(authUser.name, authUser.avatar, authUser.id, 'masthead-avatar',
             authUser.avatar ? null : authUser.avatarHue) +
           '<span class="masthead-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
-        '</button>' +
-        '<button type="button" class="masthead-signout" data-action="signout">Đăng xuất</button>';
+        '</button>';
     } else {
       el.hidden = true;
       el.innerHTML = '';
@@ -768,8 +767,11 @@
         '</div>' +
         '<p class="profile-modal-msg" id="profileMsg" role="status"></p>' +
         '<div class="profile-modal-btns">' +
-          '<button type="button" class="comment-act" data-action="profile-cancel">Huỷ</button>' +
-          '<button type="button" class="auth-btn" data-action="profile-save">Lưu</button>' +
+          '<button type="button" class="profile-signout" data-action="signout">Đăng xuất</button>' +
+          '<span class="profile-modal-btns-right">' +
+            '<button type="button" class="comment-act" data-action="profile-cancel">Huỷ</button>' +
+            '<button type="button" class="auth-btn" data-action="profile-save">Lưu</button>' +
+          '</span>' +
         '</div>' +
       '</div>';
     host.appendChild(m);
@@ -1171,7 +1173,7 @@
       if (!inReactionBar) closeReactionPopovers();
       if (!a) return;
       var act = a.getAttribute('data-action');
-      if (act === 'signout') doSignOut();
+      if (act === 'signout') { closeProfileModal(); doSignOut(); }
       else if (act === 'profile') openProfileModal();
       else if (act === 'profile-cancel') closeProfileModal();
       else if (act === 'profile-save') onProfileSave();
