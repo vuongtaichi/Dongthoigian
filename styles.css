@@ -437,7 +437,20 @@ body {
   letter-spacing: .02em;
 }
 
-.sidebar-footer .visit-count { color: var(--sidebar-text-dim); }
+/* footer visitor count: a plain white pill, black text, eye icon — not clickable */
+.sidebar-footer .visit-count {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-left: .55rem;
+  padding: .12rem .55rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font-size: .82rem;
+  vertical-align: middle;
+}
+.sidebar-footer .visit-count svg { flex: 0 0 auto; width: 1em; height: 1em; }
 
 .drawer-toggle {
   display: none;

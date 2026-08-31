@@ -327,10 +327,11 @@
         if (n === null) return;
         var el = document.querySelector('.sidebar-footer .copyright');
         if (!el || el.querySelector('.visit-count')) return;
-        var span = document.createElement('span');
-        span.className = 'visit-count';
-        span.textContent = ' · ' + n.toLocaleString('vi-VN') + ' lượt xem';
-        el.appendChild(span);
+        var pill = document.createElement('span');
+        pill.className = 'visit-count';
+        pill.setAttribute('aria-label', n.toLocaleString('vi-VN') + ' lượt xem');
+        pill.innerHTML = EYE_SVG + '<span>' + n.toLocaleString('vi-VN') + ' lượt xem</span>';
+        el.appendChild(pill);
       });
     });
   }
