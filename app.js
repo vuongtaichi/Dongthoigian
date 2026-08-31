@@ -298,41 +298,22 @@
     return el ? (el.value || '').trim() : '';
   }
 
-  // A random per-browser id, kept in localStorage. Used only for the footer
-  // visitor count — not tied to a signed-in account.
-  function getVisitorId() {
-    try {
-      var k = 'nkltt:visitorId';
-      var v = localStorage.getItem(k);
-      if (!v) {
-        v = (window.crypto && crypto.randomUUID)
-          ? crypto.randomUUID()
-          : 'v-' + Date.now().toString(36) + Math.random().toString(36).slice(2);
-        localStorage.setItem(k, v);
-      }
-      return v;
-    } catch (e) {
-      return 'v-' + Math.random().toString(36).slice(2);
-    }
-  }
-
   // Records a visit and shows the total next to © in the sidebar footer.
-  // One row per (visitor, day) — a repeat insert the same day hits the unique
-  // index and is ignored, so reloading doesn't inflate the count.
+  // The server-side RPC identifies the visitor by a per-day hash of IP +
+  // User-Agent, so Incognito on the same machine counts once, and it returns
+  // the running total. One count per visitor per day.
   function recordVisit() {
-    if (!sb) return;
-    sb.from('visits').insert({ visitor_id: getVisitorId() }).then(function () {
-      sb.from('visits').select('visitor_id', { count: 'exact', head: true }).then(function (res) {
-        var n = res && typeof res.count === 'number' ? res.count : null;
-        if (n === null) return;
-        var el = document.querySelector('.sidebar-footer .copyright');
-        if (!el || el.querySelector('.visit-count')) return;
-        var pill = document.createElement('span');
-        pill.className = 'visit-count';
-        pill.setAttribute('aria-label', n.toLocaleString('vi-VN') + ' lượt xem');
-        pill.innerHTML = EYE_SVG + '<span>' + n.toLocaleString('vi-VN') + ' lượt xem</span>';
-        el.appendChild(pill);
-      });
+    if (!sb || !sb.rpc) return;
+    sb.rpc('record_visit').then(function (res) {
+      var n = res && !res.error && typeof res.data === 'number' ? res.data : null;
+      if (n === null) return;
+      var el = document.querySelector('.sidebar-footer .copyright');
+      if (!el || el.querySelector('.visit-count')) return;
+      var pill = document.createElement('span');
+      pill.className = 'visit-count';
+      pill.setAttribute('aria-label', n.toLocaleString('vi-VN') + ' lượt xem');
+      pill.innerHTML = EYE_SVG + '<span>' + n.toLocaleString('vi-VN') + ' lượt xem</span>';
+      el.appendChild(pill);
     });
   }
 
@@ -521,36 +502,24 @@
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 
   // Per-chapter view count: a non-clickable "pill" (eye + number) at the front
-  // of the reaction row. Counts re-reads — one row per (chapter, visitor, day),
-  // so reloading or navigating back the same day never bumps it, but opening
-  // the chapter again on a later day does. If the table is missing, the pill
-  // removes itself.
-  var _countedViews = {};
+  // of the reaction row. The server-side RPC records + returns the count, keyed
+  // by a per-day IP+User-Agent hash: one per visitor per chapter per day, and
+  // Incognito on the same machine doesn't double-count. If the RPC is missing,
+  // the pill removes itself.
   function loadChapterViews(chapterId, token) {
-    function apply() {
-      sb.from('chapter_views')
-        .select('id', { count: 'exact', head: true })
-        .eq('chapter_id', chapterId)
-        .then(function (res) {
-          if (token !== engToken) return;
-          var pill = document.getElementById('chapterViews');
-          if (!pill) return;
-          var n = res && !res.error && typeof res.count === 'number' ? res.count : null;
-          if (n === null) {
-            if (pill.parentNode) pill.parentNode.removeChild(pill);
-            return;
-          }
-          var c = pill.querySelector('.reaction-count');
-          if (c) c.textContent = n.toLocaleString('vi-VN');
-        });
-    }
-    if (_countedViews[chapterId]) { apply(); return; }
-    _countedViews[chapterId] = true;
-    // insert every load; the DB drops it if this visitor already has a row for
-    // this chapter today (unique on chapter_id + visitor_id + view_date)
-    sb.from('chapter_views')
-      .insert({ chapter_id: chapterId, visitor_id: getVisitorId() })
-      .then(apply);
+    if (!sb.rpc) return;
+    sb.rpc('record_chapter_view', { p_chapter_id: chapterId }).then(function (res) {
+      if (token !== engToken) return;
+      var pill = document.getElementById('chapterViews');
+      if (!pill) return;
+      var n = res && !res.error && typeof res.data === 'number' ? res.data : null;
+      if (n === null) {
+        if (pill.parentNode) pill.parentNode.removeChild(pill);
+        return;
+      }
+      var c = pill.querySelector('.reaction-count');
+      if (c) c.textContent = n.toLocaleString('vi-VN');
+    });
   }
 
   var SMILE_SVG =
