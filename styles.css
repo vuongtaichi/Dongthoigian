@@ -600,11 +600,16 @@ body {
    Reactions + comments (only present when the Supabase feature is enabled)
    ========================================================================== */
 
+/* Everything in this section uses the diary's serif at the chapter body size,
+   so the view count, emoji counts, prompt, buttons and comments all read as
+   one consistent block. */
 .engagement {
   margin-top: 3.5rem;
   padding-top: 2.5rem;
   border-top: 1px solid var(--border);
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  line-height: 1.8;
 }
 
 /* View count: a non-interactive pill (eye + number) leading the reaction row */
@@ -631,14 +636,13 @@ body {
 .reaction {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
+  gap: .45rem;
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--ink-soft);
   border-radius: 999px;
-  padding: .4rem .85rem;
+  padding: .3rem .9rem;
   font: inherit;
-  font-size: .95rem;
   cursor: pointer;
   transition: border-color .12s ease, background .12s ease, color .12s ease;
 }
@@ -654,7 +658,7 @@ body {
 
 .reaction:disabled { cursor: default; }
 
-.reaction-emoji { font-size: 1.05rem; line-height: 1; }
+.reaction-emoji { line-height: 1; }
 .reaction-count { font-variant-numeric: tabular-nums; }
 
 /* ---------- Auth bar ---------- */
@@ -665,7 +669,6 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: .6rem;
-  font-size: .92rem;
   color: var(--ink-soft);
   background: var(--accent-soft-bg);
   border: 1px solid var(--border);
@@ -701,9 +704,8 @@ body {
   background: var(--accent);
   color: var(--paper);
   border-radius: 8px;
-  padding: .45rem .85rem;
+  padding: .45rem 1rem;
   font: inherit;
-  font-size: .9rem;
   cursor: pointer;
 }
 
@@ -721,19 +723,13 @@ body {
 
 .auth-btn.auth-google svg { flex: 0 0 auto; }
 
-/* Sign-in prompt reads in the diary's serif, at the chapter body size */
-.auth-prompt {
-  font-family: var(--font-body);
-  font-size: 1.3rem;
-  line-height: 1.5;
-}
+.auth-prompt { line-height: 1.45; }
 
 .auth-cancel {
   border: none;
   background: none;
   color: var(--ink-faint);
   font: inherit;
-  font-size: .85rem;
   text-decoration: underline;
   cursor: pointer;
   padding: .1rem;
@@ -770,7 +766,6 @@ body {
   border-radius: 8px;
   padding: .55rem .75rem;
   font: inherit;
-  font-size: .95rem;
   background: var(--card);
   color: var(--ink);
 }
@@ -782,15 +777,14 @@ body {
   gap: .6rem;
 }
 
-.auth-msg { font-size: .85rem; color: var(--ink-faint); }
+.auth-msg { color: var(--ink-faint); }
 
 /* ---------- Comments ---------- */
 
 .comments { margin-top: 2rem; }
 
 .comments-title {
-  font-family: var(--font-ui);
-  font-size: 1.05rem;
+  font-size: inherit;
   font-weight: 700;
   color: var(--ink);
   margin: 0 0 1rem;
@@ -801,9 +795,6 @@ body {
 .compose-locked {
   margin: 0;
   color: var(--ink-faint);
-  font-family: var(--font-body);
-  font-size: 1.3rem;
-  line-height: 1.5;
 }
 
 .comment-form { display: flex; flex-direction: column; gap: .6rem; }
@@ -813,9 +804,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: .7rem .8rem;
-  font-family: var(--font-body);
-  font-size: 1.3rem;
-  line-height: 1.8;
+  font: inherit;
   background: var(--card);
   color: var(--ink);
   resize: vertical;
@@ -829,16 +818,15 @@ body {
   gap: .6rem;
 }
 
-.comment-status { font-size: .85rem; color: var(--ink-faint); }
+.comment-status { color: var(--ink-faint); }
 
 .comment-submit {
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--paper);
   border-radius: 8px;
-  padding: .5rem 1.1rem;
+  padding: .5rem 1.2rem;
   font: inherit;
-  font-size: .92rem;
   cursor: pointer;
 }
 
@@ -853,7 +841,7 @@ body {
   gap: 1.5rem;
 }
 
-.comment-empty { color: var(--ink-faint); font-size: .92rem; }
+.comment-empty { color: var(--ink-faint); }
 
 .comment-head {
   display: flex;
@@ -862,7 +850,7 @@ body {
   margin-bottom: .3rem;
 }
 
-.comment-author { font-weight: 600; color: var(--ink); font-size: .95rem; }
+.comment-author { font-weight: 700; color: var(--ink); }
 
 .comment.is-mine .comment-author::after {
   content: ' · bạn';
@@ -870,14 +858,9 @@ body {
   font-weight: 400;
 }
 
-.comment-time { font-size: .8rem; color: var(--ink-faint); }
+.comment-time { color: var(--ink-faint); }
 
-.comment-text {
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 1.3rem;
-  line-height: 1.8;
-}
+.comment-text { color: var(--ink); }
 
 .comment-actions { margin-top: .35rem; }
 
@@ -886,7 +869,6 @@ body {
   background: none;
   color: var(--ink-faint);
   font: inherit;
-  font-size: .82rem;
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
