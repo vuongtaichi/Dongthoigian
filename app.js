@@ -362,6 +362,7 @@
     var m = u.user_metadata || {};
     authUser = {
       id: u.id,
+      email: (u.email || '').toLowerCase(),
       name: displayNameFromUser(u),
       avatar: m.avatar_url || m.picture || null,   // Google photo, if any
       avatarHue: null,
@@ -463,7 +464,7 @@
 
   var _commentBody = {};   // id -> raw body text, for the inline editor
 
-  function commentLi(c) {
+  function commentLi(c, isReply) {
     var mine = authUser && c.user_id === authUser.id;
     var canDelete = mine || (authUser && authUser.isAdmin);
     var prof = c.profiles || {};
@@ -471,15 +472,15 @@
     var avatar = c._avatar !== undefined ? c._avatar : (prof.avatar_url || null);
     var hue = c._hue !== undefined ? c._hue : (prof.avatar_hue != null ? prof.avatar_hue : null);
     _commentBody[c.id] = c.body || '';
-    var actions = '';
-    if (mine || canDelete) {
-      actions = '<div class="comment-actions">' +
-        (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
-        (canDelete ? '<button type="button" class="comment-act" data-action="del">' +
-          (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button>' : '') +
-        '</div>';
-    }
-    return '<li class="comment' + (mine ? ' is-mine' : '') + '" data-id="' + c.id + '">' +
+    var actions = '<div class="comment-actions">' +
+      (authUser ? '<button type="button" class="comment-act" data-action="reply">Trả lời</button>' : '') +
+      (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
+      (canDelete ? '<button type="button" class="comment-act" data-action="del">' +
+        (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button>' : '') +
+      '</div>';
+    var replies = isReply ? '' : '<ul class="comment-replies" data-parent="' + c.id + '"></ul>';
+    return '<li class="comment' + (isReply ? ' comment-reply' : '') + (mine ? ' is-mine' : '') +
+        '" data-id="' + c.id + '">' +
         avatarHtml(name, avatar, c.user_id, 'comment-avatar', hue) +
         '<div class="comment-body-col">' +
           '<div class="comment-head">' +
@@ -489,6 +490,7 @@
           '</div>' +
           '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
           actions +
+          replies +
         '</div>' +
       '</li>';
   }
@@ -852,12 +854,21 @@
     if (m) m.hidden = true;
   }
 
+  var ADMIN_EMAIL = 'vuongtaichi@gmail.com';
+  function nameLooksLikeAdmin(name, email) {
+    return /admin|quản trị/i.test(name) && (email || '').toLowerCase() !== ADMIN_EMAIL;
+  }
+
   function onProfileSave() {
     if (!authUser) return;
     var nameEl = document.getElementById('profileName');
     var msg = document.getElementById('profileMsg');
     var name = (nameEl.value || '').trim().slice(0, 60);
     if (!name) { if (msg) msg.textContent = 'Tên không được để trống.'; return; }
+    if (nameLooksLikeAdmin(name, authUser.email)) {
+      if (msg) msg.textContent = 'Tên hiển thị không được chứa “Admin”.';
+      return;
+    }
     var patch = {};
     if (name !== authUser.name) patch.display_name = name;
     var currentIdx = (authUser.avatarHue != null)
@@ -969,11 +980,11 @@
     var list = document.getElementById('commentList');
     if (list) list.innerHTML = '<li class="comment-empty">Đang tải bình luận...</li>';
     sb.from('comments')
-      .select('id, body, created_at, edited_at, user_id')
+      .select('*')
       .eq('chapter_id', chapterId)
       .eq('approved', true)
-      .order('created_at', { ascending: false })
-      .limit(300)
+      .order('created_at', { ascending: true })
+      .limit(600)
       .then(function (res) {
         if (token !== engToken) return;
         var list2 = document.getElementById('commentList');
@@ -996,9 +1007,35 @@
           var l = document.getElementById('commentList');
           if (!l) return;
           rows.forEach(function (r) { if (profs[r.user_id]) r.profiles = profs[r.user_id]; });
-          l.innerHTML = rows.map(commentLi).join('');
+
+          // split into top-level comments (newest first) and replies (oldest first)
+          var tops = [], byParent = {};
+          rows.forEach(function (r) {
+            if (r.parent_id) (byParent[r.parent_id] || (byParent[r.parent_id] = [])).push(r);
+            else tops.push(r);
+          });
+          tops.sort(function (a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
+
+          l.innerHTML = tops.map(function (c) { return commentLi(c); }).join('');
+          tops.forEach(function (c) {
+            var kids = byParent[c.id];
+            if (!kids || !kids.length) return;
+            var box = l.querySelector('.comment-replies[data-parent="' + c.id + '"]');
+            if (box) box.innerHTML = kids.map(function (k) { return commentLi(k, true); }).join('');
+          });
         });
       });
+  }
+
+  // The top-level comment a "Trả lời" belongs under (replies are one level deep).
+  function topLevelCommentId(el) {
+    var li = el && el.closest && el.closest('.comment');
+    if (!li) return null;
+    if (li.classList.contains('comment-reply')) {
+      var box = li.closest('.comment-replies');
+      return box ? box.getAttribute('data-parent') : null;
+    }
+    return li.getAttribute('data-id');
   }
 
   function bumpCount(delta) {
@@ -1036,6 +1073,10 @@
     var submit = form.querySelector('#authSubmit');
     if (!email || pass.length < 6) {
       if (msg) msg.textContent = 'Kiểm tra lại email và mật khẩu (tối thiểu 6 ký tự).';
+      return;
+    }
+    if (mode === 'signup' && nameLooksLikeAdmin(name, email)) {
+      if (msg) msg.textContent = 'Tên hiển thị không được chứa “Admin”.';
       return;
     }
     if (submit) submit.disabled = true;
@@ -1106,6 +1147,73 @@
       if (li.parentNode) li.parentNode.removeChild(li);
       bumpCount(-1);
     });
+  }
+
+  // ---- replies (one level deep) ----
+
+  function onCommentReplyStart(btn) {
+    if (!authUser) { flashAuthBar(); return; }
+    var li = btn.closest('.comment');
+    if (!li) return;
+    var col = li.querySelector('.comment-body-col');
+    if (!col || col.querySelector(':scope > .comment-reply-form')) return;
+    var parentId = topLevelCommentId(btn);
+    if (!parentId) return;
+    var form = document.createElement('form');
+    form.className = 'comment-reply-form';
+    form.setAttribute('data-parent', parentId);
+    form.innerHTML =
+      '<textarea class="comment-body" rows="2" maxlength="' + COMMENT_MAX + '" placeholder="Trả lời..." required></textarea>' +
+      '<div class="comment-form-row">' +
+        '<span class="comment-status comment-reply-status" role="status"></span>' +
+        '<span class="comment-edit-btns">' +
+          '<button type="button" class="comment-act" data-action="reply-cancel">Huỷ</button>' +
+          '<button type="submit" class="comment-submit">Gửi</button>' +
+        '</span>' +
+      '</div>';
+    var actionsEl = li.querySelector('.comment-actions');
+    if (actionsEl && actionsEl.parentNode === col) col.insertBefore(form, actionsEl.nextSibling);
+    else col.appendChild(form);
+    form.querySelector('textarea').focus();
+  }
+
+  function onCommentReplyCancel(btn) {
+    var form = btn.closest('.comment-reply-form');
+    if (form && form.parentNode) form.parentNode.removeChild(form);
+  }
+
+  function onCommentReplySubmit(form) {
+    if (!authUser) return;
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    var parentId = form.getAttribute('data-parent');
+    var ta = form.querySelector('textarea');
+    var statusEl = form.querySelector('.comment-reply-status');
+    var btn = form.querySelector('button[type="submit"]');
+    var body = (ta.value || '').trim();
+    if (!body) return;
+    if (body.length > COMMENT_MAX) { if (statusEl) statusEl.textContent = 'Bình luận quá dài.'; return; }
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Đang gửi...';
+    sb.from('comments')
+      .insert({ chapter_id: chapterId, user_id: authUser.id, body: body, parent_id: parentId })
+      .select('*')
+      .single()
+      .then(function (res) {
+        if (btn) btn.disabled = false;
+        if (res.error || !res.data) {
+          if (statusEl) statusEl.textContent = 'Không gửi được, thử lại nhé.';
+          return;
+        }
+        var row = res.data;
+        row._name = authUser.name;
+        row._avatar = authUser.avatar || null;
+        row._hue = authUser.avatar ? null : authUser.avatarHue;
+        var list = document.getElementById('commentList');
+        var box = list && list.querySelector('.comment-replies[data-parent="' + parentId + '"]');
+        if (box) box.insertAdjacentHTML('beforeend', commentLi(row, true));
+        bumpCount(1);
+        if (form.parentNode) form.parentNode.removeChild(form);
+      });
   }
 
   // ---- inline comment editing ----
@@ -1245,6 +1353,8 @@
       else if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);
+      else if (act === 'reply') onCommentReplyStart(a);
+      else if (act === 'reply-cancel') onCommentReplyCancel(a);
       else if (act === 'react-add') onReactionAdd();
       else if (act === 'react-choice') onReactionChoice(a);
       else if (act === 'react-who') onReactionWho(a);
@@ -1256,6 +1366,7 @@
       if (f.id === 'commentForm') { ev.preventDefault(); onCommentSubmit(f); }
       else if (f.id === 'authEmailForm') { ev.preventDefault(); onAuthEmailSubmit(f); }
       else if (f.classList && f.classList.contains('comment-edit-form')) { ev.preventDefault(); onCommentEditSave(f); }
+      else if (f.classList && f.classList.contains('comment-reply-form')) { ev.preventDefault(); onCommentReplySubmit(f); }
     });
 
     function refresh() {

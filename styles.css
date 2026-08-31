@@ -192,7 +192,7 @@ body {
   align-items: center;
   gap: .3rem .7rem;
   font-family: var(--font-ui);
-  font-size: .9rem;
+  font-size: 1.02rem;
   color: var(--sidebar-text-dim);
 }
 
@@ -1049,6 +1049,26 @@ body {
 .comment { display: flex; gap: .8rem; align-items: flex-start; }
 .comment-body-col { min-width: 0; flex: 1 1 auto; }
 .comment-avatar { margin-top: .15rem; }
+
+/* replies — one level, indented with a rule on the left */
+.comment-replies {
+  list-style: none;
+  margin: .9rem 0 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.comment-replies:empty { display: none; }
+.comment-reply .comment-avatar { width: 1.8rem; height: 1.8rem; }
+
+.comment-reply-form {
+  margin-top: .7rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
 
 .comment-head {
   display: flex;
