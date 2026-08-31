@@ -947,7 +947,7 @@ body {
   color: var(--ink);
 }
 
-/* stop Chrome's autofill from tinting the field and from using its own font */
+/* stop Chrome's autofill from tinting the field a low-contrast colour */
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
@@ -955,8 +955,14 @@ body {
   -webkit-box-shadow: 0 0 0 100px var(--card) inset;
   -webkit-text-fill-color: var(--ink);
   caret-color: var(--ink);
-  font-family: var(--font-body) !important;
-  font-size: inherit !important;
+}
+
+/* Chrome ignores font rules on :-webkit-autofill, so app.js re-sets the value
+   to drop the pseudo-state. This .001s animation is the hook it listens for. */
+@keyframes nkltt-autofill { from { opacity: 1; } to { opacity: 1; } }
+.auth-input:-webkit-autofill {
+  animation-name: nkltt-autofill;
+  animation-duration: .001s;
 }
 
 .auth-email-row {

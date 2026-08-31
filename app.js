@@ -926,6 +926,23 @@
         '</div>' +
         '<button type="button" class="auth-cancel" data-action="cancel">Huỷ</button>' +
       '</form>';
+    defeatAutofillFont(bar);
+  }
+
+  // Chrome renders :-webkit-autofill fields in its own small font and ignores
+  // CSS font rules on that pseudo-class. Re-assigning .value the moment autofill
+  // fires clears the pseudo-state so the field picks up our font. The CSS side
+  // is an .001s animation on :-webkit-autofill named "nkltt-autofill".
+  function defeatAutofillFont(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('input.auth-input'), function (inp) {
+      inp.addEventListener('animationstart', function (e) {
+        if (e.animationName !== 'nkltt-autofill') return;
+        setTimeout(function () {
+          var v = inp.value;
+          if (v) { inp.value = ''; inp.value = v; }
+        }, 0);
+      });
+    });
   }
 
   function switchAuthTab(mode) {
