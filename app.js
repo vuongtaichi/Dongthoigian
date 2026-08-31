@@ -316,9 +316,9 @@
     }
   }
 
-  // Records this browser as a visitor (once — a repeat insert just hits the
-  // primary-key conflict and is ignored) and shows the total next to © in the
-  // sidebar footer.
+  // Records a visit and shows the total next to © in the sidebar footer.
+  // One row per (visitor, day) — a repeat insert the same day hits the unique
+  // index and is ignored, so reloading doesn't inflate the count.
   function recordVisit() {
     if (!sb) return;
     sb.from('visits').insert({ visitor_id: getVisitorId() }).then(function () {
