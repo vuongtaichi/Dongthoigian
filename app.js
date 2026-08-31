@@ -348,18 +348,55 @@
     var m = u.user_metadata || {};
     return m.full_name || m.name || (u.email ? u.email.split('@')[0] : 'Người đọc');
   }
-  // Sets `authUser` from the session, then fills in the display name and the
+  // Sets `authUser` from the session, then fills in the display name, avatar and
   // is_admin flag from the profiles row (calls `done` again once that lands).
   function applyAuthUser(u, done) {
     if (!u) { authUser = null; if (done) done(); return; }
-    authUser = { id: u.id, name: displayNameFromUser(u), isAdmin: false };
-    sb.from('profiles').select('display_name, is_admin').eq('id', u.id).single().then(function (res) {
+    var m = u.user_metadata || {};
+    authUser = {
+      id: u.id,
+      name: displayNameFromUser(u),
+      avatar: m.avatar_url || m.picture || null,   // Google photo, if any
+      avatarHue: null,
+      isAdmin: false
+    };
+    sb.from('profiles').select('display_name, avatar_url, avatar_hue, is_admin').eq('id', u.id).single().then(function (res) {
       if (authUser && res && res.data) {
         if (res.data.display_name) authUser.name = res.data.display_name;
+        if (res.data.avatar_url) authUser.avatar = res.data.avatar_url;
+        if (res.data.avatar_hue != null) authUser.avatarHue = res.data.avatar_hue;
         authUser.isAdmin = !!res.data.is_admin;
       }
       if (done) done();
     });
+  }
+
+  function escapeAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // A round avatar: the profile photo if there is one (Google sign-ins),
+  // otherwise the first letter of the name on a colour. The colour is the
+  // saved `hue` if given, else one derived from the user id.
+  function avatarHtml(name, url, id, cls, hue) {
+    var extra = cls ? ' ' + cls : '';
+    if (url) {
+      return '<img class="avatar' + extra + '" src="' + escapeAttr(url) +
+        '" alt="" loading="lazy" referrerpolicy="no-referrer">';
+    }
+    var initial = String(name || '?').trim().charAt(0).toUpperCase() || '?';
+    var h;
+    if (hue != null) {
+      h = hue;
+    } else {
+      var s = String(id || name || '?');
+      h = 0;
+      for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+    }
+    return '<span class="avatar avatar-initial' + extra + '" style="--avatar-h:' + h +
+      '" aria-hidden="true">' + escapeHtml(initial) + '</span>';
   }
 
   function translateAuthError(msg) {
@@ -391,7 +428,10 @@
   function commentLi(c) {
     var mine = authUser && c.user_id === authUser.id;
     var canDelete = mine || (authUser && authUser.isAdmin);
-    var name = c._name || (c.profiles && c.profiles.display_name) || 'Người đọc';
+    var prof = c.profiles || {};
+    var name = c._name || prof.display_name || 'Người đọc';
+    var avatar = c._avatar !== undefined ? c._avatar : (prof.avatar_url || null);
+    var hue = c._hue !== undefined ? c._hue : (prof.avatar_hue != null ? prof.avatar_hue : null);
     _commentBody[c.id] = c.body || '';
     var actions = '';
     if (mine || canDelete) {
@@ -402,13 +442,16 @@
         '</div>';
     }
     return '<li class="comment' + (mine ? ' is-mine' : '') + '" data-id="' + c.id + '">' +
-        '<div class="comment-head">' +
-          '<span class="comment-author">' + escapeHtml(name) + '</span>' +
-          '<span class="comment-time">' + escapeHtml(relTime(c.created_at)) +
-            (c.edited_at ? ' · đã sửa' : '') + '</span>' +
+        avatarHtml(name, avatar, c.user_id, 'comment-avatar', hue) +
+        '<div class="comment-body-col">' +
+          '<div class="comment-head">' +
+            '<span class="comment-author">' + escapeHtml(name) + '</span>' +
+            '<span class="comment-time">' + escapeHtml(relTime(c.created_at)) +
+              (c.edited_at ? ' · đã sửa' : '') + '</span>' +
+          '</div>' +
+          '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
+          actions +
         '</div>' +
-        '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
-        actions +
       '</li>';
   }
 
@@ -515,20 +558,124 @@
     }
   }
 
-  // "Xin chào, {name}  ·  Đăng xuất" under the site title in the sidebar.
-  // Runs on auth change, not per chapter.
+  // Avatar + "Xin chào, {name}  ·  Đăng xuất" under the site title in the
+  // sidebar. The avatar + name open the profile editor. Runs on auth change.
   function renderMastheadAuth() {
     var el = document.getElementById('mastheadAuth');
     if (!el) return;
     if (authUser) {
       el.hidden = false;
       el.innerHTML =
-        '<span class="masthead-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
+        '<button type="button" class="masthead-profile" data-action="profile" title="Chỉnh sửa hồ sơ">' +
+          avatarHtml(authUser.name, authUser.avatar, authUser.id, 'masthead-avatar',
+            authUser.avatar ? null : authUser.avatarHue) +
+          '<span class="masthead-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
+        '</button>' +
         '<button type="button" class="masthead-signout" data-action="signout">Đăng xuất</button>';
     } else {
       el.hidden = true;
       el.innerHTML = '';
     }
+  }
+
+  // ---- profile editor (display name + avatar colour — no image upload) ----
+
+  var AVATAR_HUES = [8, 32, 90, 150, 190, 235, 280, 330];
+  var _profileDraftHue = null;
+
+  function ensureProfileModal() {
+    if (document.getElementById('profileModal')) return;
+    var host = document.querySelector('.app') || document.body;
+    var swatches = AVATAR_HUES.map(function (h) {
+      return '<button type="button" class="profile-swatch" data-hue="' + h +
+        '" style="--avatar-h:' + h + '" aria-label="Màu ' + h + '"></button>';
+    }).join('');
+    var m = document.createElement('div');
+    m.className = 'profile-modal';
+    m.id = 'profileModal';
+    m.hidden = true;
+    m.innerHTML =
+      '<div class="profile-modal-backdrop" data-action="profile-cancel"></div>' +
+      '<div class="profile-modal-card" role="dialog" aria-modal="true" aria-label="Hồ sơ của bạn">' +
+        '<h3 class="profile-modal-title">Hồ sơ của bạn</h3>' +
+        '<div class="profile-avatar-preview" id="profileAvatarPreview"></div>' +
+        '<label class="profile-field"><span>Tên hiển thị</span>' +
+          '<input type="text" id="profileName" class="auth-input" maxlength="60">' +
+        '</label>' +
+        '<div class="profile-field profile-colour" id="profileColour" hidden>' +
+          '<span>Màu ảnh đại diện</span>' +
+          '<div class="profile-swatches">' + swatches + '</div>' +
+        '</div>' +
+        '<p class="profile-modal-msg" id="profileMsg" role="status"></p>' +
+        '<div class="profile-modal-btns">' +
+          '<button type="button" class="comment-act" data-action="profile-cancel">Huỷ</button>' +
+          '<button type="button" class="auth-btn" data-action="profile-save">Lưu</button>' +
+        '</div>' +
+      '</div>';
+    host.appendChild(m);
+    m.querySelector('#profileName').addEventListener('input', refreshProfilePreview);
+    m.querySelector('.profile-swatches').addEventListener('click', function (ev) {
+      var b = ev.target.closest('.profile-swatch');
+      if (!b) return;
+      _profileDraftHue = parseInt(b.getAttribute('data-hue'), 10);
+      Array.prototype.forEach.call(this.querySelectorAll('.profile-swatch'), function (s) {
+        s.classList.toggle('is-active', s === b);
+      });
+      refreshProfilePreview();
+    });
+  }
+
+  function refreshProfilePreview() {
+    var p = document.getElementById('profileAvatarPreview');
+    if (!p || !authUser) return;
+    var nameEl = document.getElementById('profileName');
+    var name = nameEl ? nameEl.value : authUser.name;
+    p.innerHTML = avatarHtml(name, authUser.avatar, authUser.id, 'avatar-lg',
+      authUser.avatar ? null : _profileDraftHue);
+  }
+
+  function openProfileModal() {
+    if (!authUser) return;
+    ensureProfileModal();
+    var m = document.getElementById('profileModal');
+    document.getElementById('profileName').value = authUser.name || '';
+    document.getElementById('profileMsg').textContent = '';
+    _profileDraftHue = (authUser.avatarHue != null) ? authUser.avatarHue : null;
+    // Colour choice only matters when there's no photo (i.e. email sign-ups).
+    var colourBlock = document.getElementById('profileColour');
+    colourBlock.hidden = !!authUser.avatar;
+    Array.prototype.forEach.call(m.querySelectorAll('.profile-swatch'), function (s) {
+      s.classList.toggle('is-active', parseInt(s.getAttribute('data-hue'), 10) === _profileDraftHue);
+    });
+    refreshProfilePreview();
+    m.hidden = false;
+  }
+
+  function closeProfileModal() {
+    var m = document.getElementById('profileModal');
+    if (m) m.hidden = true;
+  }
+
+  function onProfileSave() {
+    if (!authUser) return;
+    var nameEl = document.getElementById('profileName');
+    var msg = document.getElementById('profileMsg');
+    var name = (nameEl.value || '').trim().slice(0, 60);
+    if (!name) { if (msg) msg.textContent = 'Tên không được để trống.'; return; }
+    var patch = {};
+    if (name !== authUser.name) patch.display_name = name;
+    if (!authUser.avatar && _profileDraftHue != null && _profileDraftHue !== authUser.avatarHue) {
+      patch.avatar_hue = _profileDraftHue;
+    }
+    if (!Object.keys(patch).length) { closeProfileModal(); return; }
+    if (msg) msg.textContent = 'Đang lưu...';
+    sb.from('profiles').update(patch).eq('id', authUser.id).then(function (res) {
+      if (res.error) { if (msg) msg.textContent = 'Không lưu được, thử lại nhé.'; return; }
+      if (patch.display_name) authUser.name = patch.display_name;
+      if (patch.avatar_hue != null) authUser.avatarHue = patch.avatar_hue;
+      renderMastheadAuth();
+      closeProfileModal();
+    });
   }
 
   function renderEmailForm() {
@@ -589,7 +736,7 @@
     var list = document.getElementById('commentList');
     if (list) list.innerHTML = '<li class="comment-empty">Đang tải bình luận...</li>';
     sb.from('comments')
-      .select('id, body, created_at, edited_at, user_id, profiles(display_name)')
+      .select('id, body, created_at, edited_at, user_id, profiles(display_name, avatar_url, avatar_hue)')
       .eq('chapter_id', chapterId)
       .eq('approved', true)
       .order('created_at', { ascending: false })
@@ -721,6 +868,8 @@
         if (readerEl.getAttribute('data-chapter-id') === chapterId) {
           var row = res.data;
           row._name = authUser.name;
+          row._avatar = authUser.avatar || null;
+          row._hue = authUser.avatar ? null : authUser.avatarHue;
           prependComment(row);
         }
         setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 4000);
@@ -836,7 +985,7 @@
   function initEngagement() {
     if (!sb) return;
 
-    // Slot for "Xin chào … Đăng xuất", just under the site title in the sidebar.
+    // Slot for the avatar + "Xin chào … Đăng xuất", under the site title.
     var masthead = document.querySelector('.masthead');
     if (masthead && !document.getElementById('mastheadAuth')) {
       var slot = document.createElement('div');
@@ -847,11 +996,20 @@
       if (titleEl) masthead.insertBefore(slot, titleEl.nextSibling);
       else masthead.appendChild(slot);
     }
+    ensureProfileModal();
 
-    // The sign-out button lives in the sidebar now, outside #reader.
-    sidebarEl.addEventListener('click', function (ev) {
-      var a = ev.target.closest && ev.target.closest('[data-action="signout"]');
-      if (a) doSignOut();
+    // Sidebar (sign-out + open profile) and the profile modal live outside #reader.
+    document.addEventListener('click', function (ev) {
+      var a = ev.target.closest && ev.target.closest('[data-action]');
+      if (!a) return;
+      var act = a.getAttribute('data-action');
+      if (act === 'signout') doSignOut();
+      else if (act === 'profile') openProfileModal();
+      else if (act === 'profile-cancel') closeProfileModal();
+      else if (act === 'profile-save') onProfileSave();
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') closeProfileModal();
     });
 
     readerEl.addEventListener('click', function (ev) {
@@ -863,7 +1021,6 @@
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'google') doGoogleSignIn();
-      else if (act === 'signout') doSignOut();
       else if (act === 'email') renderEmailForm();
       else if (act === 'cancel') renderAuthBar(readerEl.getAttribute('data-chapter-id'));
       else if (act === 'tab') switchAuthTab(a.getAttribute('data-mode'));
