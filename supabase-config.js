@@ -16,6 +16,6 @@
    ========================================================================== */
 
 window.NKLTT_SUPABASE = {
-  url: 'YOUR_SUPABASE_URL',       // e.g. https://abcdefghijkl.supabase.co
-  anonKey: 'YOUR_SUPABASE_ANON_KEY'
+  url: 'https://zjlkyacwgbqhbktcktql.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqbGt5YWN3Z2JxaGJrdGNrdHFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMjMyNTIsImV4cCI6MjEwMzY5OTI1Mn0.1mwuSRfmdzYnKroAF1bDRfHNyRqIFNItn_LBX4PEwiE'
 };
