@@ -366,6 +366,7 @@
 
   function engagementShellHtml() {
     return '<section class="engagement" aria-label="Cảm nhận và bình luận">' +
+        '<p class="chapter-views" id="chapterViews"></p>' +
         '<div class="reactions" id="reactions"></div>' +
         '<div class="auth-bar" id="authBar"></div>' +
         '<div class="comments">' +
@@ -395,10 +396,32 @@
   function renderEngagement(chapterId) {
     if (!sb) return;
     var token = ++engToken;
+    loadChapterViews(chapterId, token);
     renderReactionBar(chapterId, token);
     renderAuthBar(chapterId);
     renderCompose();
     loadComments(chapterId, token);
+  }
+
+  // Per-chapter view count. Counts once per chapter per page-load (so clicking
+  // prev/next back and forth doesn't inflate it; a fresh reload is a new view).
+  var _countedViews = {};
+  function loadChapterViews(chapterId, token) {
+    if (!document.getElementById('chapterViews')) return;
+    function showCount() {
+      sb.from('chapter_views')
+        .select('id', { count: 'exact', head: true })
+        .eq('chapter_id', chapterId)
+        .then(function (res) {
+          if (token !== engToken) return;
+          var el = document.getElementById('chapterViews');
+          var n = res && typeof res.count === 'number' ? res.count : null;
+          if (el && n !== null) el.textContent = n.toLocaleString('vi-VN') + ' lượt xem';
+        });
+    }
+    if (_countedViews[chapterId]) { showCount(); return; }
+    _countedViews[chapterId] = true;
+    sb.from('chapter_views').insert({ chapter_id: chapterId }).then(showCount);
   }
 
   function renderReactionBar(chapterId, token) {

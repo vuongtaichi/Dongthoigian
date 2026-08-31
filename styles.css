@@ -607,6 +607,15 @@ body {
   font-family: var(--font-ui);
 }
 
+.chapter-views {
+  margin: 0 0 1rem;
+  font-size: .85rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chapter-views:empty { display: none; }
+
 /* ---------- Reactions ---------- */
 
 .reactions {
