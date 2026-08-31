@@ -521,9 +521,10 @@
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 
   // Per-chapter view count: a non-clickable "pill" (eye + number) at the front
-  // of the reaction row. Counts UNIQUE visitors — one row per (chapter,
-  // visitor_id), so reloading or revisiting the chapter never bumps it. If the
-  // chapter_views table is missing, the pill removes itself.
+  // of the reaction row. Counts re-reads — one row per (chapter, visitor, day),
+  // so reloading or navigating back the same day never bumps it, but opening
+  // the chapter again on a later day does. If the table is missing, the pill
+  // removes itself.
   var _countedViews = {};
   function loadChapterViews(chapterId, token) {
     function apply() {
@@ -545,8 +546,8 @@
     }
     if (_countedViews[chapterId]) { apply(); return; }
     _countedViews[chapterId] = true;
-    // insert is a no-op after the first time this visitor opened the chapter
-    // (unique index on chapter_id + visitor_id → conflict is dropped)
+    // insert every load; the DB drops it if this visitor already has a row for
+    // this chapter today (unique on chapter_id + visitor_id + view_date)
     sb.from('chapter_views')
       .insert({ chapter_id: chapterId, visitor_id: getVisitorId() })
       .then(apply);
