@@ -259,6 +259,12 @@
   var COMMENT_MAX = 2000;
   var NAME_MAX = 60;
 
+  // Reaction state for the chapter currently on screen
+  var _reactors = {};        // emoji -> [ {id, name, avatar, hue} ]
+  var _myEmojis = [];        // emoji strings the signed-in user reacted with
+  var _pickerOpen = false;   // is the emoji picker showing
+  var _whoOpenEmoji = null;  // which pill's "who reacted" list is showing
+
   var sb = null;
   try {
     var _cfg = window.NKLTT_SUPABASE;
@@ -360,14 +366,24 @@
       avatarHue: null,
       isAdmin: false
     };
-    sb.from('profiles').select('display_name, avatar_url, avatar_hue, is_admin').eq('id', u.id).single().then(function (res) {
-      if (authUser && res && res.data) {
-        if (res.data.display_name) authUser.name = res.data.display_name;
-        if (res.data.avatar_url) authUser.avatar = res.data.avatar_url;
-        if (res.data.avatar_hue != null) authUser.avatarHue = res.data.avatar_hue;
-        authUser.isAdmin = !!res.data.is_admin;
+    function fill(d) {
+      if (authUser && d) {
+        if (d.display_name) authUser.name = d.display_name;
+        if (d.avatar_url) authUser.avatar = d.avatar_url;
+        if (d.avatar_hue != null) authUser.avatarHue = d.avatar_hue;
+        authUser.isAdmin = !!d.is_admin;
       }
       if (done) done();
+    }
+    sb.from('profiles').select('display_name, avatar_url, avatar_hue, is_admin').eq('id', u.id).single().then(function (res) {
+      if (res.error) {
+        // schema may not have the avatar / is_admin columns yet
+        sb.from('profiles').select('display_name').eq('id', u.id).single().then(function (r2) {
+          fill(r2 && r2.data);
+        });
+        return;
+      }
+      fill(res.data);
     });
   }
 
@@ -413,7 +429,11 @@
 
   function engagementShellHtml() {
     return '<section class="engagement" aria-label="Cảm nhận và bình luận">' +
-        '<div class="reactions" id="reactions"></div>' +
+        '<div class="reaction-bar" id="reactionBar">' +
+          '<div class="reactions" id="reactions"></div>' +
+          '<div class="reaction-picker" id="reactionPicker" hidden></div>' +
+          '<div class="reaction-who" id="reactionWho" hidden></div>' +
+        '</div>' +
         '<div class="auth-bar" id="authBar"></div>' +
         '<div class="comments">' +
           '<h3 class="comments-title" id="commentsTitle">Bình luận</h3>' +
@@ -507,33 +527,173 @@
     sb.from('chapter_views').insert({ chapter_id: chapterId }).then(apply);
   }
 
+  var SMILE_SVG =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/>' +
+    '<line x1="9" y1="9.2" x2="9.01" y2="9.2"/><line x1="15" y1="9.2" x2="15.01" y2="9.2"/></svg>';
+
+  function labelFor(emoji) {
+    for (var i = 0; i < REACTIONS.length; i++) if (REACTIONS[i].emoji === emoji) return REACTIONS[i].label;
+    return '';
+  }
+
+  // Reaction bar: a view-count pill, one pill per emoji that has been used
+  // (each opens a "who reacted" list), and a "＋" button that reveals the four
+  // emoji options — tap one to react, tap it again to remove your reaction.
   function renderReactionBar(chapterId, token) {
     var host = document.getElementById('reactions');
     if (!host) return;
+    _reactors = {}; _myEmojis = []; _pickerOpen = false; _whoOpenEmoji = null;
+
     host.innerHTML =
       '<span class="reaction reaction-views" id="chapterViews" title="Lượt xem" aria-label="Lượt xem chương này">' +
         '<span class="reaction-emoji">' + EYE_SVG + '</span>' +
         '<span class="reaction-count">·</span></span>' +
-      REACTIONS.map(function (r) {
-        return '<button type="button" class="reaction" data-emoji="' + escapeHtml(r.emoji) +
-          '" title="' + escapeHtml(r.label) + '" aria-label="' + escapeHtml(r.label) + '">' +
-          '<span class="reaction-emoji">' + r.emoji + '</span>' +
-          '<span class="reaction-count">·</span></button>';
+      '<button type="button" class="reaction reaction-add" data-action="react-add" ' +
+        'title="Bày tỏ cảm xúc" aria-label="Bày tỏ cảm xúc">' + SMILE_SVG +
+        '<span class="reaction-add-plus" aria-hidden="true">+</span></button>';
+
+    var picker = document.getElementById('reactionPicker');
+    if (picker) {
+      picker.hidden = true;
+      picker.innerHTML = REACTIONS.map(function (r) {
+        return '<button type="button" class="reaction-choice" data-action="react-choice" ' +
+          'data-emoji="' + escapeHtml(r.emoji) + '" title="' + escapeHtml(r.label) + '">' +
+          r.emoji + '</button>';
       }).join('');
-    sb.from('reactions').select('emoji, user_id').eq('chapter_id', chapterId).then(function (res) {
-      if (token !== engToken) return;
-      var rows = (res && res.data) || [];
-      var counts = {}, mine = {};
-      rows.forEach(function (row) {
-        counts[row.emoji] = (counts[row.emoji] || 0) + 1;
-        if (authUser && row.user_id === authUser.id) mine[row.emoji] = true;
+    }
+    var who = document.getElementById('reactionWho');
+    if (who) { who.hidden = true; who.innerHTML = ''; }
+
+    sb.from('reactions')
+      .select('emoji, user_id')
+      .eq('chapter_id', chapterId)
+      .then(function (res) {
+        if (token !== engToken) return;
+        var rows = (res && res.data) || [];
+        var ids = [];
+        rows.forEach(function (r) { if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id); });
+        fetchProfiles(ids, function (profs) {
+          if (token !== engToken) return;
+          _reactors = {};
+          _myEmojis = [];
+          rows.forEach(function (row) {
+            var p = profs[row.user_id] || {};
+            (_reactors[row.emoji] || (_reactors[row.emoji] = [])).push({
+              id: row.user_id,
+              name: p.display_name || 'Người đọc',
+              avatar: p.avatar_url || null,
+              hue: p.avatar_hue
+            });
+            if (authUser && row.user_id === authUser.id && _myEmojis.indexOf(row.emoji) === -1) {
+              _myEmojis.push(row.emoji);
+            }
+          });
+          paintReactions();
+        });
       });
-      Array.prototype.forEach.call(host.querySelectorAll('.reaction[data-emoji]'), function (btn) {
-        var e = btn.getAttribute('data-emoji');
-        var c = counts[e] || 0;
-        btn.querySelector('.reaction-count').textContent = c ? String(c) : '·';
-        btn.classList.toggle('reacted', !!mine[e]);
+  }
+
+  function paintReactions() {
+    var host = document.getElementById('reactions');
+    var addBtn = host && host.querySelector('.reaction-add');
+    if (host && addBtn) {
+      Array.prototype.forEach.call(host.querySelectorAll('.reaction-pill'), function (p) { p.remove(); });
+      var html = REACTIONS.filter(function (r) {
+        return _reactors[r.emoji] && _reactors[r.emoji].length;
+      }).map(function (r) {
+        var mine = _myEmojis.indexOf(r.emoji) !== -1;
+        return '<button type="button" class="reaction reaction-pill' + (mine ? ' reacted' : '') +
+          '" data-action="react-who" data-emoji="' + escapeHtml(r.emoji) +
+          '" title="' + escapeHtml(r.label) + ' — xem ai đã bày tỏ">' +
+          '<span class="reaction-emoji">' + r.emoji + '</span>' +
+          '<span class="reaction-count">' + _reactors[r.emoji].length + '</span></button>';
+      }).join('');
+      addBtn.insertAdjacentHTML('beforebegin', html);
+    }
+    var picker = document.getElementById('reactionPicker');
+    if (picker) {
+      picker.hidden = !_pickerOpen;
+      Array.prototype.forEach.call(picker.querySelectorAll('.reaction-choice'), function (b) {
+        b.classList.toggle('reacted', _myEmojis.indexOf(b.getAttribute('data-emoji')) !== -1);
       });
+    }
+    paintWho();
+  }
+
+  function paintWho() {
+    var who = document.getElementById('reactionWho');
+    if (!who) return;
+    var e = _whoOpenEmoji;
+    var list = e && _reactors[e];
+    if (!e || !list || !list.length) { who.hidden = true; who.innerHTML = ''; return; }
+    var chips = list.slice(0, 30).map(function (u) {
+      var label = (authUser && u.id === authUser.id) ? 'Bạn' : u.name;
+      return '<span class="who-chip">' +
+        avatarHtml(u.name, u.avatar, u.id, 'who-avatar', u.avatar ? null : u.hue) +
+        '<span>' + escapeHtml(label) + '</span></span>';
+    }).join('');
+    var more = list.length > 30 ? '<span class="who-more">và ' + (list.length - 30) + ' người khác</span>' : '';
+    who.innerHTML = '<span class="who-emoji">' + e + ' ' + escapeHtml(labelFor(e)) + '</span>' + chips + more;
+    who.hidden = false;
+  }
+
+  function closeReactionPopovers() {
+    var changed = _pickerOpen || _whoOpenEmoji;
+    _pickerOpen = false;
+    _whoOpenEmoji = null;
+    if (changed) {
+      var pk = document.getElementById('reactionPicker');
+      if (pk) pk.hidden = true;
+      paintWho();
+    }
+  }
+
+  function onReactionWho(pill) {
+    var e = pill.getAttribute('data-emoji');
+    _whoOpenEmoji = (_whoOpenEmoji === e) ? null : e;
+    _pickerOpen = false;
+    var pk = document.getElementById('reactionPicker');
+    if (pk) pk.hidden = true;
+    paintWho();
+  }
+
+  function onReactionAdd() {
+    if (!authUser) { flashAuthBar(); return; }
+    _pickerOpen = !_pickerOpen;
+    _whoOpenEmoji = null;
+    paintReactions();
+  }
+
+  function onReactionChoice(btn) {
+    if (!authUser) { flashAuthBar(); return; }
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    var emoji = btn.getAttribute('data-emoji');
+    var have = _myEmojis.indexOf(emoji) !== -1;
+    btn.disabled = true;
+    if (have) {
+      _myEmojis = _myEmojis.filter(function (x) { return x !== emoji; });
+      _reactors[emoji] = (_reactors[emoji] || []).filter(function (u) { return u.id !== authUser.id; });
+      if (!_reactors[emoji].length) {
+        delete _reactors[emoji];
+        if (_whoOpenEmoji === emoji) _whoOpenEmoji = null;
+      }
+    } else {
+      _myEmojis.push(emoji);
+      (_reactors[emoji] || (_reactors[emoji] = [])).push({
+        id: authUser.id, name: authUser.name, avatar: authUser.avatar, hue: authUser.avatarHue
+      });
+    }
+    paintReactions();
+    var op = have
+      ? sb.from('reactions').delete().match({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id })
+      : sb.from('reactions').insert({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id });
+    op.then(function (res) {
+      btn.disabled = false;
+      if (res && res.error && res.error.code !== '23505') {
+        renderReactionBar(chapterId, engToken);   // re-sync from the server
+      }
     });
   }
 
@@ -732,11 +892,32 @@
       '</form>';
   }
 
+  function indexById(arr) {
+    var m = {};
+    (arr || []).forEach(function (p) { m[p.id] = p; });
+    return m;
+  }
+
+  // Fetch profiles for a set of user ids, tolerating a schema that doesn't
+  // have the avatar columns yet (falls back to name only). Always calls cb.
+  function fetchProfiles(ids, cb) {
+    if (!ids || !ids.length) { cb({}); return; }
+    sb.from('profiles').select('id, display_name, avatar_url, avatar_hue').in('id', ids).then(function (res) {
+      if (res.error) {
+        sb.from('profiles').select('id, display_name').in('id', ids).then(function (r2) {
+          cb(indexById(r2 && r2.data));
+        });
+        return;
+      }
+      cb(indexById(res.data));
+    });
+  }
+
   function loadComments(chapterId, token) {
     var list = document.getElementById('commentList');
     if (list) list.innerHTML = '<li class="comment-empty">Đang tải bình luận...</li>';
     sb.from('comments')
-      .select('id, body, created_at, edited_at, user_id, profiles(display_name, avatar_url, avatar_hue)')
+      .select('id, body, created_at, edited_at, user_id')
       .eq('chapter_id', chapterId)
       .eq('approved', true)
       .order('created_at', { ascending: false })
@@ -756,7 +937,15 @@
           list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';
           return;
         }
-        list2.innerHTML = rows.map(commentLi).join('');
+        var ids = [];
+        rows.forEach(function (r) { if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id); });
+        fetchProfiles(ids, function (profs) {
+          if (token !== engToken) return;
+          var l = document.getElementById('commentList');
+          if (!l) return;
+          rows.forEach(function (r) { if (profs[r.user_id]) r.profiles = profs[r.user_id]; });
+          l.innerHTML = rows.map(commentLi).join('');
+        });
       });
   }
 
@@ -813,31 +1002,6 @@
       // confirmation gets switched on later.
       if (res.data && !res.data.session) {
         if (msg) msg.textContent = 'Kiểm tra email để xác nhận tài khoản.';
-      }
-    });
-  }
-
-  function onReactionClick(btn) {
-    if (!sb) return;
-    if (!authUser) { flashAuthBar(); return; }
-    var chapterId = readerEl.getAttribute('data-chapter-id');
-    var emoji = btn.getAttribute('data-emoji');
-    var countEl = btn.querySelector('.reaction-count');
-    var had = btn.classList.contains('reacted');
-    var cur = parseInt(countEl.textContent, 10);
-    if (isNaN(cur)) cur = 0;
-    btn.classList.toggle('reacted', !had);
-    var next = had ? Math.max(0, cur - 1) : cur + 1;
-    countEl.textContent = next ? String(next) : '·';
-    btn.disabled = true;
-    var op = had
-      ? sb.from('reactions').delete().match({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id })
-      : sb.from('reactions').insert({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id });
-    op.then(function (res) {
-      btn.disabled = false;
-      if (res && res.error && res.error.code !== '23505') {
-        btn.classList.toggle('reacted', had);
-        countEl.textContent = cur ? String(cur) : '·';
       }
     });
   }
@@ -998,9 +1162,13 @@
     }
     ensureProfileModal();
 
-    // Sidebar (sign-out + open profile) and the profile modal live outside #reader.
+    // Sidebar (sign-out + open profile) and the profile modal live outside
+    // #reader, so this listener is on document. It also closes the reaction
+    // picker / "who reacted" popover on any click outside the reaction bar.
     document.addEventListener('click', function (ev) {
       var a = ev.target.closest && ev.target.closest('[data-action]');
+      var inReactionBar = ev.target.closest && ev.target.closest('#reactionBar');
+      if (!inReactionBar) closeReactionPopovers();
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') doSignOut();
@@ -1009,14 +1177,12 @@
       else if (act === 'profile-save') onProfileSave();
     });
     document.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape') closeProfileModal();
+      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); }
     });
 
     readerEl.addEventListener('click', function (ev) {
       var t = ev.target;
       if (!t || !t.closest) return;
-      var rb = t.closest('.reaction[data-emoji]');
-      if (rb) { onReactionClick(rb); return; }
       var a = t.closest('[data-action]');
       if (!a) return;
       var act = a.getAttribute('data-action');
@@ -1027,6 +1193,9 @@
       else if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);
+      else if (act === 'react-add') onReactionAdd();
+      else if (act === 'react-choice') onReactionChoice(a);
+      else if (act === 'react-who') onReactionWho(a);
     });
 
     readerEl.addEventListener('submit', function (ev) {
