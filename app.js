@@ -366,7 +366,6 @@
 
   function engagementShellHtml() {
     return '<section class="engagement" aria-label="Cảm nhận và bình luận">' +
-        '<p class="chapter-views" id="chapterViews"></p>' +
         '<div class="reactions" id="reactions"></div>' +
         '<div class="auth-bar" id="authBar"></div>' +
         '<div class="comments">' +
@@ -396,43 +395,66 @@
   function renderEngagement(chapterId) {
     if (!sb) return;
     var token = ++engToken;
-    loadChapterViews(chapterId, token);
     renderReactionBar(chapterId, token);
+    loadChapterViews(chapterId, token);
     renderAuthBar(chapterId);
     renderCompose();
     loadComments(chapterId, token);
   }
 
-  // Per-chapter view count. Counts once per chapter per page-load (so clicking
-  // prev/next back and forth doesn't inflate it; a fresh reload is a new view).
+  var EYE_SVG =
+    '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  var GOOGLE_G_SVG =
+    '<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">' +
+    '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>' +
+    '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>' +
+    '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
+    '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+  // Per-chapter view count, shown as a non-clickable "pill" (eye + number) at
+  // the front of the reaction row. Counts once per chapter per page-load, so
+  // clicking prev/next back and forth doesn't inflate it; a fresh reload is a
+  // new view. If the chapter_views table is missing, the pill removes itself.
   var _countedViews = {};
   function loadChapterViews(chapterId, token) {
-    if (!document.getElementById('chapterViews')) return;
-    function showCount() {
+    function apply() {
       sb.from('chapter_views')
         .select('id', { count: 'exact', head: true })
         .eq('chapter_id', chapterId)
         .then(function (res) {
           if (token !== engToken) return;
-          var el = document.getElementById('chapterViews');
-          var n = res && typeof res.count === 'number' ? res.count : null;
-          if (el && n !== null) el.textContent = n.toLocaleString('vi-VN') + ' lượt xem';
+          var pill = document.getElementById('chapterViews');
+          if (!pill) return;
+          var n = res && !res.error && typeof res.count === 'number' ? res.count : null;
+          if (n === null) {
+            if (pill.parentNode) pill.parentNode.removeChild(pill);
+            return;
+          }
+          var c = pill.querySelector('.reaction-count');
+          if (c) c.textContent = n.toLocaleString('vi-VN');
         });
     }
-    if (_countedViews[chapterId]) { showCount(); return; }
+    if (_countedViews[chapterId]) { apply(); return; }
     _countedViews[chapterId] = true;
-    sb.from('chapter_views').insert({ chapter_id: chapterId }).then(showCount);
+    sb.from('chapter_views').insert({ chapter_id: chapterId }).then(apply);
   }
 
   function renderReactionBar(chapterId, token) {
     var host = document.getElementById('reactions');
     if (!host) return;
-    host.innerHTML = REACTIONS.map(function (r) {
-      return '<button type="button" class="reaction" data-emoji="' + escapeHtml(r.emoji) +
-        '" title="' + escapeHtml(r.label) + '" aria-label="' + escapeHtml(r.label) + '">' +
-        '<span class="reaction-emoji">' + r.emoji + '</span>' +
-        '<span class="reaction-count">·</span></button>';
-    }).join('');
+    host.innerHTML =
+      '<span class="reaction reaction-views" id="chapterViews" title="Lượt xem" aria-label="Lượt xem chương này">' +
+        '<span class="reaction-emoji">' + EYE_SVG + '</span>' +
+        '<span class="reaction-count">·</span></span>' +
+      REACTIONS.map(function (r) {
+        return '<button type="button" class="reaction" data-emoji="' + escapeHtml(r.emoji) +
+          '" title="' + escapeHtml(r.label) + '" aria-label="' + escapeHtml(r.label) + '">' +
+          '<span class="reaction-emoji">' + r.emoji + '</span>' +
+          '<span class="reaction-count">·</span></button>';
+      }).join('');
     sb.from('reactions').select('emoji, user_id').eq('chapter_id', chapterId).then(function (res) {
       if (token !== engToken) return;
       var rows = (res && res.data) || [];
@@ -441,7 +463,7 @@
         counts[row.emoji] = (counts[row.emoji] || 0) + 1;
         if (authUser && row.user_id === authUser.id) mine[row.emoji] = true;
       });
-      Array.prototype.forEach.call(host.querySelectorAll('.reaction'), function (btn) {
+      Array.prototype.forEach.call(host.querySelectorAll('.reaction[data-emoji]'), function (btn) {
         var e = btn.getAttribute('data-emoji');
         var c = counts[e] || 0;
         btn.querySelector('.reaction-count').textContent = c ? String(c) : '·';
@@ -462,8 +484,9 @@
       bar.classList.add('is-guest');
       bar.innerHTML =
         '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc</span>' +
-        '<button type="button" class="auth-btn auth-ghost" data-action="email">Đăng nhập/Đăng ký</button>' +
-        '<button type="button" class="auth-btn" data-action="google">Đăng nhập bằng Google</button>';
+        '<button type="button" class="auth-btn" data-action="email">Đăng nhập/Đăng ký</button>' +
+        '<button type="button" class="auth-btn auth-ghost auth-google" data-action="google">' +
+          GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>';
     }
   }
 
@@ -694,7 +717,7 @@
     readerEl.addEventListener('click', function (ev) {
       var t = ev.target;
       if (!t || !t.closest) return;
-      var rb = t.closest('.reaction');
+      var rb = t.closest('.reaction[data-emoji]');
       if (rb) { onReactionClick(rb); return; }
       var a = t.closest('[data-action]');
       if (!a) return;

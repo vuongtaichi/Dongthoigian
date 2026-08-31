@@ -607,14 +607,18 @@ body {
   font-family: var(--font-ui);
 }
 
-.chapter-views {
-  margin: 0 0 1rem;
-  font-size: .85rem;
+/* View count: a non-interactive pill (eye + number) leading the reaction row */
+.reaction-views {
+  cursor: default;
   color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
 }
 
-.chapter-views:empty { display: none; }
+.reaction-views:hover { border-color: var(--border); }
+
+.reaction-views .reaction-emoji {
+  display: inline-flex;
+  align-items: center;
+}
 
 /* ---------- Reactions ---------- */
 
@@ -708,6 +712,22 @@ body {
   color: var(--accent);
 }
 
+.auth-btn.auth-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+}
+
+.auth-btn.auth-google svg { flex: 0 0 auto; }
+
+/* Sign-in prompt reads in the diary's serif, at the chapter body size */
+.auth-prompt {
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  line-height: 1.5;
+}
+
 .auth-cancel {
   border: none;
   background: none;
@@ -781,7 +801,9 @@ body {
 .compose-locked {
   margin: 0;
   color: var(--ink-faint);
-  font-size: .92rem;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  line-height: 1.5;
 }
 
 .comment-form { display: flex; flex-direction: column; gap: .6rem; }
@@ -791,9 +813,9 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: .7rem .8rem;
-  font: inherit;
-  font-size: 1rem;
-  line-height: 1.55;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  line-height: 1.8;
   background: var(--card);
   color: var(--ink);
   resize: vertical;
@@ -852,8 +874,9 @@ body {
 
 .comment-text {
   color: var(--ink);
-  font-size: 1.02rem;
-  line-height: 1.65;
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  line-height: 1.8;
 }
 
 .comment-actions { margin-top: .35rem; }
