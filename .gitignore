@@ -6,6 +6,9 @@ data.js.bak-*
 # Internal working notes — kept local, never pushed
 README.internal.md
 
+# Local scratch / test pages (Claude uses these to preview the engagement UI)
+_*.html
+
 # OS / editor cruft
 Thumbs.db
 .DS_Store
