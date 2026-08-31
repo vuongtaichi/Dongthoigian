@@ -618,8 +618,21 @@
       Array.prototype.forEach.call(picker.querySelectorAll('.reaction-choice'), function (b) {
         b.classList.toggle('reacted', _myEmojis.indexOf(b.getAttribute('data-emoji')) !== -1);
       });
+      if (_pickerOpen) positionPopover(picker, document.querySelector('#reactions .reaction-add'));
     }
     paintWho();
+  }
+
+  // Places a popover just below its anchor element, clamped to the bar width,
+  // relative to #reactionBar (which is position:relative).
+  function positionPopover(pop, anchor) {
+    if (!pop || pop.hidden || !anchor) return;
+    var bar = document.getElementById('reactionBar');
+    if (!bar) return;
+    pop.style.left = '0px';
+    pop.style.top = (anchor.offsetTop + anchor.offsetHeight + 6) + 'px';
+    var left = Math.max(0, Math.min(anchor.offsetLeft, bar.clientWidth - pop.offsetWidth));
+    pop.style.left = left + 'px';
   }
 
   function paintWho() {
@@ -635,8 +648,10 @@
         '<span>' + escapeHtml(label) + '</span></span>';
     }).join('');
     var more = list.length > 30 ? '<span class="who-more">và ' + (list.length - 30) + ' người khác</span>' : '';
-    who.innerHTML = '<span class="who-emoji">' + e + ' ' + escapeHtml(labelFor(e)) + '</span>' + chips + more;
+    who.innerHTML = chips + more;
     who.hidden = false;
+    positionPopover(who, document.querySelector('#reactions .reaction-pill[data-emoji="' + e + '"]')
+      || document.querySelector('#reactions .reaction-add'));
   }
 
   function closeReactionPopovers() {

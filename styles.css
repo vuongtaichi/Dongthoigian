@@ -284,17 +284,17 @@ body {
 .profile-modal-btns .comment-act { font-family: var(--font-ui); }
 
 .profile-signout {
-  border: none;
-  background: none;
+  border: 1px solid var(--border);
+  background: var(--card);
   font-family: var(--font-ui);
   font-size: .9rem;
-  color: var(--ink-faint);
-  text-decoration: underline;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  padding: .45rem .9rem;
   cursor: pointer;
-  padding: 0;
 }
 
-.profile-signout:hover { color: var(--accent); }
+.profile-signout:hover { border-color: var(--accent); color: var(--accent); }
 
 .search-box {
   margin-top: 1.1rem;
@@ -784,13 +784,24 @@ body {
 }
 .reaction-add-plus { font-weight: 700; }
 
-/* emoji picker that drops down from the add button */
-.reaction-picker {
-  margin-top: .6rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: .4rem;
+.reaction-bar { position: relative; }
+
+/* Emoji picker + "who reacted" list: floating cards anchored below their
+   trigger, so they overlay the content instead of pushing it down. */
+.reaction-picker,
+.reaction-who {
+  position: absolute;
+  z-index: 20;
+  margin: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: .5rem .6rem;
+  max-width: calc(100% - .4rem);
 }
+
+.reaction-picker { display: flex; flex-wrap: wrap; gap: .35rem; }
 
 .reaction-choice {
   border: 1px solid var(--border);
@@ -805,18 +816,14 @@ body {
 .reaction-choice:hover { border-color: var(--accent); }
 .reaction-choice.reacted { border-color: var(--accent); background: var(--accent-soft-bg); }
 
-/* "who reacted" list under a pill */
 .reaction-who {
-  margin-top: .6rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .5rem .8rem;
+  gap: .45rem .75rem;
   font-size: .92rem;
   color: var(--ink-soft);
 }
-
-.reaction-who .who-emoji { font-weight: 600; color: var(--ink); }
 
 .who-chip {
   display: inline-flex;
@@ -824,8 +831,8 @@ body {
   gap: .35rem;
 }
 
-.who-avatar { width: 1.5rem; height: 1.5rem; }
-.who-avatar.avatar-initial { font-size: .8rem; }
+.who-avatar { width: 1.4rem; height: 1.4rem; }
+.who-avatar.avatar-initial { font-size: .75rem; }
 
 .reaction-who .who-more { color: var(--ink-faint); }
 
@@ -938,7 +945,7 @@ body {
   color: var(--ink);
 }
 
-/* stop Chrome's autofill from tinting the field a low-contrast colour */
+/* stop Chrome's autofill from tinting the field and from using its own font */
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
@@ -946,6 +953,8 @@ body {
   -webkit-box-shadow: 0 0 0 100px var(--card) inset;
   -webkit-text-fill-color: var(--ink);
   caret-color: var(--ink);
+  font-family: var(--font-body) !important;
+  font-size: inherit !important;
 }
 
 .auth-email-row {
@@ -1103,6 +1112,7 @@ body {
 }
 
 @media (max-width: 860px) {
+  .engagement { font-size: 1.1rem; }
   .auth-email-row,
   .comment-form-row { flex-wrap: wrap; }
 }
