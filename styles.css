@@ -1108,6 +1108,66 @@ body {
 
 .comment-text { color: var(--ink); }
 
+/* emoji reactions on a comment */
+.comment-reacts {
+  margin-top: .4rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  position: relative;
+}
+
+.creact {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: .05rem .5rem;
+  font-size: .82rem;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.creact.reacted { border-color: var(--accent); background: var(--accent-soft-bg); color: var(--accent-strong); }
+.creact span { font-variant-numeric: tabular-nums; }
+
+.creact-add {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 999px;
+  padding: .05rem .45rem;
+  font-size: .82rem;
+  line-height: 1.6;
+  cursor: pointer;
+  color: var(--ink-faint);
+}
+.creact-add-plus { font-weight: 700; }
+
+.creact-picker {
+  display: inline-flex;
+  gap: .2rem;
+  margin-left: .1rem;
+  padding: .15rem .3rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.creact-choice {
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: .15rem .25rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.creact-choice:hover { background: var(--accent-soft-bg); }
+.creact-choice.reacted { background: var(--accent-soft-bg); }
+
 .comment-actions {
   margin-top: .35rem;
   display: flex;

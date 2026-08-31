@@ -445,7 +445,44 @@
       '</section>';
   }
 
-  var _commentBody = {};   // id -> raw body text, for the inline editor
+  var _commentBody = {};        // id -> raw body text, for the inline editor
+  var _commentReactions = {};   // comment id -> { emoji: { count, mine } }
+  var _commentReactsOn = true;  // false if the comment_reactions table is absent
+
+  // The reaction strip under one comment: pills for emojis that have been used
+  // (tap to add/remove yours) + a "＋" that reveals the five choices.
+  function commentReactsHtml(commentId) {
+    var byEmoji = _commentReactions[commentId] || {};
+    var pills = REACTIONS.filter(function (r) { return byEmoji[r.emoji] && byEmoji[r.emoji].count; })
+      .map(function (r) {
+        var d = byEmoji[r.emoji];
+        return '<button type="button" class="creact' + (d.mine ? ' reacted' : '') +
+          '" data-action="creact" data-emoji="' + escapeHtml(r.emoji) + '">' +
+          r.emoji + ' <span>' + d.count + '</span></button>';
+      }).join('');
+    var choices = REACTIONS.map(function (r) {
+      var mine = byEmoji[r.emoji] && byEmoji[r.emoji].mine;
+      return '<button type="button" class="creact-choice' + (mine ? ' reacted' : '') +
+        '" data-action="creact-pick" data-emoji="' + escapeHtml(r.emoji) + '">' + r.emoji + '</button>';
+    }).join('');
+    return '<div class="comment-reacts" data-cid="' + commentId + '">' + pills +
+      (authUser ? '<button type="button" class="creact-add" data-action="creact-add" ' +
+        'aria-label="Bày tỏ cảm xúc">🙂<span class="creact-add-plus">+</span></button>' +
+        '<span class="creact-picker" hidden>' + choices + '</span>' : '') +
+      '</div>';
+  }
+
+  function repaintCommentReacts(commentId) {
+    var l = document.getElementById('commentList');
+    var row = l && l.querySelector('.comment-reacts[data-cid="' + commentId + '"]');
+    if (!row) return;
+    var open = !!(row.querySelector('.creact-picker') && !row.querySelector('.creact-picker').hidden);
+    row.outerHTML = commentReactsHtml(commentId);
+    if (open) {
+      var pk = l.querySelector('.comment-reacts[data-cid="' + commentId + '"] .creact-picker');
+      if (pk) pk.hidden = false;
+    }
+  }
 
   function commentLi(c, isReply) {
     var mine = authUser && c.user_id === authUser.id;
@@ -472,6 +509,7 @@
               (c.edited_at ? ' · đã sửa' : '') + '</span>' +
           '</div>' +
           '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
+          (_commentReactsOn ? commentReactsHtml(c.id) : '') +
           actions +
           replies +
         '</div>' +
@@ -993,31 +1031,98 @@
           list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';
           return;
         }
-        var ids = [];
-        rows.forEach(function (r) { if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id); });
+        var ids = [], commentIds = [];
+        rows.forEach(function (r) {
+          if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id);
+          commentIds.push(r.id);
+        });
         fetchProfiles(ids, function (profs) {
           if (token !== engToken) return;
-          var l = document.getElementById('commentList');
-          if (!l) return;
           rows.forEach(function (r) { if (profs[r.user_id]) r.profiles = profs[r.user_id]; });
+          loadCommentReactions(commentIds, token, function () {
+            if (token !== engToken) return;
+            var l = document.getElementById('commentList');
+            if (!l) return;
 
-          // split into top-level comments (newest first) and replies (oldest first)
-          var tops = [], byParent = {};
-          rows.forEach(function (r) {
-            if (r.parent_id) (byParent[r.parent_id] || (byParent[r.parent_id] = [])).push(r);
-            else tops.push(r);
-          });
-          tops.sort(function (a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
+            // split into top-level comments (newest first) and replies (oldest first)
+            var tops = [], byParent = {};
+            rows.forEach(function (r) {
+              if (r.parent_id) (byParent[r.parent_id] || (byParent[r.parent_id] = [])).push(r);
+              else tops.push(r);
+            });
+            tops.sort(function (a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
 
-          l.innerHTML = tops.map(function (c) { return commentLi(c); }).join('');
-          tops.forEach(function (c) {
-            var kids = byParent[c.id];
-            if (!kids || !kids.length) return;
-            var box = l.querySelector('.comment-replies[data-parent="' + c.id + '"]');
-            if (box) box.innerHTML = kids.map(function (k) { return commentLi(k, true); }).join('');
+            l.innerHTML = tops.map(function (c) { return commentLi(c); }).join('');
+            tops.forEach(function (c) {
+              var kids = byParent[c.id];
+              if (!kids || !kids.length) return;
+              var box = l.querySelector('.comment-replies[data-parent="' + c.id + '"]');
+              if (box) box.innerHTML = kids.map(function (k) { return commentLi(k, true); }).join('');
+            });
           });
         });
       });
+  }
+
+  // Fetch reactions for the comments on screen, into _commentReactions.
+  function loadCommentReactions(commentIds, token, done) {
+    if (token !== engToken) return;
+    _commentReactions = {};
+    if (!commentIds.length) { done(); return; }
+    sb.from('comment_reactions')
+      .select('comment_id, emoji, user_id')
+      .in('comment_id', commentIds)
+      .then(function (res) {
+        if (token !== engToken) return;
+        if (res.error) { _commentReactsOn = false; done(); return; }
+        _commentReactsOn = true;
+        (res.data || []).forEach(function (row) {
+          var m = _commentReactions[row.comment_id] || (_commentReactions[row.comment_id] = {});
+          var d = m[row.emoji] || (m[row.emoji] = { count: 0, mine: false });
+          d.count++;
+          if (authUser && row.user_id === authUser.id) d.mine = true;
+        });
+        done();
+      });
+  }
+
+  function onCommentReact(btn) {
+    if (!authUser) { flashAuthBar(); return; }
+    var row = btn.closest('.comment-reacts');
+    if (!row) return;
+    var cid = row.getAttribute('data-cid');
+    var emoji = btn.getAttribute('data-emoji');
+    var m = _commentReactions[cid] || (_commentReactions[cid] = {});
+    var d = m[emoji] || (m[emoji] = { count: 0, mine: false });
+    var had = d.mine;
+    // optimistic
+    d.mine = !had;
+    d.count = Math.max(0, d.count + (had ? -1 : 1));
+    if (d.count === 0) delete m[emoji];
+    var pk = row.querySelector('.creact-picker');
+    if (pk) pk.hidden = true;
+    repaintCommentReacts(cid);
+    var op = had
+      ? sb.from('comment_reactions').delete().match({ comment_id: cid, user_id: authUser.id, emoji: emoji })
+      : sb.from('comment_reactions').insert({ comment_id: cid, user_id: authUser.id, emoji: emoji });
+    op.then(function (res) {
+      if (res && res.error && res.error.code !== '23505') {
+        // rollback
+        var mm = _commentReactions[cid] || (_commentReactions[cid] = {});
+        var dd = mm[emoji] || (mm[emoji] = { count: 0, mine: false });
+        dd.mine = had;
+        dd.count = Math.max(0, dd.count + (had ? 1 : -1));
+        if (dd.count === 0) delete mm[emoji];
+        repaintCommentReacts(cid);
+      }
+    });
+  }
+
+  function onCommentReactAdd(btn) {
+    if (!authUser) { flashAuthBar(); return; }
+    var row = btn.closest('.comment-reacts');
+    var pk = row && row.querySelector('.creact-picker');
+    if (pk) pk.hidden = !pk.hidden;
   }
 
   // The top-level comment a "Trả lời" belongs under (replies are one level deep).
@@ -1351,6 +1456,8 @@
       else if (act === 'react-add') onReactionAdd();
       else if (act === 'react-choice') onReactionChoice(a);
       else if (act === 'react-who') onReactionWho(a);
+      else if (act === 'creact' || act === 'creact-pick') onCommentReact(a);
+      else if (act === 'creact-add') onCommentReactAdd(a);
     });
 
     readerEl.addEventListener('submit', function (ev) {
