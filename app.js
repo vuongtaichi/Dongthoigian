@@ -386,10 +386,21 @@
       '</section>';
   }
 
+  var _commentBody = {};   // id -> raw body text, for the inline editor
+
   function commentLi(c) {
     var mine = authUser && c.user_id === authUser.id;
     var canDelete = mine || (authUser && authUser.isAdmin);
     var name = c._name || (c.profiles && c.profiles.display_name) || 'Người đọc';
+    _commentBody[c.id] = c.body || '';
+    var actions = '';
+    if (mine || canDelete) {
+      actions = '<div class="comment-actions">' +
+        (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
+        (canDelete ? '<button type="button" class="comment-act" data-action="del">' +
+          (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button>' : '') +
+        '</div>';
+    }
     return '<li class="comment' + (mine ? ' is-mine' : '') + '" data-id="' + c.id + '">' +
         '<div class="comment-head">' +
           '<span class="comment-author">' + escapeHtml(name) + '</span>' +
@@ -397,10 +408,7 @@
             (c.edited_at ? ' · đã sửa' : '') + '</span>' +
         '</div>' +
         '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
-        (canDelete
-          ? '<div class="comment-actions"><button type="button" class="comment-del" data-action="del">' +
-              (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button></div>'
-          : '') +
+        actions +
       '</li>';
   }
 
@@ -486,21 +494,40 @@
     });
   }
 
+  // The per-chapter box. Only shown to logged-out readers (sign-in prompt +
+  // buttons). When signed in it's hidden — the greeting lives in the sidebar
+  // masthead instead (renderMastheadAuth).
   function renderAuthBar(chapterId) {
     var bar = document.getElementById('authBar');
     if (!bar) return;
     if (authUser) {
+      bar.hidden = true;
+      bar.innerHTML = '';
       bar.classList.remove('is-guest');
-      bar.innerHTML =
-        '<span class="auth-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
-        '<button type="button" class="auth-btn auth-ghost" data-action="signout">Đăng xuất</button>';
     } else {
+      bar.hidden = false;
       bar.classList.add('is-guest');
       bar.innerHTML =
         '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc</span>' +
         '<button type="button" class="auth-btn" data-action="email">Đăng nhập/Đăng ký</button>' +
         '<button type="button" class="auth-btn auth-ghost auth-google" data-action="google">' +
           GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>';
+    }
+  }
+
+  // "Xin chào, {name}  ·  Đăng xuất" under the site title in the sidebar.
+  // Runs on auth change, not per chapter.
+  function renderMastheadAuth() {
+    var el = document.getElementById('mastheadAuth');
+    if (!el) return;
+    if (authUser) {
+      el.hidden = false;
+      el.innerHTML =
+        '<span class="masthead-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
+        '<button type="button" class="masthead-signout" data-action="signout">Đăng xuất</button>';
+    } else {
+      el.hidden = true;
+      el.innerHTML = '';
     }
   }
 
@@ -716,6 +743,85 @@
     });
   }
 
+  // ---- inline comment editing ----
+
+  function onCommentEditStart(btn) {
+    var li = btn.closest('.comment');
+    if (!li || li.querySelector('.comment-edit-form')) return;
+    var id = li.getAttribute('data-id');
+    var textEl = li.querySelector('.comment-text');
+    var actionsEl = li.querySelector('.comment-actions');
+    if (!textEl) return;
+    var body = _commentBody[id] != null ? _commentBody[id] : '';
+    textEl.hidden = true;
+    if (actionsEl) actionsEl.hidden = true;
+    var form = document.createElement('form');
+    form.className = 'comment-edit-form';
+    form.setAttribute('data-id', id);
+    form.innerHTML =
+      '<textarea class="comment-body" rows="3" maxlength="' + COMMENT_MAX + '" required></textarea>' +
+      '<div class="comment-form-row">' +
+        '<span class="comment-status comment-edit-status" role="status"></span>' +
+        '<span class="comment-edit-btns">' +
+          '<button type="button" class="comment-act" data-action="edit-cancel">Huỷ</button>' +
+          '<button type="submit" class="comment-submit">Lưu</button>' +
+        '</span>' +
+      '</div>';
+    var ta = form.querySelector('textarea');
+    ta.value = body;
+    textEl.parentNode.insertBefore(form, textEl.nextSibling);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+
+  function onCommentEditCancel(btn) {
+    var li = btn.closest('.comment');
+    if (li) restoreComment(li);
+  }
+
+  function restoreComment(li) {
+    var form = li.querySelector('.comment-edit-form');
+    if (form && form.parentNode) form.parentNode.removeChild(form);
+    var textEl = li.querySelector('.comment-text');
+    if (textEl) textEl.hidden = false;
+    var actionsEl = li.querySelector('.comment-actions');
+    if (actionsEl) actionsEl.hidden = false;
+  }
+
+  function onCommentEditSave(form) {
+    var id = form.getAttribute('data-id');
+    var ta = form.querySelector('textarea');
+    var statusEl = form.querySelector('.comment-edit-status');
+    var saveBtn = form.querySelector('button[type="submit"]');
+    var body = (ta.value || '').trim();
+    if (!body) return;
+    if (body.length > COMMENT_MAX) { if (statusEl) statusEl.textContent = 'Bình luận quá dài.'; return; }
+    if (body === (_commentBody[id] || '')) { restoreComment(form.closest('.comment')); return; }
+    if (saveBtn) saveBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Đang lưu...';
+    sb.from('comments')
+      .update({ body: body, edited_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id, body, edited_at')
+      .single()
+      .then(function (res) {
+        if (saveBtn) saveBtn.disabled = false;
+        if (res.error || !res.data) {
+          if (statusEl) statusEl.textContent = 'Không lưu được, thử lại nhé.';
+          return;
+        }
+        _commentBody[id] = res.data.body;
+        var li = form.closest('.comment');
+        var textEl = li.querySelector('.comment-text');
+        if (textEl) textEl.innerHTML = escapeHtml(res.data.body || '').replace(/\r?\n/g, '<br>');
+        var timeEl = li.querySelector('.comment-time');
+        if (timeEl && timeEl.textContent.indexOf('đã sửa') === -1) {
+          timeEl.textContent = timeEl.textContent + ' · đã sửa';
+        }
+        restoreComment(li);
+      });
+  }
+
   function flashAuthBar() {
     var bar = document.getElementById('authBar');
     if (!bar) return;
@@ -729,6 +835,24 @@
 
   function initEngagement() {
     if (!sb) return;
+
+    // Slot for "Xin chào … Đăng xuất", just under the site title in the sidebar.
+    var masthead = document.querySelector('.masthead');
+    if (masthead && !document.getElementById('mastheadAuth')) {
+      var slot = document.createElement('div');
+      slot.className = 'masthead-auth';
+      slot.id = 'mastheadAuth';
+      slot.hidden = true;
+      var titleEl = masthead.querySelector('.masthead-title');
+      if (titleEl) masthead.insertBefore(slot, titleEl.nextSibling);
+      else masthead.appendChild(slot);
+    }
+
+    // The sign-out button lives in the sidebar now, outside #reader.
+    sidebarEl.addEventListener('click', function (ev) {
+      var a = ev.target.closest && ev.target.closest('[data-action="signout"]');
+      if (a) doSignOut();
+    });
 
     readerEl.addEventListener('click', function (ev) {
       var t = ev.target;
@@ -744,14 +868,20 @@
       else if (act === 'cancel') renderAuthBar(readerEl.getAttribute('data-chapter-id'));
       else if (act === 'tab') switchAuthTab(a.getAttribute('data-mode'));
       else if (act === 'del') onCommentDelete(a);
+      else if (act === 'edit') onCommentEditStart(a);
+      else if (act === 'edit-cancel') onCommentEditCancel(a);
     });
 
     readerEl.addEventListener('submit', function (ev) {
-      if (ev.target && ev.target.id === 'commentForm') { ev.preventDefault(); onCommentSubmit(ev.target); }
-      else if (ev.target && ev.target.id === 'authEmailForm') { ev.preventDefault(); onAuthEmailSubmit(ev.target); }
+      var f = ev.target;
+      if (!f) return;
+      if (f.id === 'commentForm') { ev.preventDefault(); onCommentSubmit(f); }
+      else if (f.id === 'authEmailForm') { ev.preventDefault(); onAuthEmailSubmit(f); }
+      else if (f.classList && f.classList.contains('comment-edit-form')) { ev.preventDefault(); onCommentEditSave(f); }
     });
 
     function refresh() {
+      renderMastheadAuth();
       var cid = readerEl.getAttribute('data-chapter-id');
       if (cid) renderEngagement(cid);
     }
