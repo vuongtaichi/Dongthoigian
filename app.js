@@ -1,4 +1,5 @@
-/* ==========================================================================
+/* build: 2027-rpc-counters
+   ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
    contents, renders whichever chapter is selected into #reader, and drives
