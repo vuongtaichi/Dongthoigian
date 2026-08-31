@@ -186,7 +186,7 @@ body {
 
 /* avatar + "Xin chào, {name} · Đăng xuất" under the title when signed in */
 .masthead-auth {
-  margin: .55rem 0 0;
+  margin: .825rem 0 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
