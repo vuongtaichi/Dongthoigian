@@ -348,8 +348,18 @@
     var m = u.user_metadata || {};
     return m.full_name || m.name || (u.email ? u.email.split('@')[0] : 'Người đọc');
   }
-  function applyAuthUser(u) {
-    authUser = u ? { id: u.id, name: displayNameFromUser(u) } : null;
+  // Sets `authUser` from the session, then fills in the display name and the
+  // is_admin flag from the profiles row (calls `done` again once that lands).
+  function applyAuthUser(u, done) {
+    if (!u) { authUser = null; if (done) done(); return; }
+    authUser = { id: u.id, name: displayNameFromUser(u), isAdmin: false };
+    sb.from('profiles').select('display_name, is_admin').eq('id', u.id).single().then(function (res) {
+      if (authUser && res && res.data) {
+        if (res.data.display_name) authUser.name = res.data.display_name;
+        authUser.isAdmin = !!res.data.is_admin;
+      }
+      if (done) done();
+    });
   }
 
   function translateAuthError(msg) {
@@ -378,6 +388,7 @@
 
   function commentLi(c) {
     var mine = authUser && c.user_id === authUser.id;
+    var canDelete = mine || (authUser && authUser.isAdmin);
     var name = c._name || (c.profiles && c.profiles.display_name) || 'Người đọc';
     return '<li class="comment' + (mine ? ' is-mine' : '') + '" data-id="' + c.id + '">' +
         '<div class="comment-head">' +
@@ -386,7 +397,10 @@
             (c.edited_at ? ' · đã sửa' : '') + '</span>' +
         '</div>' +
         '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
-        (mine ? '<div class="comment-actions"><button type="button" class="comment-del" data-action="del">Xoá</button></div>' : '') +
+        (canDelete
+          ? '<div class="comment-actions"><button type="button" class="comment-del" data-action="del">' +
+              (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button></div>'
+          : '') +
       '</li>';
   }
 
@@ -693,8 +707,10 @@
     if (typeof window.confirm === 'function' && !window.confirm('Xoá bình luận này?')) return;
     var id = li.getAttribute('data-id');
     btn.disabled = true;
-    sb.from('comments').delete().match({ id: id, user_id: authUser.id }).then(function (res) {
-      if (res && res.error) { btn.disabled = false; return; }
+    // Delete by id only; RLS allows it when the comment is the caller's own or
+    // the caller is an admin. `.select()` tells us whether a row actually went.
+    sb.from('comments').delete().eq('id', id).select('id').then(function (res) {
+      if (res.error || !res.data || !res.data.length) { btn.disabled = false; return; }
       if (li.parentNode) li.parentNode.removeChild(li);
       bumpCount(-1);
     });
@@ -740,11 +756,11 @@
       if (cid) renderEngagement(cid);
     }
     sb.auth.getSession().then(function (res) {
-      applyAuthUser(res && res.data && res.data.session ? res.data.session.user : null);
+      applyAuthUser(res && res.data && res.data.session ? res.data.session.user : null, refresh);
       refresh();
     });
     sb.auth.onAuthStateChange(function (_evt, session) {
-      applyAuthUser(session ? session.user : null);
+      applyAuthUser(session ? session.user : null, refresh);
       refresh();
     });
 
