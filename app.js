@@ -449,8 +449,8 @@
   var _commentReactions = {};   // comment id -> { emoji: { count, mine } }
   var _commentReactsOn = true;  // false if the comment_reactions table is absent
 
-  // The "🙂＋" button + its pop-out of five choices — sits at the START of the
-  // comment's action row, before "Trả lời".
+  // The "🙂＋" button + its floating picker of five choices — at the START of
+  // the action row. The picker is the ONLY way to add/remove your reaction.
   function creactAddHtml(commentId) {
     if (!authUser) return '';
     var byEmoji = _commentReactions[commentId] || {};
@@ -464,17 +464,29 @@
       '<span class="creact-picker" hidden>' + choices + '</span>';
   }
 
-  // Pills for the emojis that have been used — sits at the END of the action
-  // row (pushed right). Tap your own to remove it.
+  // Pills for emojis that have been used — pushed to the right. Click one to
+  // see who reacted with it (not to remove — use the picker for that).
   function creactPillsHtml(commentId) {
     var byEmoji = _commentReactions[commentId] || {};
     return REACTIONS.filter(function (r) { return byEmoji[r.emoji] && byEmoji[r.emoji].count; })
       .map(function (r) {
         var d = byEmoji[r.emoji];
         return '<button type="button" class="creact' + (d.mine ? ' reacted' : '') +
-          '" data-action="creact" data-emoji="' + escapeHtml(r.emoji) + '">' +
+          '" data-action="creact-who" data-emoji="' + escapeHtml(r.emoji) +
+          '" title="Xem ai đã bày tỏ">' +
           r.emoji + ' <span>' + d.count + '</span></button>';
       }).join('');
+  }
+
+  function creactWhoInnerHtml(commentId, emoji) {
+    var d = (_commentReactions[commentId] || {})[emoji];
+    if (!d || !d.users.length) return '';
+    var chips = d.users.slice(0, 40).map(function (u) {
+      var label = (authUser && u.id === authUser.id) ? 'Bạn' : u.name;
+      return '<span class="who-chip">' + escapeHtml(label) + '</span>';
+    }).join('');
+    var more = d.users.length > 40 ? '<span class="who-more">và ' + (d.users.length - 40) + ' người khác</span>' : '';
+    return '<span class="who-emoji">' + emoji + '</span>' + chips + more;
   }
 
   function repaintCommentReacts(commentId) {
@@ -488,6 +500,13 @@
       var e = b.getAttribute('data-emoji');
       b.classList.toggle('reacted', !!(m[e] && m[e].mine));
     });
+    // if a who-popover is open for an emoji that's now gone, close it
+    var who = actions.querySelector('.creact-who');
+    if (who && !who.hidden) {
+      var e = who.getAttribute('data-emoji');
+      if (!m[e] || !m[e].count) who.hidden = true;
+      else who.innerHTML = creactWhoInnerHtml(commentId, e);
+    }
   }
 
   function commentLi(c, isReply) {
@@ -504,7 +523,8 @@
       (authUser ? '<button type="button" class="comment-act" data-action="reply">Trả lời</button>' : '') +
       (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
       (canDelete ? '<button type="button" class="comment-act" data-action="del">Xoá</button>' : '') +
-      (reactsOn ? '<span class="creact-pills">' + creactPillsHtml(c.id) + '</span>' : '') +
+      (reactsOn ? '<span class="creact-pills">' + creactPillsHtml(c.id) + '</span>' +
+        '<span class="creact-who" hidden></span>' : '') +
       '</div>';
     var replies = isReply ? '' : '<ul class="comment-replies" data-parent="' + c.id + '"></ul>';
     return '<li class="comment' + (isReply ? ' comment-reply' : '') + (mine ? ' is-mine' : '') +
@@ -1038,18 +1058,30 @@
           list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';
           return;
         }
-        var ids = [], commentIds = [];
-        rows.forEach(function (r) {
-          if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id);
-          commentIds.push(r.id);
-        });
-        fetchProfiles(ids, function (profs) {
+        var commentIds = rows.map(function (r) { return r.id; });
+        fetchCommentReactionRows(commentIds, function (crRows) {
           if (token !== engToken) return;
-          rows.forEach(function (r) { if (profs[r.user_id]) r.profiles = profs[r.user_id]; });
-          loadCommentReactions(commentIds, token, function () {
+          // one profile fetch for both comment authors and reactors
+          var ids = [];
+          rows.forEach(function (r) { if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id); });
+          crRows.forEach(function (r) { if (ids.indexOf(r.user_id) === -1) ids.push(r.user_id); });
+          fetchProfiles(ids, function (profs) {
             if (token !== engToken) return;
             var l = document.getElementById('commentList');
             if (!l) return;
+            rows.forEach(function (r) { if (profs[r.user_id]) r.profiles = profs[r.user_id]; });
+
+            _commentReactions = {};
+            crRows.forEach(function (row) {
+              var m = _commentReactions[row.comment_id] || (_commentReactions[row.comment_id] = {});
+              var d = m[row.emoji] || (m[row.emoji] = { count: 0, mine: false, users: [] });
+              d.count++;
+              d.users.push({
+                id: row.user_id,
+                name: (profs[row.user_id] && profs[row.user_id].display_name) || 'Người đọc'
+              });
+              if (authUser && row.user_id === authUser.id) d.mine = true;
+            });
 
             // split into top-level comments (newest first) and replies (oldest first)
             var tops = [], byParent = {};
@@ -1071,28 +1103,34 @@
       });
   }
 
-  // Fetch reactions for the comments on screen, into _commentReactions.
-  function loadCommentReactions(commentIds, token, done) {
-    if (token !== engToken) return;
-    _commentReactions = {};
-    if (!commentIds.length) { done(); return; }
+  function fetchCommentReactionRows(commentIds, cb) {
+    if (!commentIds.length) { _commentReactsOn = true; cb([]); return; }
     sb.from('comment_reactions')
       .select('comment_id, emoji, user_id')
       .in('comment_id', commentIds)
       .then(function (res) {
-        if (token !== engToken) return;
-        if (res.error) { _commentReactsOn = false; done(); return; }
+        if (res.error) { _commentReactsOn = false; cb([]); return; }
         _commentReactsOn = true;
-        (res.data || []).forEach(function (row) {
-          var m = _commentReactions[row.comment_id] || (_commentReactions[row.comment_id] = {});
-          var d = m[row.emoji] || (m[row.emoji] = { count: 0, mine: false });
-          d.count++;
-          if (authUser && row.user_id === authUser.id) d.mine = true;
-        });
-        done();
+        cb(res.data || []);
       });
   }
 
+  function closeAllCreactPopovers(except) {
+    var l = document.getElementById('commentList');
+    if (!l) return;
+    Array.prototype.forEach.call(l.querySelectorAll('.creact-picker, .creact-who'), function (p) {
+      if (p !== except) p.hidden = true;
+    });
+  }
+
+  // Place a popover just below its trigger, left-aligned to it, clamped to the row.
+  function positionCreactPop(pop, anchor, row) {
+    pop.style.left = '0px';
+    var left = Math.max(0, Math.min(anchor.offsetLeft, row.clientWidth - pop.offsetWidth));
+    pop.style.left = left + 'px';
+  }
+
+  // Toggle my reaction — only reachable from the picker.
   function onCommentReact(btn) {
     if (!authUser) { flashAuthBar(); return; }
     var row = btn.closest('.comment-actions');
@@ -1100,27 +1138,21 @@
     var cid = row.getAttribute('data-cid');
     var emoji = btn.getAttribute('data-emoji');
     var m = _commentReactions[cid] || (_commentReactions[cid] = {});
-    var d = m[emoji] || (m[emoji] = { count: 0, mine: false });
+    var d = m[emoji] || (m[emoji] = { count: 0, mine: false, users: [] });
     var had = d.mine;
     // optimistic
     d.mine = !had;
     d.count = Math.max(0, d.count + (had ? -1 : 1));
+    d.users = (d.users || []).filter(function (u) { return u.id !== authUser.id; });
+    if (!had) d.users.push({ id: authUser.id, name: authUser.name });
     if (d.count === 0) delete m[emoji];
-    var pk = row.querySelector('.creact-picker');
-    if (pk) pk.hidden = true;
     repaintCommentReacts(cid);
     var op = had
       ? sb.from('comment_reactions').delete().match({ comment_id: cid, user_id: authUser.id, emoji: emoji })
       : sb.from('comment_reactions').insert({ comment_id: cid, user_id: authUser.id, emoji: emoji });
     op.then(function (res) {
       if (res && res.error && res.error.code !== '23505') {
-        // rollback
-        var mm = _commentReactions[cid] || (_commentReactions[cid] = {});
-        var dd = mm[emoji] || (mm[emoji] = { count: 0, mine: false });
-        dd.mine = had;
-        dd.count = Math.max(0, dd.count + (had ? 1 : -1));
-        if (dd.count === 0) delete mm[emoji];
-        repaintCommentReacts(cid);
+        loadComments(readerEl.getAttribute('data-chapter-id'), engToken);  // re-sync
       }
     });
   }
@@ -1129,7 +1161,27 @@
     if (!authUser) { flashAuthBar(); return; }
     var row = btn.closest('.comment-actions');
     var pk = row && row.querySelector('.creact-picker');
-    if (pk) pk.hidden = !pk.hidden;
+    if (!pk) return;
+    var willShow = pk.hidden;
+    closeAllCreactPopovers();
+    if (willShow) { pk.hidden = false; positionCreactPop(pk, btn, row); }
+  }
+
+  function onCommentReactWho(btn) {
+    var row = btn.closest('.comment-actions');
+    if (!row) return;
+    var cid = row.getAttribute('data-cid');
+    var emoji = btn.getAttribute('data-emoji');
+    var who = row.querySelector('.creact-who');
+    if (!who) return;
+    var showing = !who.hidden && who.getAttribute('data-emoji') === emoji;
+    closeAllCreactPopovers();
+    if (!showing) {
+      who.setAttribute('data-emoji', emoji);
+      who.innerHTML = creactWhoInnerHtml(cid, emoji);
+      who.hidden = false;
+      positionCreactPop(who, btn, row);
+    }
   }
 
   // The top-level comment a "Trả lời" belongs under (replies are one level deep).
@@ -1434,6 +1486,7 @@
       var a = ev.target.closest && ev.target.closest('[data-action]');
       var inReactionBar = ev.target.closest && ev.target.closest('#reactionBar');
       if (!inReactionBar) closeReactionPopovers();
+      if (!(ev.target.closest && ev.target.closest('.comment-actions'))) closeAllCreactPopovers();
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') { closeProfileModal(); doSignOut(); }
@@ -1442,7 +1495,7 @@
       else if (act === 'profile-save') onProfileSave();
     });
     document.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); }
+      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); }
     });
 
     readerEl.addEventListener('click', function (ev) {
@@ -1463,8 +1516,9 @@
       else if (act === 'react-add') onReactionAdd();
       else if (act === 'react-choice') onReactionChoice(a);
       else if (act === 'react-who') onReactionWho(a);
-      else if (act === 'creact' || act === 'creact-pick') onCommentReact(a);
+      else if (act === 'creact-pick') onCommentReact(a);
       else if (act === 'creact-add') onCommentReactAdd(a);
+      else if (act === 'creact-who') onCommentReactWho(a);
     });
 
     readerEl.addEventListener('submit', function (ev) {

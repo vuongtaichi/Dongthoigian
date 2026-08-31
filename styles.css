@@ -1145,29 +1145,52 @@ body {
 }
 .creact-add-plus { font-weight: 700; }
 
-.creact-picker {
-  display: inline-flex;
-  gap: .2rem;
-  margin-left: .1rem;
-  padding: .15rem .3rem;
+/* floating popovers under the action row: the emoji picker, and "who reacted" */
+.creact-picker,
+.creact-who {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--card);
   box-shadow: var(--shadow);
+}
+
+.creact-picker {
+  display: inline-flex;
+  gap: .1rem;
+  padding: .2rem .3rem;
 }
 .creact-choice {
   border: none;
   background: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
   line-height: 1;
-  padding: .15rem .25rem;
+  padding: .2rem .3rem;
   border-radius: 6px;
   cursor: pointer;
 }
 .creact-choice:hover { background: var(--accent-soft-bg); }
-.creact-choice.reacted { background: var(--accent-soft-bg); }
+.creact-choice.reacted { background: var(--accent-soft-bg); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.creact-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .3rem .5rem;
+  padding: .45rem .6rem;
+  max-width: min(22rem, 90vw);
+  font-size: .85rem;
+  color: var(--ink-soft);
+}
+.creact-who .who-emoji { font-size: 1rem; }
+.creact-who .who-chip { color: var(--ink); }
+.creact-who .who-more { color: var(--ink-faint); }
 
 .comment-actions {
+  position: relative;
   margin-top: .4rem;
   display: flex;
   flex-wrap: wrap;
