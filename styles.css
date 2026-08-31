@@ -658,6 +658,20 @@ body {
   padding: .8rem 1rem;
 }
 
+/* Logged-out state: prompt + the two sign-in buttons stacked and centred */
+.auth-bar.is-guest {
+  flex-direction: column;
+  text-align: center;
+  gap: .7rem;
+}
+
+.auth-bar.is-guest .auth-prompt { width: 100%; }
+
+.auth-bar.is-guest .auth-btn {
+  width: 100%;
+  max-width: 300px;
+}
+
 .auth-bar.flash { animation: authflash .9s ease; }
 
 @keyframes authflash {

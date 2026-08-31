@@ -394,20 +394,23 @@
     var bar = document.getElementById('authBar');
     if (!bar) return;
     if (authUser) {
+      bar.classList.remove('is-guest');
       bar.innerHTML =
         '<span class="auth-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
         '<button type="button" class="auth-btn auth-ghost" data-action="signout">Đăng xuất</button>';
     } else {
+      bar.classList.add('is-guest');
       bar.innerHTML =
-        '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc:</span>' +
-        '<button type="button" class="auth-btn" data-action="google">Đăng nhập bằng Google</button>' +
-        '<button type="button" class="auth-btn auth-ghost" data-action="email">Dùng email</button>';
+        '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc</span>' +
+        '<button type="button" class="auth-btn auth-ghost" data-action="email">Đăng nhập/Đăng ký</button>' +
+        '<button type="button" class="auth-btn" data-action="google">Đăng nhập bằng Google</button>';
     }
   }
 
   function renderEmailForm() {
     var bar = document.getElementById('authBar');
     if (!bar) return;
+    bar.classList.remove('is-guest');
     bar.innerHTML =
       '<form class="auth-email-form" id="authEmailForm" data-mode="signin" autocomplete="on">' +
         '<div class="auth-tabs">' +
