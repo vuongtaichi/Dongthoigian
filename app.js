@@ -291,6 +291,43 @@
     return el ? (el.value || '').trim() : '';
   }
 
+  // A random per-browser id, kept in localStorage. Used only for the footer
+  // visitor count — not tied to a signed-in account.
+  function getVisitorId() {
+    try {
+      var k = 'nkltt:visitorId';
+      var v = localStorage.getItem(k);
+      if (!v) {
+        v = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : 'v-' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+        localStorage.setItem(k, v);
+      }
+      return v;
+    } catch (e) {
+      return 'v-' + Math.random().toString(36).slice(2);
+    }
+  }
+
+  // Records this browser as a visitor (once — a repeat insert just hits the
+  // primary-key conflict and is ignored) and shows the total next to © in the
+  // sidebar footer.
+  function recordVisit() {
+    if (!sb) return;
+    sb.from('visits').insert({ visitor_id: getVisitorId() }).then(function () {
+      sb.from('visits').select('visitor_id', { count: 'exact', head: true }).then(function (res) {
+        var n = res && typeof res.count === 'number' ? res.count : null;
+        if (n === null) return;
+        var el = document.querySelector('.sidebar-footer .copyright');
+        if (!el || el.querySelector('.visit-count')) return;
+        var span = document.createElement('span');
+        span.className = 'visit-count';
+        span.textContent = ' · ' + n.toLocaleString('vi-VN') + ' lượt đọc';
+        el.appendChild(span);
+      });
+    });
+  }
+
   function relTime(iso) {
     var then = Date.parse(iso);
     if (isNaN(then)) return '';
@@ -664,6 +701,8 @@
       applyAuthUser(session ? session.user : null);
       refresh();
     });
+
+    recordVisit();
   }
 
   function applySearch() {

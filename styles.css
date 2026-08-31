@@ -333,6 +333,8 @@ body {
   letter-spacing: .02em;
 }
 
+.sidebar-footer .visit-count { color: var(--sidebar-text-dim); }
+
 .drawer-toggle {
   display: none;
 }
