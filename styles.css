@@ -145,8 +145,8 @@ body {
 /* ---------- Sidebar ---------- */
 
 .sidebar {
-  flex: 0 0 330px;
-  width: 330px;
+  flex: 0 0 363px;
+  width: 363px;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
@@ -698,7 +698,7 @@ body {
     height: 100vh;
     height: 100dvh;
     transform: translateX(-100%);
-    width: min(88vw, 374px);
+    width: min(90vw, 411px);
     transition: transform .28s ease;
     box-shadow: var(--shadow);
   }
