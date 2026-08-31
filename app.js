@@ -520,10 +520,10 @@
     '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 
-  // Per-chapter view count, shown as a non-clickable "pill" (eye + number) at
-  // the front of the reaction row. Counts once per chapter per page-load, so
-  // clicking prev/next back and forth doesn't inflate it; a fresh reload is a
-  // new view. If the chapter_views table is missing, the pill removes itself.
+  // Per-chapter view count: a non-clickable "pill" (eye + number) at the front
+  // of the reaction row. Counts UNIQUE visitors — one row per (chapter,
+  // visitor_id), so reloading or revisiting the chapter never bumps it. If the
+  // chapter_views table is missing, the pill removes itself.
   var _countedViews = {};
   function loadChapterViews(chapterId, token) {
     function apply() {
@@ -545,7 +545,11 @@
     }
     if (_countedViews[chapterId]) { apply(); return; }
     _countedViews[chapterId] = true;
-    sb.from('chapter_views').insert({ chapter_id: chapterId }).then(apply);
+    // insert is a no-op after the first time this visitor opened the chapter
+    // (unique index on chapter_id + visitor_id → conflict is dropped)
+    sb.from('chapter_views')
+      .insert({ chapter_id: chapterId, visitor_id: getVisitorId() })
+      .then(apply);
   }
 
   var SMILE_SVG =
