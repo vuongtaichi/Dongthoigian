@@ -322,7 +322,7 @@
         if (!el || el.querySelector('.visit-count')) return;
         var span = document.createElement('span');
         span.className = 'visit-count';
-        span.textContent = ' · ' + n.toLocaleString('vi-VN') + ' lượt đọc';
+        span.textContent = ' · ' + n.toLocaleString('vi-VN') + ' lượt xem';
         el.appendChild(span);
       });
     });
