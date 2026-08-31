@@ -449,39 +449,45 @@
   var _commentReactions = {};   // comment id -> { emoji: { count, mine } }
   var _commentReactsOn = true;  // false if the comment_reactions table is absent
 
-  // The reaction strip under one comment: pills for emojis that have been used
-  // (tap to add/remove yours) + a "＋" that reveals the five choices.
-  function commentReactsHtml(commentId) {
+  // The "🙂＋" button + its pop-out of five choices — sits at the START of the
+  // comment's action row, before "Trả lời".
+  function creactAddHtml(commentId) {
+    if (!authUser) return '';
     var byEmoji = _commentReactions[commentId] || {};
-    var pills = REACTIONS.filter(function (r) { return byEmoji[r.emoji] && byEmoji[r.emoji].count; })
+    var choices = REACTIONS.map(function (r) {
+      var mine = byEmoji[r.emoji] && byEmoji[r.emoji].mine;
+      return '<button type="button" class="creact-choice' + (mine ? ' reacted' : '') +
+        '" data-action="creact-pick" data-emoji="' + escapeHtml(r.emoji) + '">' + r.emoji + '</button>';
+    }).join('');
+    return '<button type="button" class="creact-add" data-action="creact-add" ' +
+        'aria-label="Bày tỏ cảm xúc">🙂<span class="creact-add-plus">+</span></button>' +
+      '<span class="creact-picker" hidden>' + choices + '</span>';
+  }
+
+  // Pills for the emojis that have been used — sits at the END of the action
+  // row (pushed right). Tap your own to remove it.
+  function creactPillsHtml(commentId) {
+    var byEmoji = _commentReactions[commentId] || {};
+    return REACTIONS.filter(function (r) { return byEmoji[r.emoji] && byEmoji[r.emoji].count; })
       .map(function (r) {
         var d = byEmoji[r.emoji];
         return '<button type="button" class="creact' + (d.mine ? ' reacted' : '') +
           '" data-action="creact" data-emoji="' + escapeHtml(r.emoji) + '">' +
           r.emoji + ' <span>' + d.count + '</span></button>';
       }).join('');
-    var choices = REACTIONS.map(function (r) {
-      var mine = byEmoji[r.emoji] && byEmoji[r.emoji].mine;
-      return '<button type="button" class="creact-choice' + (mine ? ' reacted' : '') +
-        '" data-action="creact-pick" data-emoji="' + escapeHtml(r.emoji) + '">' + r.emoji + '</button>';
-    }).join('');
-    return '<div class="comment-reacts" data-cid="' + commentId + '">' + pills +
-      (authUser ? '<button type="button" class="creact-add" data-action="creact-add" ' +
-        'aria-label="Bày tỏ cảm xúc">🙂<span class="creact-add-plus">+</span></button>' +
-        '<span class="creact-picker" hidden>' + choices + '</span>' : '') +
-      '</div>';
   }
 
   function repaintCommentReacts(commentId) {
     var l = document.getElementById('commentList');
-    var row = l && l.querySelector('.comment-reacts[data-cid="' + commentId + '"]');
-    if (!row) return;
-    var open = !!(row.querySelector('.creact-picker') && !row.querySelector('.creact-picker').hidden);
-    row.outerHTML = commentReactsHtml(commentId);
-    if (open) {
-      var pk = l.querySelector('.comment-reacts[data-cid="' + commentId + '"] .creact-picker');
-      if (pk) pk.hidden = false;
-    }
+    var actions = l && l.querySelector('.comment-actions[data-cid="' + commentId + '"]');
+    if (!actions) return;
+    var pills = actions.querySelector('.creact-pills');
+    if (pills) pills.innerHTML = creactPillsHtml(commentId);
+    var m = _commentReactions[commentId] || {};
+    Array.prototype.forEach.call(actions.querySelectorAll('.creact-picker .creact-choice'), function (b) {
+      var e = b.getAttribute('data-emoji');
+      b.classList.toggle('reacted', !!(m[e] && m[e].mine));
+    });
   }
 
   function commentLi(c, isReply) {
@@ -492,11 +498,13 @@
     var avatar = c._avatar !== undefined ? c._avatar : (prof.avatar_url || null);
     var hue = c._hue !== undefined ? c._hue : (prof.avatar_hue != null ? prof.avatar_hue : null);
     _commentBody[c.id] = c.body || '';
-    var actions = '<div class="comment-actions">' +
+    var reactsOn = _commentReactsOn;
+    var actions = '<div class="comment-actions" data-cid="' + c.id + '">' +
+      (reactsOn ? creactAddHtml(c.id) : '') +
       (authUser ? '<button type="button" class="comment-act" data-action="reply">Trả lời</button>' : '') +
       (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
-      (canDelete ? '<button type="button" class="comment-act" data-action="del">' +
-        (mine ? 'Xoá' : 'Xoá (quản trị)') + '</button>' : '') +
+      (canDelete ? '<button type="button" class="comment-act" data-action="del">Xoá</button>' : '') +
+      (reactsOn ? '<span class="creact-pills">' + creactPillsHtml(c.id) + '</span>' : '') +
       '</div>';
     var replies = isReply ? '' : '<ul class="comment-replies" data-parent="' + c.id + '"></ul>';
     return '<li class="comment' + (isReply ? ' comment-reply' : '') + (mine ? ' is-mine' : '') +
@@ -509,7 +517,6 @@
               (c.edited_at ? ' · đã sửa' : '') + '</span>' +
           '</div>' +
           '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
-          (_commentReactsOn ? commentReactsHtml(c.id) : '') +
           actions +
           replies +
         '</div>' +
@@ -1088,7 +1095,7 @@
 
   function onCommentReact(btn) {
     if (!authUser) { flashAuthBar(); return; }
-    var row = btn.closest('.comment-reacts');
+    var row = btn.closest('.comment-actions');
     if (!row) return;
     var cid = row.getAttribute('data-cid');
     var emoji = btn.getAttribute('data-emoji');
@@ -1120,7 +1127,7 @@
 
   function onCommentReactAdd(btn) {
     if (!authUser) { flashAuthBar(); return; }
-    var row = btn.closest('.comment-reacts');
+    var row = btn.closest('.comment-actions');
     var pk = row && row.querySelector('.creact-picker');
     if (pk) pk.hidden = !pk.hidden;
   }

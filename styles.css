@@ -1108,14 +1108,13 @@ body {
 
 .comment-text { color: var(--ink); }
 
-/* emoji reactions on a comment */
-.comment-reacts {
-  margin-top: .4rem;
-  display: flex;
+/* emoji reactions live inside the comment action row: 🙂+ at the start,
+   the used-emoji pills pushed to the right */
+.creact-pills {
+  margin-left: auto;
+  display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: .35rem;
-  position: relative;
 }
 
 .creact {
@@ -1169,9 +1168,11 @@ body {
 .creact-choice.reacted { background: var(--accent-soft-bg); }
 
 .comment-actions {
-  margin-top: .35rem;
+  margin-top: .4rem;
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .9rem;
 }
 
 .comment-act {
