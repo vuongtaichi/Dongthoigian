@@ -249,7 +249,7 @@ body {
   gap: 1rem;
 }
 
-.profile-modal-title { margin: 0; font-size: inherit; font-weight: 700; }
+.profile-modal-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
 .profile-avatar-preview { align-self: center; }
 
 .profile-field { display: flex; flex-direction: column; gap: .4rem; color: var(--ink-soft); }

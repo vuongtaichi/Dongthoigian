@@ -253,6 +253,7 @@
   var REACTIONS = [
     { emoji: '👍', label: 'Thích' },
     { emoji: '❤️', label: 'Yêu thích' },
+    { emoji: '😂', label: 'Haha' },
     { emoji: '😮', label: 'Ngạc nhiên' },
     { emoji: '😢', label: 'Buồn' }
   ];
@@ -867,8 +868,21 @@
     }
     if (!Object.keys(patch).length) { closeProfileModal(); return; }
     if (msg) msg.textContent = 'Đang lưu...';
+    saveProfilePatch(patch, msg);
+  }
+
+  function saveProfilePatch(patch, msg) {
     sb.from('profiles').update(patch).eq('id', authUser.id).then(function (res) {
-      if (res.error) { if (msg) msg.textContent = 'Không lưu được, thử lại nhé.'; return; }
+      if (res.error) {
+        // the avatar_hue column may not exist yet — retry saving just the name
+        if (patch.avatar_hue != null && patch.display_name) {
+          saveProfilePatch({ display_name: patch.display_name }, msg);
+          if (msg) msg.textContent = 'Đã lưu tên. Màu ảnh cần thêm cột avatar_hue vào CSDL.';
+          return;
+        }
+        if (msg) msg.textContent = 'Không lưu được, thử lại nhé.';
+        return;
+      }
       if (patch.display_name) authUser.name = patch.display_name;
       if (patch.avatar_hue != null) authUser.avatarHue = patch.avatar_hue;
       renderMastheadAuth();
