@@ -637,8 +637,8 @@ body {
   padding-top: 2.5rem;
   border-top: 1px solid var(--border);
   font-family: var(--font-body);
-  font-size: 1.3rem;
-  line-height: 1.8;
+  font-size: 1.1rem;
+  line-height: 1.75;
 }
 
 /* View count: a non-interactive pill (eye + number) leading the reaction row */
