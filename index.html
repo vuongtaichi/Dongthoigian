@@ -47,6 +47,13 @@
 
   <!-- data.js defines the `chapters` array (the diary content) -->
   <script src="data.js"></script>
+
+  <!-- Comments + reactions backend (Supabase). The widgets only appear once
+       supabase-config.js has real credentials filled in; otherwise the site
+       behaves exactly as before. Not included in the Claude Artifact build. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
   <!-- app.js renders the sidebar + reader and wires up navigation -->
   <script src="app.js"></script>
 </body>

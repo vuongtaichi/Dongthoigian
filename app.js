@@ -186,9 +186,12 @@
     html += '</button>';
     html += '</nav>';
 
+    if (sb) html += engagementShellHtml();
+
     html += '</article>';
 
     readerEl.innerHTML = html;
+    readerEl.setAttribute('data-chapter-id', ch.id);
     scrollReaderToTop();
     updateProgress();
 
@@ -202,6 +205,8 @@
     });
 
     saveLastChapter(ch.id);
+
+    if (sb) renderEngagement(ch.id);
 
     // Push a history entry per chapter switch (not the initial load) so the
     // device/browser Back button steps back through previously-read
@@ -236,6 +241,428 @@
     tocEl.scrollTop = Math.max(0, target);
   }
 
+  // ==========================================================================
+  //  Reactions + comments (Supabase backend, Google / email accounts)
+  //  --------------------------------------------------------------------------
+  //  The whole block is dormant unless supabase-config.js holds real
+  //  credentials AND the supabase-js library loaded from the CDN. The published
+  //  Claude Artifact has neither (its build omits those <script> tags and its
+  //  sandbox blocks the API), so nothing here ever renders there.
+  // ==========================================================================
+
+  var REACTIONS = [
+    { emoji: '👍', label: 'Thích' },
+    { emoji: '❤️', label: 'Yêu thích' },
+    { emoji: '😮', label: 'Ngạc nhiên' },
+    { emoji: '😢', label: 'Buồn' }
+  ];
+  var COMMENT_MAX = 2000;
+  var NAME_MAX = 60;
+
+  var sb = null;
+  try {
+    var _cfg = window.NKLTT_SUPABASE;
+    if (_cfg && _cfg.url && _cfg.anonKey &&
+        _cfg.url.indexOf('YOUR_') === -1 && _cfg.anonKey.indexOf('YOUR_') === -1 &&
+        window.supabase && window.supabase.createClient) {
+      sb = window.supabase.createClient(_cfg.url, _cfg.anonKey);
+    }
+  } catch (e) { sb = null; }
+
+  var authUser = null;   // { id, name } while signed in, else null
+  var engToken = 0;      // bumped per chapter render; guards stale async results
+
+  // A Supabase OAuth redirect can return with #access_token=... in the URL
+  // (implicit flow). Until supabase-js strips it, the hash router must not read
+  // it as a chapter id. (PKCE flow returns ?code=... in the query string, which
+  // never collides with our #ch-N hashes.)
+  function hashIsAuthCallback() {
+    var h = '';
+    try { h = location.hash || ''; } catch (e) {}
+    return /access_token=|refresh_token=|[?&#]error=|type=recovery/.test(h);
+  }
+  function routeHash() {
+    if (hashIsAuthCallback()) return '';
+    try { return (location.hash || '').replace('#', ''); } catch (e) { return ''; }
+  }
+
+  function fieldVal(scope, sel) {
+    var el = scope.querySelector(sel);
+    return el ? (el.value || '').trim() : '';
+  }
+
+  function relTime(iso) {
+    var then = Date.parse(iso);
+    if (isNaN(then)) return '';
+    var s = Math.max(0, Math.round((Date.now() - then) / 1000));
+    if (s < 45) return 'vừa xong';
+    var m = Math.round(s / 60);
+    if (m < 60) return m + ' phút trước';
+    var h = Math.round(m / 60);
+    if (h < 24) return h + ' giờ trước';
+    var d = Math.round(h / 24);
+    if (d < 30) return d + ' ngày trước';
+    var dt = new Date(then);
+    return dt.getDate() + '/' + (dt.getMonth() + 1) + '/' + dt.getFullYear();
+  }
+
+  function displayNameFromUser(u) {
+    if (!u) return 'Người đọc';
+    var m = u.user_metadata || {};
+    return m.full_name || m.name || (u.email ? u.email.split('@')[0] : 'Người đọc');
+  }
+  function applyAuthUser(u) {
+    authUser = u ? { id: u.id, name: displayNameFromUser(u) } : null;
+  }
+
+  function translateAuthError(msg) {
+    msg = String(msg || '');
+    if (/invalid login credentials/i.test(msg)) return 'Email hoặc mật khẩu không đúng.';
+    if (/already registered|already been registered/i.test(msg)) return 'Email này đã có tài khoản — hãy đăng nhập.';
+    if (/password should be at least/i.test(msg)) return 'Mật khẩu cần tối thiểu 6 ký tự.';
+    if (/unable to validate email|invalid format/i.test(msg)) return 'Email không hợp lệ.';
+    if (/rate limit|too many/i.test(msg)) return 'Thử lại sau ít phút nhé.';
+    return msg;
+  }
+
+  // ---- markup ----------------------------------------------------------------
+
+  function engagementShellHtml() {
+    return '<section class="engagement" aria-label="Cảm nhận và bình luận">' +
+        '<div class="reactions" id="reactions"></div>' +
+        '<div class="auth-bar" id="authBar"></div>' +
+        '<div class="comments">' +
+          '<h3 class="comments-title" id="commentsTitle">Bình luận</h3>' +
+          '<div class="comment-compose" id="commentCompose"></div>' +
+          '<ul class="comment-list" id="commentList"></ul>' +
+        '</div>' +
+      '</section>';
+  }
+
+  function commentLi(c) {
+    var mine = authUser && c.user_id === authUser.id;
+    var name = c._name || (c.profiles && c.profiles.display_name) || 'Người đọc';
+    return '<li class="comment' + (mine ? ' is-mine' : '') + '" data-id="' + c.id + '">' +
+        '<div class="comment-head">' +
+          '<span class="comment-author">' + escapeHtml(name) + '</span>' +
+          '<span class="comment-time">' + escapeHtml(relTime(c.created_at)) +
+            (c.edited_at ? ' · đã sửa' : '') + '</span>' +
+        '</div>' +
+        '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
+        (mine ? '<div class="comment-actions"><button type="button" class="comment-del" data-action="del">Xoá</button></div>' : '') +
+      '</li>';
+  }
+
+  // ---- rendering ------------------------------------------------------------
+
+  function renderEngagement(chapterId) {
+    if (!sb) return;
+    var token = ++engToken;
+    renderReactionBar(chapterId, token);
+    renderAuthBar(chapterId);
+    renderCompose();
+    loadComments(chapterId, token);
+  }
+
+  function renderReactionBar(chapterId, token) {
+    var host = document.getElementById('reactions');
+    if (!host) return;
+    host.innerHTML = REACTIONS.map(function (r) {
+      return '<button type="button" class="reaction" data-emoji="' + escapeHtml(r.emoji) +
+        '" title="' + escapeHtml(r.label) + '" aria-label="' + escapeHtml(r.label) + '">' +
+        '<span class="reaction-emoji">' + r.emoji + '</span>' +
+        '<span class="reaction-count">·</span></button>';
+    }).join('');
+    sb.from('reactions').select('emoji, user_id').eq('chapter_id', chapterId).then(function (res) {
+      if (token !== engToken) return;
+      var rows = (res && res.data) || [];
+      var counts = {}, mine = {};
+      rows.forEach(function (row) {
+        counts[row.emoji] = (counts[row.emoji] || 0) + 1;
+        if (authUser && row.user_id === authUser.id) mine[row.emoji] = true;
+      });
+      Array.prototype.forEach.call(host.querySelectorAll('.reaction'), function (btn) {
+        var e = btn.getAttribute('data-emoji');
+        var c = counts[e] || 0;
+        btn.querySelector('.reaction-count').textContent = c ? String(c) : '·';
+        btn.classList.toggle('reacted', !!mine[e]);
+      });
+    });
+  }
+
+  function renderAuthBar(chapterId) {
+    var bar = document.getElementById('authBar');
+    if (!bar) return;
+    if (authUser) {
+      bar.innerHTML =
+        '<span class="auth-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
+        '<button type="button" class="auth-btn auth-ghost" data-action="signout">Đăng xuất</button>';
+    } else {
+      bar.innerHTML =
+        '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc:</span>' +
+        '<button type="button" class="auth-btn" data-action="google">Đăng nhập bằng Google</button>' +
+        '<button type="button" class="auth-btn auth-ghost" data-action="email">Dùng email</button>';
+    }
+  }
+
+  function renderEmailForm() {
+    var bar = document.getElementById('authBar');
+    if (!bar) return;
+    bar.innerHTML =
+      '<form class="auth-email-form" id="authEmailForm" data-mode="signin" autocomplete="on">' +
+        '<div class="auth-tabs">' +
+          '<button type="button" class="auth-tab is-active" data-action="tab" data-mode="signin">Đăng nhập</button>' +
+          '<button type="button" class="auth-tab" data-action="tab" data-mode="signup">Đăng ký</button>' +
+        '</div>' +
+        '<input type="text" id="authName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" hidden />' +
+        '<input type="email" id="authEmail" class="auth-input" placeholder="Email" required autocomplete="email" />' +
+        '<input type="password" id="authPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required minlength="6" autocomplete="current-password" />' +
+        '<div class="auth-email-row">' +
+          '<span class="auth-msg" id="authMsg" role="status"></span>' +
+          '<button type="submit" class="auth-btn" id="authSubmit">Đăng nhập</button>' +
+        '</div>' +
+        '<button type="button" class="auth-cancel" data-action="cancel">Huỷ</button>' +
+      '</form>';
+  }
+
+  function switchAuthTab(mode) {
+    var form = document.getElementById('authEmailForm');
+    if (!form) return;
+    form.setAttribute('data-mode', mode);
+    Array.prototype.forEach.call(form.querySelectorAll('.auth-tab'), function (t) {
+      t.classList.toggle('is-active', t.getAttribute('data-mode') === mode);
+    });
+    var nameField = form.querySelector('#authName');
+    if (nameField) nameField.hidden = (mode !== 'signup');
+    var pass = form.querySelector('#authPassword');
+    if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
+    var submit = form.querySelector('#authSubmit');
+    if (submit) submit.textContent = (mode === 'signup') ? 'Đăng ký' : 'Đăng nhập';
+  }
+
+  function renderCompose() {
+    var host = document.getElementById('commentCompose');
+    if (!host) return;
+    if (!authUser) {
+      host.innerHTML = '<p class="compose-locked">Bạn cần đăng nhập để viết bình luận.</p>';
+      return;
+    }
+    host.innerHTML =
+      '<form class="comment-form" id="commentForm">' +
+        '<textarea id="commentBody" class="comment-body" rows="3" maxlength="' + COMMENT_MAX +
+          '" placeholder="Viết bình luận của bạn..." required></textarea>' +
+        '<div class="comment-form-row">' +
+          '<span class="comment-status" id="commentStatus" role="status"></span>' +
+          '<button type="submit" class="comment-submit" id="commentSubmit">Gửi bình luận</button>' +
+        '</div>' +
+      '</form>';
+  }
+
+  function loadComments(chapterId, token) {
+    var list = document.getElementById('commentList');
+    if (list) list.innerHTML = '<li class="comment-empty">Đang tải bình luận...</li>';
+    sb.from('comments')
+      .select('id, body, created_at, edited_at, user_id, profiles(display_name)')
+      .eq('chapter_id', chapterId)
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .limit(300)
+      .then(function (res) {
+        if (token !== engToken) return;
+        var list2 = document.getElementById('commentList');
+        var titleEl = document.getElementById('commentsTitle');
+        if (!list2) return;
+        if (res.error) {
+          list2.innerHTML = '<li class="comment-empty">Không tải được bình luận.</li>';
+          return;
+        }
+        var rows = res.data || [];
+        if (titleEl) titleEl.textContent = 'Bình luận' + (rows.length ? ' (' + rows.length + ')' : '');
+        if (!rows.length) {
+          list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';
+          return;
+        }
+        list2.innerHTML = rows.map(commentLi).join('');
+      });
+  }
+
+  function bumpCount(delta) {
+    var t = document.getElementById('commentsTitle');
+    if (!t) return;
+    var m = /\((\d+)\)/.exec(t.textContent || '');
+    var n = Math.max(0, (m ? parseInt(m[1], 10) : 0) + delta);
+    t.textContent = 'Bình luận' + (n > 0 ? ' (' + n + ')' : '');
+  }
+
+  function prependComment(row) {
+    var list = document.getElementById('commentList');
+    if (!list) return;
+    var empty = list.querySelector('.comment-empty');
+    if (empty) list.innerHTML = '';
+    list.insertAdjacentHTML('afterbegin', commentLi(row));
+    bumpCount(1);
+  }
+
+  // ---- actions -------------------------------------------------------------
+
+  function doGoogleSignIn() {
+    var redirectTo;
+    try { redirectTo = location.href.split('#')[0]; } catch (e) { redirectTo = undefined; }
+    sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo } });
+  }
+  function doSignOut() { sb.auth.signOut(); }
+
+  function onAuthEmailSubmit(form) {
+    var mode = form.getAttribute('data-mode') || 'signin';
+    var email = fieldVal(form, '#authEmail');
+    var pass = fieldVal(form, '#authPassword');
+    var name = fieldVal(form, '#authName');
+    var msg = form.querySelector('#authMsg');
+    var submit = form.querySelector('#authSubmit');
+    if (!email || pass.length < 6) {
+      if (msg) msg.textContent = 'Kiểm tra lại email và mật khẩu (tối thiểu 6 ký tự).';
+      return;
+    }
+    if (submit) submit.disabled = true;
+    if (msg) msg.textContent = 'Đang xử lý...';
+    var p = (mode === 'signup')
+      ? sb.auth.signUp({ email: email, password: pass, options: { data: name ? { full_name: name } : {} } })
+      : sb.auth.signInWithPassword({ email: email, password: pass });
+    p.then(function (res) {
+      if (submit) submit.disabled = false;
+      if (res.error) {
+        if (msg) msg.textContent = translateAuthError(res.error.message);
+        return;
+      }
+      // Email confirmation is off, so signUp returns a session right away and
+      // onAuthStateChange re-renders. This branch is only a safety net in case
+      // confirmation gets switched on later.
+      if (res.data && !res.data.session) {
+        if (msg) msg.textContent = 'Kiểm tra email để xác nhận tài khoản.';
+      }
+    });
+  }
+
+  function onReactionClick(btn) {
+    if (!sb) return;
+    if (!authUser) { flashAuthBar(); return; }
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    var emoji = btn.getAttribute('data-emoji');
+    var countEl = btn.querySelector('.reaction-count');
+    var had = btn.classList.contains('reacted');
+    var cur = parseInt(countEl.textContent, 10);
+    if (isNaN(cur)) cur = 0;
+    btn.classList.toggle('reacted', !had);
+    var next = had ? Math.max(0, cur - 1) : cur + 1;
+    countEl.textContent = next ? String(next) : '·';
+    btn.disabled = true;
+    var op = had
+      ? sb.from('reactions').delete().match({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id })
+      : sb.from('reactions').insert({ chapter_id: chapterId, emoji: emoji, user_id: authUser.id });
+    op.then(function (res) {
+      btn.disabled = false;
+      if (res && res.error && res.error.code !== '23505') {
+        btn.classList.toggle('reacted', had);
+        countEl.textContent = cur ? String(cur) : '·';
+      }
+    });
+  }
+
+  function onCommentSubmit(form) {
+    if (!authUser) return;
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    var bodyEl = form.querySelector('#commentBody');
+    var statusEl = form.querySelector('#commentStatus');
+    var submitEl = form.querySelector('#commentSubmit');
+    var body = (bodyEl.value || '').trim();
+    if (!body) return;
+    if (body.length > COMMENT_MAX) { if (statusEl) statusEl.textContent = 'Bình luận quá dài.'; return; }
+    if (submitEl) submitEl.disabled = true;
+    if (statusEl) statusEl.textContent = 'Đang gửi...';
+    sb.from('comments')
+      .insert({ chapter_id: chapterId, user_id: authUser.id, body: body })
+      .select('id, body, created_at, edited_at, user_id')
+      .single()
+      .then(function (res) {
+        if (submitEl) submitEl.disabled = false;
+        if (res.error || !res.data) {
+          if (statusEl) statusEl.textContent = 'Không gửi được, thử lại nhé.';
+          return;
+        }
+        bodyEl.value = '';
+        if (statusEl) statusEl.textContent = 'Đã gửi. Cảm ơn bạn!';
+        if (readerEl.getAttribute('data-chapter-id') === chapterId) {
+          var row = res.data;
+          row._name = authUser.name;
+          prependComment(row);
+        }
+        setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 4000);
+      });
+  }
+
+  function onCommentDelete(btn) {
+    if (!authUser) return;
+    var li = btn.closest('.comment');
+    if (!li) return;
+    if (typeof window.confirm === 'function' && !window.confirm('Xoá bình luận này?')) return;
+    var id = li.getAttribute('data-id');
+    btn.disabled = true;
+    sb.from('comments').delete().match({ id: id, user_id: authUser.id }).then(function (res) {
+      if (res && res.error) { btn.disabled = false; return; }
+      if (li.parentNode) li.parentNode.removeChild(li);
+      bumpCount(-1);
+    });
+  }
+
+  function flashAuthBar() {
+    var bar = document.getElementById('authBar');
+    if (!bar) return;
+    bar.classList.remove('flash');
+    void bar.offsetWidth;
+    bar.classList.add('flash');
+    try { bar.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+  }
+
+  // ---- one-time wiring (readerEl is stable across chapter renders) ----------
+
+  function initEngagement() {
+    if (!sb) return;
+
+    readerEl.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var rb = t.closest('.reaction');
+      if (rb) { onReactionClick(rb); return; }
+      var a = t.closest('[data-action]');
+      if (!a) return;
+      var act = a.getAttribute('data-action');
+      if (act === 'google') doGoogleSignIn();
+      else if (act === 'signout') doSignOut();
+      else if (act === 'email') renderEmailForm();
+      else if (act === 'cancel') renderAuthBar(readerEl.getAttribute('data-chapter-id'));
+      else if (act === 'tab') switchAuthTab(a.getAttribute('data-mode'));
+      else if (act === 'del') onCommentDelete(a);
+    });
+
+    readerEl.addEventListener('submit', function (ev) {
+      if (ev.target && ev.target.id === 'commentForm') { ev.preventDefault(); onCommentSubmit(ev.target); }
+      else if (ev.target && ev.target.id === 'authEmailForm') { ev.preventDefault(); onAuthEmailSubmit(ev.target); }
+    });
+
+    function refresh() {
+      var cid = readerEl.getAttribute('data-chapter-id');
+      if (cid) renderEngagement(cid);
+    }
+    sb.auth.getSession().then(function (res) {
+      applyAuthUser(res && res.data && res.data.session ? res.data.session.user : null);
+      refresh();
+    });
+    sb.auth.onAuthStateChange(function (_evt, session) {
+      applyAuthUser(session ? session.user : null);
+      refresh();
+    });
+  }
+
   function applySearch() {
     var q = (searchEl.value || '').trim().toLowerCase();
     var items = tocEl.querySelectorAll('.toc-item');
@@ -267,7 +694,7 @@
   });
   scrimEl.addEventListener('click', closeDrawer);
   window.addEventListener('popstate', function () {
-    var id = (location.hash || '').replace('#', '') || loadLastChapter() || chapters[0].id;
+    var id = routeHash() || loadLastChapter() || chapters[0].id;
     renderChapter(id, { push: false });
   });
   searchEl.addEventListener('input', applySearch);
@@ -278,6 +705,7 @@
   if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
 
   buildTOC();
-  var startId = (location.hash || '').replace('#', '') || loadLastChapter() || chapters[0].id;
+  if (sb) initEngagement();
+  var startId = routeHash() || loadLastChapter() || chapters[0].id;
   renderChapter(startId);
 })();
