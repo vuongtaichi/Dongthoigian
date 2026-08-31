@@ -411,13 +411,28 @@ body {
   flex: 0 0 1.8em;
 }
 
-.toc-text { display: flex; flex-direction: column; gap: .18rem; min-width: 0; }
+.toc-text { display: flex; flex-direction: column; gap: .18rem; min-width: 0; flex: 1 1 auto; }
 
 .toc-title {
   font-size: 1.02rem;
   line-height: 1.35;
   color: var(--sidebar-text);
 }
+
+/* per-chapter view count at the right end of the sidebar title */
+.toc-views {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  padding-top: .22rem;
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--sidebar-text-dim);
+}
+.toc-views svg { width: 1em; height: 1em; flex: 0 0 auto; }
+.toc-item.active .toc-views { color: var(--sidebar-active-text); }
 
 .sidebar-footer {
   flex: 0 0 auto;

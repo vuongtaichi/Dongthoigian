@@ -99,6 +99,7 @@
       return '<li><button class="toc-item" data-id="' + ch.id + '" data-index="' + i + '">' +
         '<span class="toc-num">' + num + '</span>' +
         '<span class="toc-text"><span class="toc-title">' + escapeHtml(ch.title) + '</span></span>' +
+        '<span class="toc-views" data-id="' + ch.id + '" hidden></span>' +
         '</button></li>';
     }).join('') + '<li class="toc-empty" id="tocEmpty" style="display:none;">Không tìm thấy chương nào phù hợp.</li>';
 
@@ -108,6 +109,25 @@
         closeDrawer();
       });
     });
+  }
+
+  // Fill the little eye+count on each sidebar chapter from one grouped query.
+  function loadTocViewCounts() {
+    if (!sb || !sb.rpc) return;
+    sb.rpc('chapter_view_counts').then(function (res) {
+      if (!res || res.error || !Array.isArray(res.data)) return;
+      var byId = {};
+      res.data.forEach(function (row) { byId[row.chapter_id] = row.n; });
+      chapters.forEach(function (ch) { setTocViewCount(ch.id, byId[ch.id] || 0); });
+    });
+  }
+
+  function setTocViewCount(chapterId, n) {
+    var el = tocEl.querySelector('.toc-views[data-id="' + chapterId + '"]');
+    if (!el) return;
+    if (!n) { el.hidden = true; el.textContent = ''; return; }
+    el.innerHTML = EYE_SVG + '<span>' + Number(n).toLocaleString('vi-VN') + '</span>';
+    el.hidden = false;
   }
 
   // #reader scrolls internally on wide screens (height: 100vh), but on
@@ -585,6 +605,7 @@
       }
       var c = pill.querySelector('.reaction-count');
       if (c) c.textContent = n.toLocaleString('vi-VN');
+      setTocViewCount(chapterId, n);   // keep the sidebar figure in step
     });
   }
 
@@ -1545,6 +1566,7 @@
     });
 
     recordVisit();
+    loadTocViewCounts();
   }
 
   function applySearch() {
