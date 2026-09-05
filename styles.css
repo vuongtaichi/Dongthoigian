@@ -1521,12 +1521,14 @@ body {
   .chat-thread,
   .chat-textarea,
   .inbox-thread-list {
-    scrollbar-color: var(--ink-soft) transparent;
+    /* A fixed dark blue rather than an --ink token, so it stays blue
+       (not a neutral gray/black) regardless of light/dark theme. */
+    scrollbar-color: #1c3b7a transparent;
   }
   .chat-thread::-webkit-scrollbar-thumb,
   .chat-textarea::-webkit-scrollbar-thumb,
   .inbox-thread-list::-webkit-scrollbar-thumb {
-    background-color: var(--ink-soft);
+    background-color: #1c3b7a;
   }
 }
 
