@@ -32,6 +32,12 @@
     try { return localStorage.getItem(LAST_CHAPTER_KEY); } catch (e) { return null; }
   }
 
+  // The admin inbox isn't a chapter, but it reuses the same "last place"
+  // storage/hash so leaving the site and coming back restores it too,
+  // instead of always falling through to chapter 1 (see routing near the
+  // bottom of this file and renderAdminInbox's history/localStorage calls).
+  var ADMIN_INBOX_ROUTE = 'admin-inbox';
+
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -309,6 +315,12 @@
 
   var authUser = null;   // { id, name } while signed in, else null
   var engToken = 0;      // bumped per chapter render; guards stale async results
+  // Set at initial load when the restored route was the admin inbox, whose
+  // access we can't check until auth resolves — consumed once by refresh()
+  // below (only once _authSettled, see applyAuthUser), not re-checked on
+  // every later auth event.
+  var _pendingAdminInboxRoute = false;
+  var _authSettled = false;   // true once applyAuthUser has resolved is_admin (or found no session)
 
   // A Supabase OAuth redirect can return with #access_token=... in the URL
   // (implicit flow). Until supabase-js strips it, the hash router must not read
@@ -375,7 +387,7 @@
   // Sets `authUser` from the session, then fills in the display name, avatar and
   // is_admin flag from the profiles row (calls `done` again once that lands).
   function applyAuthUser(u, done) {
-    if (!u) { authUser = null; if (done) done(); return; }
+    if (!u) { authUser = null; _authSettled = true; if (done) done(); return; }
     var m = u.user_metadata || {};
     authUser = {
       id: u.id,
@@ -394,6 +406,7 @@
         if (d.bubble_hue != null) authUser.bubbleHue = d.bubble_hue;
         authUser.isAdmin = !!d.is_admin;
       }
+      _authSettled = true;
       if (done) done();
     }
     sb.from('profiles').select('display_name, avatar_url, avatar_hue, bubble_hue, is_admin').eq('id', u.id).single().then(function (res) {
@@ -1797,6 +1810,8 @@
     });
     _inboxSelected = null;
     loadInboxThreads();
+    saveLastChapter(ADMIN_INBOX_ROUTE);
+    history.replaceState({ chapterId: ADMIN_INBOX_ROUTE }, '', '#' + ADMIN_INBOX_ROUTE);
   }
 
   // ---- sign-in modal: Google + email/phone, both usable right away --------
@@ -2639,6 +2654,16 @@
       } else {
         setChatBadge(0);
       }
+      // The initial load restored an admin-inbox route from the hash/
+      // localStorage, but couldn't confirm access until is_admin actually
+      // resolves (refresh() also fires earlier, mid-fetch, with a
+      // provisional non-admin authUser — _authSettled tells settled from
+      // provisional apart). If this user turns out not to be the admin,
+      // just leave chapter 1 (already showing) alone.
+      if (_pendingAdminInboxRoute && _authSettled) {
+        _pendingAdminInboxRoute = false;
+        if (authUser && authUser.isAdmin) { renderAdminInbox(); return; }
+      }
       // Safety net: if whoever's signed in stops being admin (signed out,
       // switched accounts) while the inbox is on screen, don't strand them
       // on an orphaned admin page — send them back to the last chapter.
@@ -2711,6 +2736,7 @@
   scrimEl.addEventListener('click', closeDrawer);
   window.addEventListener('popstate', function () {
     var id = routeHash() || loadLastChapter() || chapters[0].id;
+    if (id === ADMIN_INBOX_ROUTE && authUser && authUser.isAdmin) { renderAdminInbox(); return; }
     renderChapter(id, { push: false });
   });
   searchEl.addEventListener('input', applySearch);
@@ -2721,7 +2747,12 @@
   if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
 
   buildTOC();
-  if (sb) initEngagement();
   var startId = routeHash() || loadLastChapter() || chapters[0].id;
-  renderChapter(startId);
+  // Admin status isn't known yet at this point (it resolves async via
+  // Supabase) — show chapter 1 for now and let refresh()'s pending-route
+  // check switch into the inbox once getSession() confirms this user
+  // actually is the admin.
+  _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE);
+  if (sb) initEngagement();
+  renderChapter(_pendingAdminInboxRoute ? chapters[0].id : startId);
 })();
