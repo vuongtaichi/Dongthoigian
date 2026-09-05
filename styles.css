@@ -922,12 +922,14 @@ body {
    box-shadow anywhere, including on hover/focus, per an explicit
    "remove the shadow effect" ask. Deliberately fixed brand colors rather
    than theme tokens, same as the Google button, everywhere except the
-   Google button itself (excluded below). */
+   Google button itself (excluded below). The gradient stops were later
+   darkened a bit on request — does not apply to .nav-btn .nav-dir
+   (Trước/Tiếp), which is a separate dark-navy outline style, not this. */
 .auth-btn {
   align-items: center;
   appearance: none;
-  background-color: #3EB2FD;
-  background-image: linear-gradient(1deg, #4F58FD, #149BF3 99%);
+  background-color: #3597D7;
+  background-image: linear-gradient(1deg, #434BD7, #1184CF 99%);
   background-size: calc(100% + 20px) calc(100% + 20px);
   border: none;
   border-radius: 100px;
@@ -1385,7 +1387,7 @@ body {
   right: 0;
   bottom: calc(100% + .75rem);
   width: min(22rem, calc(100vw - 2.5rem));
-  max-height: min(30rem, calc(100vh - 7rem));
+  max-height: min(38rem, calc(100vh - 3rem));
   display: flex;
   flex-direction: column;
   background: var(--card);
@@ -1490,6 +1492,13 @@ body {
   gap: .5rem;
   border-top: 1px solid var(--border);
   padding-top: .8rem;
+}
+
+/* Emoji/attach tools sit in their own row above the input now, so the
+   textarea gets the full compose-row width instead of sharing it. */
+.chat-compose-tools {
+  display: flex;
+  gap: .5rem;
 }
 
 .chat-compose-row {
@@ -1703,10 +1712,11 @@ body {
 }
 
 .inbox-conv-thread {
+  /* No max-height/overflow here on purpose — it grows with the
+     conversation instead of hiding older messages behind an inner
+     scrollbar; the page itself scrolls once content is tall. */
   flex: 1 1 auto;
   min-height: 14rem;
-  max-height: 22rem;
-  overflow-y: auto;
   margin-bottom: .8rem;
 }
 

@@ -1119,6 +1119,21 @@
       '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
   }
 
+  // Shared by the reader's chat widget and the admin inbox reply box — the
+  // emoji/attach tools sit in their own row above the textarea (rather than
+  // squeezed beside it) so the textarea gets the compose row's full width.
+  function composeFormHtml(formId, prefix, inputId, placeholder) {
+    return '<form class="chat-compose" id="' + formId + '">' +
+        composePendingFileHtml(prefix) +
+        '<div class="chat-compose-tools">' + composeToolsHtml(prefix) + '</div>' +
+        '<div class="chat-compose-row">' +
+          '<textarea id="' + inputId + '" class="chat-textarea" maxlength="2000" placeholder="' +
+            escapeAttr(placeholder) + '"></textarea>' +
+          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+        '</div>' +
+      '</form>';
+  }
+
   function closeAllChatEmojiPopovers(except) {
     Array.prototype.forEach.call(document.querySelectorAll('.chat-emoji-popover'), function (p) {
       if (p !== except) p.hidden = true;
@@ -1283,14 +1298,7 @@
     }
     body.innerHTML =
       '<div class="chat-thread" id="chatThread"></div>' +
-      '<form class="chat-compose" id="chatForm">' +
-        composePendingFileHtml('chat') +
-        '<div class="chat-compose-row">' +
-          composeToolsHtml('chat') +
-          '<textarea id="chatInput" class="chat-textarea" maxlength="2000" placeholder="Nhập tin nhắn..."></textarea>' +
-          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
-        '</div>' +
-      '</form>';
+      composeFormHtml('chatForm', 'chat', 'chatInput', 'Nhập tin nhắn...');
     if (_chatLoadedFor === authUser.id) {
       renderChatThread();
     } else {
@@ -1549,14 +1557,7 @@
     conv.innerHTML =
       '<div class="inbox-conv-head">' + escapeHtml(name) + '</div>' +
       '<div class="chat-thread inbox-conv-thread" id="inboxConvThread"></div>' +
-      '<form class="chat-compose" id="inboxReplyForm">' +
-        composePendingFileHtml('inbox') +
-        '<div class="chat-compose-row">' +
-          composeToolsHtml('inbox') +
-          '<textarea id="inboxReplyInput" class="chat-textarea" maxlength="2000" placeholder="Trả lời..."></textarea>' +
-          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
-        '</div>' +
-      '</form>';
+      composeFormHtml('inboxReplyForm', 'inbox', 'inboxReplyInput', 'Trả lời...');
     var threadEl = document.getElementById('inboxConvThread');
     threadEl.innerHTML = _inboxMessages.length
       ? _inboxMessages.map(function (m) { return chatBubbleHtml(m, name, t && t.bubbleHue); }).join('')
