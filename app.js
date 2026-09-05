@@ -1029,8 +1029,15 @@
     host.appendChild(w);
   }
 
-  function chatMsgHtml(m) {
-    return '<div class="chat-msg">' +
+  // Shared by both the reader's chat widget and the admin's inbox
+  // conversation pane — "mine" is just whoever's viewing (auth.uid()), so
+  // the same bubble logic renders correctly from either side of a thread.
+  // `fromLabel` names the OTHER party, shown above a bubble that isn't mine.
+  function chatBubbleHtml(m, fromLabel) {
+    var mine = authUser && m.sender_id === authUser.id;
+    var label = (!mine && fromLabel) ? '<div class="chat-msg-from">' + escapeHtml(fromLabel) + '</div>' : '';
+    return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
+        label +
         '<div class="chat-msg-bubble">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' +
         '<div class="chat-msg-time">' + escapeHtml(relTime(m.created_at)) + '</div>' +
       '</div>';
@@ -1040,15 +1047,18 @@
     var thread = document.getElementById('chatThread');
     if (!thread) return;
     thread.innerHTML = _chatMessages.length
-      ? _chatMessages.map(chatMsgHtml).join('')
+      ? _chatMessages.map(function (m) { return chatBubbleHtml(m, _chatAdmin.name); }).join('')
       : '<p class="chat-empty">Chưa có tin nhắn nào. Gửi lời nhắn đầu tiên của bạn nhé!</p>';
     thread.scrollTop = thread.scrollHeight;
   }
 
+  // Fetches the reader's WHOLE thread (their own messages + the admin's
+  // replies into it), not just what they sent — thread_user_id, not
+  // sender_id, is the reader's own conversation.
   function loadChatMessages() {
     if (!sb || !authUser) return;
     var uid = authUser.id;
-    sb.from('messages').select('id, body, created_at').eq('sender_id', uid)
+    sb.from('messages').select('id, sender_id, body, created_at').eq('thread_user_id', uid)
       .order('created_at', { ascending: true }).limit(200)
       .then(function (res) {
         if (!authUser || authUser.id !== uid) return;   // signed out/changed meanwhile
@@ -1083,8 +1093,8 @@
       renderChatThread();
     } else {
       document.getElementById('chatThread').innerHTML = '<p class="chat-empty">Đang tải...</p>';
-      loadChatMessages();
     }
+    loadChatMessages();   // always refresh — picks up any admin reply sent since the last open
   }
 
   function toggleChatPanel() {
@@ -1113,8 +1123,8 @@
     if (!body) return;
     var submit = form.querySelector('.chat-send');
     if (submit) submit.disabled = true;
-    sb.from('messages').insert({ sender_id: authUser.id, body: body })
-      .select('id, body, created_at').single().then(function (res) {
+    sb.from('messages').insert({ thread_user_id: authUser.id, sender_id: authUser.id, body: body })
+      .select('id, sender_id, body, created_at').single().then(function (res) {
         if (submit) submit.disabled = false;
         if (res.error) return;
         _chatMessages.push(res.data);
@@ -1122,6 +1132,177 @@
         input.value = '';
         renderChatThread();
       });
+  }
+
+  // ---- admin inbox: read + reply to every reader's chat thread -------------
+  //
+  // Visible only to the admin (public.is_admin(), reflected in
+  // authUser.isAdmin), via a "Hộp thư" entry pinned above chapter 1 in the
+  // sidebar (updateAdminTocItem). Renders into #reader in place of a
+  // chapter, but — deliberately, to keep this simple — doesn't get a hash
+  // or a history entry the way chapters do: it's a one-off admin view, not
+  // a bookmarkable page, so a refresh or the browser Back button always
+  // lands back on the last chapter, never back on the inbox.
+
+  var _inboxThreads = [];      // [{ uid, name, avatar, hue, lastBody, lastCreatedAt }], newest first
+  var _inboxSelected = null;   // uid of the thread open in the conversation pane, if any
+  var _inboxMessages = [];     // messages for _inboxSelected, oldest first
+
+  function updateAdminTocItem() {
+    var toc = document.getElementById('toc');
+    if (!toc) return;
+    var existing = document.getElementById('tocAdminItem');
+    if (!(authUser && authUser.isAdmin)) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) return;
+    var li = document.createElement('li');
+    li.id = 'tocAdminItem';
+    li.innerHTML =
+      '<button type="button" class="toc-item toc-admin-item" data-action="admin-inbox" aria-label="Hộp thư (quản trị)">' +
+        '<span class="toc-num" aria-hidden="true">💬</span>' +
+        '<span class="toc-text"><span class="toc-title">Hộp thư</span></span>' +
+      '</button>';
+    toc.insertBefore(li, toc.firstChild);
+  }
+
+  function inboxThreadLi(t) {
+    return '<button type="button" class="inbox-thread-item' + (t.uid === _inboxSelected ? ' active' : '') +
+        '" data-action="inbox-open" data-uid="' + escapeAttr(t.uid) + '">' +
+      avatarHtml(t.name, t.avatar, t.uid, 'inbox-thread-avatar', t.avatar ? null : t.hue) +
+      '<span class="inbox-thread-text">' +
+        '<span class="inbox-thread-name">' + escapeHtml(t.name) + '</span>' +
+        '<span class="inbox-thread-preview">' + escapeHtml(t.lastBody) + '</span>' +
+      '</span>' +
+      '<span class="inbox-thread-time">' + escapeHtml(relTime(t.lastCreatedAt)) + '</span>' +
+    '</button>';
+  }
+
+  function renderInboxThreadList() {
+    var list = document.getElementById('inboxThreadList');
+    if (!list) return;
+    list.innerHTML = _inboxThreads.length
+      ? _inboxThreads.map(inboxThreadLi).join('')
+      : '<p class="chat-empty">Chưa có ai nhắn tin.</p>';
+  }
+
+  // One query for the latest message per thread, then one combined profile
+  // fetch for whichever readers those threads belong to — same two-query
+  // pattern loadComments() already uses for authors + reactors.
+  function loadInboxThreads() {
+    if (!sb || !authUser || !authUser.isAdmin) return;
+    sb.from('messages').select('thread_user_id, body, created_at')
+      .order('created_at', { ascending: false }).limit(500)
+      .then(function (res) {
+        var rows = (res && res.data) || [];
+        var seen = {};
+        var threads = [];
+        rows.forEach(function (r) {
+          if (seen[r.thread_user_id]) return;
+          seen[r.thread_user_id] = true;
+          threads.push({ uid: r.thread_user_id, lastBody: r.body, lastCreatedAt: r.created_at });
+        });
+        var ids = threads.map(function (t) { return t.uid; });
+        if (!ids.length) { _inboxThreads = []; renderInboxThreadList(); return; }
+        sb.from('profiles').select('id, display_name, avatar_url, avatar_hue').in('id', ids)
+          .then(function (pres) {
+            var byId = {};
+            ((pres && pres.data) || []).forEach(function (p) { byId[p.id] = p; });
+            _inboxThreads = threads.map(function (t) {
+              var p = byId[t.uid] || {};
+              return {
+                uid: t.uid,
+                name: p.display_name || 'Người đọc',
+                avatar: p.avatar_url || null,
+                hue: p.avatar_hue,
+                lastBody: t.lastBody,
+                lastCreatedAt: t.lastCreatedAt
+              };
+            });
+            renderInboxThreadList();
+          });
+      });
+  }
+
+  function renderInboxConversation() {
+    var conv = document.getElementById('inboxConversation');
+    if (!conv || !_inboxSelected) return;
+    var t = _inboxThreads.filter(function (x) { return x.uid === _inboxSelected; })[0];
+    var name = t ? t.name : 'Người đọc';
+    conv.innerHTML =
+      '<div class="inbox-conv-head">' + escapeHtml(name) + '</div>' +
+      '<div class="chat-thread inbox-conv-thread" id="inboxConvThread"></div>' +
+      '<form class="chat-compose" id="inboxReplyForm">' +
+        '<textarea id="inboxReplyInput" class="chat-textarea" maxlength="2000" placeholder="Trả lời..." required></textarea>' +
+        '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+      '</form>';
+    var threadEl = document.getElementById('inboxConvThread');
+    threadEl.innerHTML = _inboxMessages.length
+      ? _inboxMessages.map(function (m) { return chatBubbleHtml(m, name); }).join('')
+      : '<p class="chat-empty">Chưa có tin nhắn.</p>';
+    threadEl.scrollTop = threadEl.scrollHeight;
+  }
+
+  function loadInboxMessages(uid) {
+    sb.from('messages').select('id, sender_id, body, created_at').eq('thread_user_id', uid)
+      .order('created_at', { ascending: true }).limit(500)
+      .then(function (res) {
+        if (_inboxSelected !== uid) return;   // switched threads meanwhile
+        _inboxMessages = (res && res.data) || [];
+        renderInboxConversation();
+      });
+  }
+
+  function openInboxThread(uid) {
+    _inboxSelected = uid;
+    renderInboxThreadList();
+    var conv = document.getElementById('inboxConversation');
+    if (conv) conv.innerHTML = '<p class="chat-empty">Đang tải...</p>';
+    loadInboxMessages(uid);
+  }
+
+  function onInboxReplySubmit(form) {
+    if (!authUser || !authUser.isAdmin || !_inboxSelected) return;
+    var input = form.querySelector('#inboxReplyInput');
+    var body = (input.value || '').trim().slice(0, 2000);
+    if (!body) return;
+    var submit = form.querySelector('.chat-send');
+    if (submit) submit.disabled = true;
+    var uid = _inboxSelected;
+    sb.from('messages').insert({ thread_user_id: uid, sender_id: authUser.id, body: body })
+      .select('id, sender_id, body, created_at').single().then(function (res) {
+        if (submit) submit.disabled = false;
+        if (res.error) return;
+        if (_inboxSelected === uid) {
+          _inboxMessages.push(res.data);
+          input.value = '';
+          renderInboxConversation();
+        }
+        loadInboxThreads();   // refresh the left list's preview/ordering
+      });
+  }
+
+  function renderAdminInbox() {
+    if (!authUser || !authUser.isAdmin) return;
+    readerEl.removeAttribute('data-chapter-id');
+    readerEl.innerHTML =
+      '<article class="chapter admin-inbox">' +
+        '<p class="chapter-kicker">Quản trị</p>' +
+        '<h2 class="chapter-title">Hộp thư</h2>' +
+        '<hr class="chapter-lead-rule">' +
+        '<div class="inbox-layout">' +
+          '<div class="inbox-thread-list" id="inboxThreadList"><p class="chat-empty">Đang tải...</p></div>' +
+          '<div class="inbox-conversation" id="inboxConversation"><p class="chat-empty">Chọn một cuộc trò chuyện để xem.</p></div>' +
+        '</div>' +
+      '</article>';
+    scrollReaderToTop();
+    updateProgress();
+    Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-action') === 'admin-inbox');
+    });
+    _inboxSelected = null;
+    loadInboxThreads();
   }
 
   var PHONE_DOMAIN = 'phone.nkltt';
@@ -1728,12 +1909,15 @@
       else if (act === 'masthead-signin') flashAuthBar();
       else if (act === 'chat-toggle') toggleChatPanel();
       else if (act === 'chat-google') doGoogleSignIn();
+      else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
+      else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); closeChatPanel(); }
     });
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'chatForm') { ev.preventDefault(); onChatSubmit(ev.target); }
+      else if (ev.target && ev.target.id === 'inboxReplyForm') { ev.preventDefault(); onInboxReplySubmit(ev.target); }
     });
 
     readerEl.addEventListener('click', function (ev) {
@@ -1771,6 +1955,13 @@
 
     function refresh() {
       renderMastheadAuth();
+      updateAdminTocItem();
+      // Safety net: if whoever's signed in stops being admin (signed out,
+      // switched accounts) while the inbox is on screen, don't strand them
+      // on an orphaned admin page — send them back to the last chapter.
+      if (readerEl.querySelector('.admin-inbox') && !(authUser && authUser.isAdmin)) {
+        renderChapter(loadLastChapter() || chapters[0].id, { push: false });
+      }
       // Only rebuild the chat panel body when who's signed in actually
       // changed — a token-refresh auth event re-fires this with the same
       // user and would otherwise wipe out a message mid-draft.
@@ -1800,6 +1991,7 @@
     var items = tocEl.querySelectorAll('.toc-item');
     var visibleCount = 0;
     Array.prototype.forEach.call(items, function (btn) {
+      if (!btn.hasAttribute('data-index')) return;   // the pinned "Hộp thư" admin item isn't a chapter
       var idx = Number(btn.getAttribute('data-index'));
       var match = !q || chapters[idx]._search.indexOf(q) !== -1;
       btn.classList.toggle('hidden', !match);

@@ -1452,3 +1452,109 @@ body {
   .chat-widget { right: 1rem; bottom: 1rem; }
   .chat-panel { width: min(20rem, calc(100vw - 2rem)); }
 }
+
+/* A bubble not authored by whoever's viewing (the admin's reply, in the
+   reader's chat widget; the reader's message, in the admin's inbox) —
+   left-aligned and softer than the "mine" default in .chat-msg-bubble. */
+.chat-msg.is-them { align-items: flex-start; }
+.chat-msg.is-them .chat-msg-bubble {
+  background: var(--accent-soft-bg);
+  color: var(--ink);
+  border-radius: 12px 12px 12px 2px;
+}
+.chat-msg-from { font-size: .75rem; color: var(--ink-faint); margin-bottom: .1rem; }
+
+/* ---------- Sidebar admin entry ("Hộp thư") + inbox page ---------- */
+
+#tocAdminItem {
+  border-bottom: 1px solid var(--sidebar-border);
+  padding-bottom: .35rem;
+  margin-bottom: .35rem;
+}
+
+.inbox-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  font-family: var(--font-ui);
+}
+
+.inbox-thread-list {
+  flex: 0 0 16rem;
+  max-height: 32rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.inbox-thread-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  text-align: left;
+  padding: .7rem .8rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: .95rem;
+  color: var(--ink);
+}
+.inbox-thread-item:last-child { border-bottom: none; }
+.inbox-thread-item:hover { background: var(--accent-soft-bg); }
+.inbox-thread-item.active { background: var(--accent-soft-bg); box-shadow: inset 3px 0 0 var(--accent); }
+
+.inbox-thread-avatar { width: 2.1rem; height: 2.1rem; flex: 0 0 auto; }
+
+.inbox-thread-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.inbox-thread-name { font-weight: 600; }
+.inbox-thread-preview {
+  font-size: .82rem;
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-thread-time { flex: 0 0 auto; font-size: .78rem; color: var(--ink-faint); }
+
+.inbox-conversation {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 24rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 1rem;
+  font-family: var(--font-ui);
+}
+
+.inbox-conv-head {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: .8rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.inbox-conv-thread {
+  flex: 1 1 auto;
+  min-height: 14rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  margin-bottom: .8rem;
+}
+
+@media (max-width: 860px) {
+  .inbox-layout { flex-direction: column; }
+  .inbox-thread-list { width: 100%; max-height: 14rem; }
+  .inbox-conversation { width: 100%; min-height: 20rem; }
+}
