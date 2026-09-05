@@ -1110,12 +1110,14 @@
   }
 
   function composeToolsHtml(prefix) {
-    return '<span class="chat-emoji-wrap">' +
-        '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">🙂</button>' +
-        '<span class="chat-emoji-popover" hidden>' + chatEmojiButtonsHtml() + '</span>' +
-      '</span>' +
-      '<button type="button" class="chat-tool-btn" data-action="chat-attach" data-for="' + prefix +
-        '" aria-label="Đính kèm tệp">📎</button>' +
+    return '<div class="chat-compose-icons">' +
+        '<span class="chat-emoji-wrap">' +
+          '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">🙂</button>' +
+          '<span class="chat-emoji-popover" hidden>' + chatEmojiButtonsHtml() + '</span>' +
+        '</span>' +
+        '<button type="button" class="chat-tool-btn" data-action="chat-attach" data-for="' + prefix +
+          '" aria-label="Đính kèm tệp">📎</button>' +
+      '</div>' +
       '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
   }
 
@@ -1245,11 +1247,45 @@
         : '<a class="chat-attachment-file" href="#" target="_blank" rel="noopener" data-path="' +
             escapeAttr(m.attachment_path) + '">📎 <span>' + escapeHtml(m.attachment_name || 'Tệp đính kèm') + '</span></a>';
     }
+    // A short "undo", not general moderation — matches the 2-minute DELETE
+    // policy in comments-setup.sql, so a click past the window just fails
+    // server-side rather than this button lying about what's possible.
+    var deleteBtn = (mine && isWithinDeleteWindow(m.created_at))
+      ? '<button type="button" class="chat-msg-delete" data-action="chat-msg-delete" data-id="' +
+          escapeAttr(m.id) + '">Xoá</button>'
+      : '';
     return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
         label +
         '<div class="chat-msg-bubble"' + style + '>' + bodyHtml + attachmentHtml + '</div>' +
-        '<div class="chat-msg-time">' + escapeHtml(relTime(m.created_at)) + '</div>' +
+        '<div class="chat-msg-time">' +
+          '<span>' + escapeHtml(relTime(m.created_at)) + '</span>' + deleteBtn +
+        '</div>' +
       '</div>';
+  }
+
+  function isWithinDeleteWindow(createdAt) {
+    var t = Date.parse(createdAt);
+    return !isNaN(t) && (Date.now() - t) < 2 * 60 * 1000;
+  }
+
+  // Mirrors onCommentDelete's pattern: confirm, delete-by-id, .select('id')
+  // to tell whether a row actually went (RLS silently matches 0 rows past
+  // the 2-minute window rather than erroring, so this is the only way to
+  // know it didn't work). Not scoped to which UI triggered it — filtering
+  // both the widget's and the inbox's message arrays by id is harmless,
+  // since whichever one doesn't contain this id is just a no-op.
+  function onChatMessageDelete(btn) {
+    if (typeof window.confirm === 'function' && !window.confirm('Xoá tin nhắn này?')) return;
+    var id = btn.getAttribute('data-id');
+    btn.disabled = true;
+    sb.from('messages').delete().eq('id', id).select('id').then(function (res) {
+      if (res.error || !res.data || !res.data.length) { btn.disabled = false; return; }
+      _chatMessages = _chatMessages.filter(function (m) { return String(m.id) !== String(id); });
+      renderChatThread();
+      _inboxMessages = _inboxMessages.filter(function (m) { return String(m.id) !== String(id); });
+      renderInboxConversation();
+      if (authUser && authUser.isAdmin) loadInboxThreads();   // refresh the left list's preview
+    });
   }
 
   // Resolves a short-lived signed URL for each not-yet-hydrated attachment
@@ -2449,6 +2485,7 @@
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
+      else if (act === 'chat-msg-delete') onChatMessageDelete(a);
       else if (act === 'chat-emoji-toggle') toggleChatEmojiPopover(a);
       else if (act === 'chat-emoji-pick') onChatEmojiPick(a);
       else if (act === 'chat-attach') {
