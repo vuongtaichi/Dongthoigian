@@ -1451,8 +1451,10 @@ body {
 .chat-guest .auth-btn { width: 100%; max-width: 260px; }
 
 .chat-thread {
+  /* No fixed min-height: the box should hug its actual content and only
+     grow a scrollbar once messages exceed the panel's max-height, not
+     reserve empty scrollable-looking space for a short conversation. */
   flex: 1 1 auto;
-  min-height: 6rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1489,8 +1491,11 @@ body {
 }
 
 /* Only shown on my own messages, and only within the 2-minute delete
-   window (see comments-setup.sql's DELETE policy). */
+   window (see comments-setup.sql's DELETE policy) — and even then, hidden
+   until the bubble is tapped/clicked (.chat-msg.is-revealed, toggled by
+   chat-msg-toggle in app.js), so it doesn't clutter every message. */
 .chat-msg-delete {
+  display: none;
   border: none;
   background: none;
   padding: 0;
@@ -1500,8 +1505,11 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+.chat-msg.is-revealed .chat-msg-delete { display: inline; }
 .chat-msg-delete:hover { color: var(--ink); }
 .chat-msg-delete:disabled { opacity: .6; cursor: default; }
+
+.chat-msg-bubble.is-tappable { cursor: pointer; }
 
 /* Recalled message placeholder — neutral regardless of the sender's chosen
    bubble color (chatBubbleHtml skips the inline color style for these). */
@@ -1608,6 +1616,36 @@ body {
   cursor: pointer;
 }
 .chat-emoji-choice:hover { background: var(--accent-soft-bg); }
+
+/* Chat bubble color picker, opened from the gear icon in the chat panel
+   head — sits near the top of the panel, so unlike the emoji popover this
+   one opens downward instead of upward. */
+.chat-color-wrap { position: relative; flex: 0 0 auto; }
+
+.chat-color-popover {
+  position: absolute;
+  top: calc(100% + .4rem);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  width: 11.5rem;
+  padding: .6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.chat-color-default {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft-bg);
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
 
 .chat-pending-file {
   display: flex;

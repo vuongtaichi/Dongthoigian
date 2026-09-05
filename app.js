@@ -883,7 +883,6 @@
   // ---- profile editor (display name + avatar colour — no image upload) ----
 
   var _profileDraftHue = null;         // avatar palette index chosen in the editor
-  var _profileDraftBubbleHue = null;   // chat bubble palette index chosen in the editor
 
   function ensureProfileModal() {
     if (document.getElementById('profileModal')) return;
@@ -908,10 +907,6 @@
           '<span>Màu ảnh đại diện</span>' +
           '<div class="profile-swatches" data-target="avatar">' + swatches + '</div>' +
         '</div>' +
-        '<div class="profile-field profile-colour">' +
-          '<span>Màu bong bóng chat</span>' +
-          '<div class="profile-swatches" data-target="bubble">' + swatches + '</div>' +
-        '</div>' +
         '<p class="profile-modal-msg" id="profileMsg" role="status"></p>' +
         '<div class="profile-modal-btns">' +
           '<button type="button" class="auth-btn profile-signout" data-action="signout">Đăng xuất</button>' +
@@ -923,19 +918,15 @@
       '</div>';
     host.appendChild(m);
     m.querySelector('#profileName').addEventListener('input', refreshProfilePreview);
-    // Two independent swatch groups (avatar color, chat bubble color) — each
-    // only tracks/marks-active within its own group, via data-target.
     Array.prototype.forEach.call(m.querySelectorAll('.profile-swatches'), function (group) {
       group.addEventListener('click', function (ev) {
         var b = ev.target.closest('.profile-swatch');
         if (!b) return;
-        var hue = parseInt(b.getAttribute('data-hue'), 10);
-        var isBubble = group.getAttribute('data-target') === 'bubble';
-        if (isBubble) _profileDraftBubbleHue = hue; else _profileDraftHue = hue;
+        _profileDraftHue = parseInt(b.getAttribute('data-hue'), 10);
         Array.prototype.forEach.call(group.querySelectorAll('.profile-swatch'), function (s) {
           s.classList.toggle('is-active', s === b);
         });
-        if (!isBubble) refreshProfilePreview();
+        refreshProfilePreview();
       });
     });
   }
@@ -963,12 +954,6 @@
     colourBlock.hidden = !!authUser.avatar;
     Array.prototype.forEach.call(m.querySelectorAll('[data-target="avatar"] .profile-swatch'), function (s) {
       s.classList.toggle('is-active', parseInt(s.getAttribute('data-hue'), 10) === _profileDraftHue);
-    });
-    _profileDraftBubbleHue = (authUser.bubbleHue != null)
-      ? authUser.bubbleHue
-      : idToPaletteIndex(authUser.id, authUser.name);
-    Array.prototype.forEach.call(m.querySelectorAll('[data-target="bubble"] .profile-swatch'), function (s) {
-      s.classList.toggle('is-active', parseInt(s.getAttribute('data-hue'), 10) === _profileDraftBubbleHue);
     });
     refreshProfilePreview();
     m.hidden = false;
@@ -1002,22 +987,20 @@
     if (!authUser.avatar && _profileDraftHue != null && _profileDraftHue !== currentIdx) {
       patch.avatar_hue = _profileDraftHue;
     }
-    var currentBubbleIdx = (authUser.bubbleHue != null)
-      ? authUser.bubbleHue
-      : idToPaletteIndex(authUser.id, authUser.name);
-    if (_profileDraftBubbleHue != null && _profileDraftBubbleHue !== currentBubbleIdx) {
-      patch.bubble_hue = _profileDraftBubbleHue;
-    }
     if (!Object.keys(patch).length) { closeProfileModal(); return; }
     if (msg) msg.textContent = 'Đang lưu...';
     saveProfilePatch(patch, msg);
   }
 
+  // Also reused directly by the chat-bubble-color popover (chat-color-pick),
+  // which saves a single { bubble_hue } patch — including bubble_hue: null
+  // to reset back to the auto-assigned default, so that key's presence in
+  // `patch` (not just non-null) is what decides whether to update the cache.
   function saveProfilePatch(patch, msg) {
     sb.from('profiles').update(patch).eq('id', authUser.id).then(function (res) {
       if (res.error) {
         // the avatar_hue/bubble_hue columns may not exist yet — retry with just the name
-        if ((patch.avatar_hue != null || patch.bubble_hue != null) && patch.display_name) {
+        if ((patch.avatar_hue != null || 'bubble_hue' in patch) && patch.display_name) {
           saveProfilePatch({ display_name: patch.display_name }, msg);
           if (msg) msg.textContent = 'Đã lưu tên. Một số cột màu cần thêm vào CSDL.';
           return;
@@ -1027,7 +1010,7 @@
       }
       if (patch.display_name) authUser.name = patch.display_name;
       if (patch.avatar_hue != null) authUser.avatarHue = patch.avatar_hue;
-      if (patch.bubble_hue != null) {
+      if ('bubble_hue' in patch) {
         authUser.bubbleHue = patch.bubble_hue;
         // repaint any of my bubbles already on screen with the new color
         if (document.getElementById('chatThread')) renderChatThread();
@@ -1080,6 +1063,11 @@
       '</button>' +
       '<div class="chat-panel" id="chatPanel" hidden role="dialog" aria-label="Nhắn tin">' +
         '<div class="chat-panel-head">' +
+          '<span class="chat-color-wrap">' +
+            '<button type="button" class="chat-tool-btn" id="chatColorBtn" data-action="chat-color-toggle" ' +
+              'aria-label="Đổi màu bong bóng chat" hidden>🎨</button>' +
+            '<span class="chat-color-popover" id="chatColorPopover" hidden></span>' +
+          '</span>' +
           '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
           '<button type="button" class="chat-panel-close" data-action="chat-toggle" aria-label="Đóng">&times;</button>' +
         '</div>' +
@@ -1154,6 +1142,47 @@
     var willOpen = pop.hidden;
     closeAllChatEmojiPopovers();
     pop.hidden = !willOpen;
+  }
+
+  // Chat bubble color picker, opened from the gear icon in the chat panel
+  // head (moved out of the profile editor since it's chat-specific). The
+  // first swatch is a "reset to default" option — bubble_hue: null — for
+  // anyone who picked a color and wants back the auto-assigned one.
+  function chatColorSwatchesHtml() {
+    var current = authUser ? authUser.bubbleHue : null;
+    var defaultBtn = '<button type="button" class="profile-swatch chat-color-default' +
+      (current == null ? ' is-active' : '') +
+      '" data-action="chat-color-pick" data-hue="default" aria-label="Màu mặc định" title="Màu mặc định">↺</button>';
+    var swatches = AVATAR_PALETTE.map(function (_c, i) {
+      return '<button type="button" class="profile-swatch' + (current === i ? ' is-active' : '') +
+        '" data-action="chat-color-pick" data-hue="' + i + '" style="' + avatarVars(i) +
+        '" aria-label="Màu ' + (i + 1) + '"></button>';
+    }).join('');
+    return defaultBtn + swatches;
+  }
+
+  function closeChatColorPopover() {
+    var pop = document.getElementById('chatColorPopover');
+    if (pop) pop.hidden = true;
+  }
+
+  function toggleChatColorPopover(btn) {
+    var wrap = btn.closest('.chat-color-wrap');
+    var pop = wrap && wrap.querySelector('.chat-color-popover');
+    if (!pop) return;
+    var willOpen = pop.hidden;
+    closeChatColorPopover();
+    if (willOpen) {
+      pop.innerHTML = chatColorSwatchesHtml();
+      pop.hidden = false;
+    }
+  }
+
+  function onChatColorPick(btn) {
+    if (!authUser) return;
+    var raw = btn.getAttribute('data-hue');
+    saveProfilePatch({ bubble_hue: raw === 'default' ? null : parseInt(raw, 10) }, null);
+    closeChatColorPopover();
   }
 
   function insertAtCursor(field, text) {
@@ -1261,13 +1290,18 @@
     // A short "undo", not general moderation — matches the 2-minute recall
     // policy in comments-setup.sql, so a click past the window just fails
     // server-side rather than this button lying about what's possible.
-    var deleteBtn = (mine && isWithinDeleteWindow(m.created_at))
+    // Hidden until the bubble itself is tapped/clicked (chat-msg-toggle),
+    // so the recall link doesn't clutter every message by default.
+    var canDelete = mine && isWithinDeleteWindow(m.created_at);
+    var deleteBtn = canDelete
       ? '<button type="button" class="chat-msg-delete" data-action="chat-msg-delete" data-id="' +
           escapeAttr(m.id) + '">Thu hồi</button>'
       : '';
+    var bubbleAttrs = style + (canDelete ? ' data-action="chat-msg-toggle"' : '');
+    var bubbleClass = 'chat-msg-bubble' + (canDelete ? ' is-tappable' : '');
     return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
         label +
-        '<div class="chat-msg-bubble"' + style + '>' + bodyHtml + attachmentHtml + '</div>' +
+        '<div class="' + bubbleClass + '"' + bubbleAttrs + '>' + bodyHtml + attachmentHtml + '</div>' +
         '<div class="chat-msg-time">' +
           '<span>' + escapeHtml(relTime(m.created_at)) + '</span>' + deleteBtn +
         '</div>' +
@@ -1363,7 +1397,10 @@
   function renderChatPanelBody() {
     var body = document.getElementById('chatPanelBody');
     if (!body) return;
+    var colorBtn = document.getElementById('chatColorBtn');
+    if (colorBtn) colorBtn.hidden = !authUser;
     if (!authUser) {
+      closeChatColorPopover();
       body.innerHTML =
         '<div class="chat-guest">' +
           '<p class="chat-guest-msg" id="chatGuestMsg">Đăng nhập để gửi tin nhắn cho <strong>' +
@@ -2497,6 +2534,7 @@
       if (!(ev.target.closest && ev.target.closest('.comment-actions'))) closeAllCreactPopovers();
       if (_chatOpen && !(ev.target.closest && ev.target.closest('#chatWidget'))) closeChatPanel();
       if (!(ev.target.closest && ev.target.closest('.chat-emoji-wrap'))) closeAllChatEmojiPopovers();
+      if (!(ev.target.closest && ev.target.closest('.chat-color-wrap'))) closeChatColorPopover();
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') { closeProfileModal(); doSignOut(); }
@@ -2514,8 +2552,14 @@
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
       else if (act === 'chat-msg-delete') onChatMessageDelete(a);
+      else if (act === 'chat-msg-toggle') {
+        var msgEl = a.closest('.chat-msg');
+        if (msgEl) msgEl.classList.toggle('is-revealed');
+      }
       else if (act === 'chat-emoji-toggle') toggleChatEmojiPopover(a);
       else if (act === 'chat-emoji-pick') onChatEmojiPick(a);
+      else if (act === 'chat-color-toggle') toggleChatColorPopover(a);
+      else if (act === 'chat-color-pick') onChatColorPick(a);
       else if (act === 'chat-attach') {
         var fileInput = document.getElementById(a.getAttribute('data-for') + 'FileInput');
         if (fileInput) fileInput.click();
