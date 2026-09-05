@@ -491,9 +491,19 @@ body {
   padding: 5.5rem 2rem 7rem;
 }
 
-/* The inbox is a two-column layout (thread list + conversation), not
-   reading prose — the 660px reading column makes it feel cramped. */
-.chapter.admin-inbox { max-width: min(1100px, calc(100vw - 4rem)); }
+/* The inbox is a two-column app layout (thread list + conversation), not
+   reading prose — the 660px reading column made it feel cramped, and the
+   large top/bottom reading padding pushed it past 100vh, forcing .reader
+   itself to scroll. Fixed to exactly the reader's height instead, so only
+   the two panels inside scroll (each gets height:100% — see below). */
+.chapter.admin-inbox {
+  max-width: min(1100px, calc(100vw - 4rem));
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
 
 .chapter-kicker {
   margin: 0;
@@ -1723,19 +1733,21 @@ body {
 
 .inbox-layout {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 1.25rem;
   margin-top: 1rem;
   font-family: var(--font-ui);
+  /* Fills whatever's left of .chapter.admin-inbox's fixed 100vh height
+     (after the heading above), so its own height is definite — letting
+     the two panels below size to height:100% of it and scroll
+     internally, instead of the page (.reader) ever scrolling. */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .inbox-thread-list {
   flex: 0 0 16rem;
-  /* Fixed (not max) height, matching .inbox-conversation's cap, so the
-     panel always reaches down near the bottom of the page regardless of
-     how many threads there are — its own scrollbar only shows up once
-     the list is actually too long to fit. */
-  height: min(46rem, calc(100vh - 14rem));
+  height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1782,11 +1794,7 @@ body {
 .inbox-conversation {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 24rem;
-  /* Capped to the reader viewport (not just an arbitrary rem value), so
-     the reply box at the bottom is always visible without scrolling
-     .reader — only the message thread inside scrolls. */
-  max-height: min(46rem, calc(100vh - 14rem));
+  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1806,18 +1814,24 @@ body {
 }
 
 .inbox-conv-thread {
-  /* .inbox-conversation now caps its own height (max-height, overflow:
-     hidden), so this inherits .chat-thread's overflow-y:auto and scrolls
-     internally past that cap instead of growing the whole page. */
+  /* .inbox-conversation now has a definite height (100% of the fixed-
+     height .inbox-layout), so this flex:1 1 auto child needs min-height:0
+     to actually shrink to the space left after the head/reply box —
+     without it, this inherits .chat-thread's overflow-y:auto but never
+     gets to use it, and the fixed-height parent overflows instead. */
   flex: 1 1 auto;
-  min-height: 20rem;
+  min-height: 0;
   margin-bottom: .8rem;
 }
 
 @media (max-width: 860px) {
-  .inbox-layout { flex-direction: column; }
-  .inbox-thread-list { width: 100%; max-height: 14rem; }
-  .inbox-conversation { width: 100%; min-height: 20rem; }
+  /* Below the point where two full-height side-by-side panels fit, fall
+     back to page-level scrolling with content-sized panels instead. */
+  .chapter.admin-inbox { height: auto; }
+  .inbox-layout { flex-direction: column; height: auto; }
+  .inbox-thread-list { width: 100%; height: auto; max-height: 14rem; }
+  .inbox-conversation { width: 100%; height: auto; min-height: 20rem; }
+  .inbox-conv-thread { min-height: 14rem; }
 }
 
 /* ---------- Sign-in modal (Google + email/phone, opened from the masthead
