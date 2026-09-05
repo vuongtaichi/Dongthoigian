@@ -1401,7 +1401,10 @@ body {
   right: 0;
   bottom: calc(100% + .75rem);
   width: min(22rem, calc(100vw - 2.5rem));
-  max-height: min(38rem, calc(100vh - 3rem));
+  /* Fixed (not max) height — always opens at full size, even with no
+     messages yet, instead of shrinking to fit whatever little content
+     there is. */
+  height: min(38rem, calc(100vh - 3rem));
   display: flex;
   flex-direction: column;
   background: var(--card);
