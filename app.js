@@ -1088,7 +1088,7 @@
     host.appendChild(w);
   }
 
-  var MESSAGE_COLUMNS = 'id, sender_id, body, created_at, attachment_path, attachment_name, attachment_type, attachment_size';
+  var MESSAGE_COLUMNS = 'id, sender_id, body, created_at, deleted, attachment_path, attachment_name, attachment_type, attachment_size';
 
   // ---- compose-box extras: emoji picker + file attach, shared by the
   // reader's chat widget and the admin's inbox reply box (each instance is
@@ -1230,13 +1230,24 @@
   // fixed bubble color from styles.css, unchanged.
   function chatBubbleHtml(m, fromLabel, theirHue) {
     var mine = authUser && m.sender_id === authUser.id;
+    var label = (!mine && fromLabel) ? '<div class="chat-msg-from">' + escapeHtml(fromLabel) + '</div>' : '';
+    // Recalled: the row still exists (thread order/history stay intact),
+    // but its content was cleared server-side — show the same placeholder
+    // to both parties, no delete link (nothing left to undo), and skip the
+    // bubble-color styling (it always reads as neutral/faint instead).
+    if (m.deleted) {
+      return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
+          label +
+          '<div class="chat-msg-bubble chat-msg-recalled">Tin nhắn đã được thu hồi</div>' +
+          '<div class="chat-msg-time"><span>' + escapeHtml(relTime(m.created_at)) + '</span></div>' +
+        '</div>';
+    }
     var hue = mine ? (authUser && authUser.bubbleHue) : theirHue;
     var style = '';
     if (hue != null) {
       var c = paletteColor(hue);
       style = ' style="background:' + c.bg + ';color:' + c.fg + '"';
     }
-    var label = (!mine && fromLabel) ? '<div class="chat-msg-from">' + escapeHtml(fromLabel) + '</div>' : '';
     var bodyHtml = m.body ? '<div class="chat-msg-text">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' : '';
     var attachmentHtml = '';
     if (m.attachment_path) {
@@ -1247,12 +1258,12 @@
         : '<a class="chat-attachment-file" href="#" target="_blank" rel="noopener" data-path="' +
             escapeAttr(m.attachment_path) + '">📎 <span>' + escapeHtml(m.attachment_name || 'Tệp đính kèm') + '</span></a>';
     }
-    // A short "undo", not general moderation — matches the 2-minute DELETE
+    // A short "undo", not general moderation — matches the 2-minute recall
     // policy in comments-setup.sql, so a click past the window just fails
     // server-side rather than this button lying about what's possible.
     var deleteBtn = (mine && isWithinDeleteWindow(m.created_at))
       ? '<button type="button" class="chat-msg-delete" data-action="chat-msg-delete" data-id="' +
-          escapeAttr(m.id) + '">Xoá</button>'
+          escapeAttr(m.id) + '">Thu hồi</button>'
       : '';
     return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
         label +
@@ -1268,21 +1279,34 @@
     return !isNaN(t) && (Date.now() - t) < 2 * 60 * 1000;
   }
 
-  // Mirrors onCommentDelete's pattern: confirm, delete-by-id, .select('id')
-  // to tell whether a row actually went (RLS silently matches 0 rows past
-  // the 2-minute window rather than erroring, so this is the only way to
-  // know it didn't work). Not scoped to which UI triggered it — filtering
-  // both the widget's and the inbox's message arrays by id is harmless,
-  // since whichever one doesn't contain this id is just a no-op.
+  // Soft delete: UPDATEs the row to a "recalled" state (deleted:true, all
+  // content cleared) rather than removing it, so the other party sees a
+  // placeholder in the same spot instead of the message just vanishing.
+  // Mirrors onCommentDelete's confirm + .select('id') pattern to detect a
+  // no-op (RLS silently matches 0 rows past the 2-minute window rather than
+  // erroring). Not scoped to which UI triggered it — patching both the
+  // widget's and the inbox's message arrays by id is harmless, since
+  // whichever one doesn't contain this id is just a no-op.
   function onChatMessageDelete(btn) {
-    if (typeof window.confirm === 'function' && !window.confirm('Xoá tin nhắn này?')) return;
+    if (typeof window.confirm === 'function' && !window.confirm('Thu hồi tin nhắn này?')) return;
     var id = btn.getAttribute('data-id');
     btn.disabled = true;
-    sb.from('messages').delete().eq('id', id).select('id').then(function (res) {
+    var patch = {
+      deleted: true, body: '',
+      attachment_path: null, attachment_name: null, attachment_type: null, attachment_size: null
+    };
+    sb.from('messages').update(patch).eq('id', id).select('id').then(function (res) {
       if (res.error || !res.data || !res.data.length) { btn.disabled = false; return; }
-      _chatMessages = _chatMessages.filter(function (m) { return String(m.id) !== String(id); });
+      function markRecalled(list) {
+        var m = list.filter(function (x) { return String(x.id) === String(id); })[0];
+        if (m) {
+          m.deleted = true; m.body = '';
+          m.attachment_path = null; m.attachment_name = null; m.attachment_type = null; m.attachment_size = null;
+        }
+      }
+      markRecalled(_chatMessages);
+      markRecalled(_inboxMessages);
       renderChatThread();
-      _inboxMessages = _inboxMessages.filter(function (m) { return String(m.id) !== String(id); });
       renderInboxConversation();
       if (authUser && authUser.isAdmin) loadInboxThreads();   // refresh the left list's preview
     });
@@ -1561,7 +1585,7 @@
   // for authors + reactors.
   function loadInboxThreads() {
     if (!sb || !authUser || !authUser.isAdmin) return;
-    sb.from('messages').select('thread_user_id, sender_id, body, created_at')
+    sb.from('messages').select('thread_user_id, sender_id, body, created_at, deleted')
       .order('created_at', { ascending: false }).limit(500)
       .then(function (res) {
         var rows = (res && res.data) || [];
@@ -1570,7 +1594,11 @@
         rows.forEach(function (r) {
           if (seen[r.thread_user_id]) return;
           seen[r.thread_user_id] = true;
-          threads.push({ uid: r.thread_user_id, lastBody: r.body, lastCreatedAt: r.created_at });
+          threads.push({
+            uid: r.thread_user_id,
+            lastBody: r.deleted ? 'Tin nhắn đã được thu hồi' : r.body,
+            lastCreatedAt: r.created_at
+          });
         });
         var ids = threads.map(function (t) { return t.uid; });
         if (!ids.length) { _inboxThreads = []; renderInboxThreadList(); updateAdminInboxBadge(); return; }

@@ -1503,6 +1503,14 @@ body {
 .chat-msg-delete:hover { color: var(--ink); }
 .chat-msg-delete:disabled { opacity: .6; cursor: default; }
 
+/* Recalled message placeholder — neutral regardless of the sender's chosen
+   bubble color (chatBubbleHtml skips the inline color style for these). */
+.chat-msg-bubble.chat-msg-recalled {
+  background: var(--accent-soft-bg);
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
 .chat-compose {
   flex: 0 0 auto;
   display: flex;
