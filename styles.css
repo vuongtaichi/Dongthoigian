@@ -491,6 +491,10 @@ body {
   padding: 5.5rem 2rem 7rem;
 }
 
+/* The inbox is a two-column layout (thread list + conversation), not
+   reading prose — the 660px reading column makes it feel cramped. */
+.chapter.admin-inbox { max-width: min(1100px, calc(100vw - 4rem)); }
+
 .chapter-kicker {
   margin: 0;
   font-family: var(--font-ui);
@@ -1775,7 +1779,10 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 24rem;
-  max-height: 46rem;
+  /* Capped to the reader viewport (not just an arbitrary rem value), so
+     the reply box at the bottom is always visible without scrolling
+     .reader — only the message thread inside scrolls. */
+  max-height: min(46rem, calc(100vh - 14rem));
   overflow: hidden;
   display: flex;
   flex-direction: column;
