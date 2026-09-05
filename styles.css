@@ -1731,7 +1731,11 @@ body {
 
 .inbox-thread-list {
   flex: 0 0 16rem;
-  max-height: 32rem;
+  /* Fixed (not max) height, matching .inbox-conversation's cap, so the
+     panel always reaches down near the bottom of the page regardless of
+     how many threads there are — its own scrollbar only shows up once
+     the list is actually too long to fit. */
+  height: min(46rem, calc(100vh - 14rem));
   overflow-y: auto;
   display: flex;
   flex-direction: column;
