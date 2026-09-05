@@ -1775,6 +1775,8 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 24rem;
+  max-height: 46rem;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
@@ -1793,11 +1795,11 @@ body {
 }
 
 .inbox-conv-thread {
-  /* No max-height/overflow here on purpose — it grows with the
-     conversation instead of hiding older messages behind an inner
-     scrollbar; the page itself scrolls once content is tall. */
+  /* .inbox-conversation now caps its own height (max-height, overflow:
+     hidden), so this inherits .chat-thread's overflow-y:auto and scrolls
+     internally past that cap instead of growing the whole page. */
   flex: 1 1 auto;
-  min-height: 14rem;
+  min-height: 20rem;
   margin-bottom: .8rem;
 }
 
