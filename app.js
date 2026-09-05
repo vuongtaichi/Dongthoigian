@@ -1199,7 +1199,13 @@
   // can't make the box itself unbounded.
   function autoGrowTextarea(el) {
     el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    // border-box sizing means style.height includes the border, but
+    // scrollHeight doesn't — without adding it back, the box lands a
+    // couple px short of its own content and shows a scrollbar for that
+    // sliver on every line added, even though there's plenty of room left
+    // under max-height.
+    var borders = el.offsetHeight - el.clientHeight;
+    el.style.height = (el.scrollHeight + borders) + 'px';
   }
 
   function onChatEmojiPick(btn) {
