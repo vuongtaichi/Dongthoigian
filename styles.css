@@ -642,15 +642,16 @@ body {
 
 .nav-btn:disabled { visibility: hidden; }
 
-/* Dashed dark-navy pill around "Trước"/"Tiếp" — matches a reference button
-   image the user asked to copy. Fixed color (not a theme token) so it stays
-   dark blue in both site themes, same precedent as the Google/.auth-btn
-   fixed brand colors elsewhere. */
+/* Solid dark-navy pill around "Trước"/"Tiếp" — matches a reference button
+   image the user asked to copy (first built with a dashed border, then
+   changed to solid). Fixed color (not a theme token) so it stays dark blue
+   in both site themes, same precedent as the Google/.auth-btn fixed brand
+   colors elsewhere. */
 .nav-btn .nav-dir {
   display: inline-flex;
   align-items: center;
   padding: .4rem 1.15rem;
-  border: 1.5px dashed #1c3b7a;
+  border: 1.5px solid #1c3b7a;
   border-radius: 999px;
   font-size: .78rem;
   letter-spacing: .12em;
@@ -1485,10 +1486,16 @@ body {
 .chat-compose {
   flex: 0 0 auto;
   display: flex;
+  flex-direction: column;
   gap: .5rem;
-  align-items: flex-end;
   border-top: 1px solid var(--border);
   padding-top: .8rem;
+}
+
+.chat-compose-row {
+  display: flex;
+  gap: .5rem;
+  align-items: flex-end;
 }
 
 .chat-textarea {
@@ -1508,6 +1515,93 @@ body {
 .chat-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .chat-send { flex: 0 0 auto; }
+
+/* Emoji + attach icon buttons flanking the textarea */
+.chat-tool-btn {
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.chat-tool-btn:hover { background: var(--accent-soft-bg); }
+
+.chat-emoji-wrap { position: relative; flex: 0 0 auto; }
+
+.chat-emoji-popover {
+  position: absolute;
+  bottom: calc(100% + .4rem);
+  left: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(5, 1.9rem);
+  gap: .15rem;
+  padding: .5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.chat-emoji-choice {
+  border: none;
+  background: none;
+  font-size: 1.15rem;
+  line-height: 1.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.chat-emoji-choice:hover { background: var(--accent-soft-bg); }
+
+.chat-pending-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: .4rem .7rem;
+  background: var(--accent-soft-bg);
+  border-radius: 8px;
+  font-size: .85rem;
+  color: var(--ink-soft);
+}
+
+.chat-pending-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chat-pending-file-remove {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 .2rem;
+}
+.chat-pending-file-remove:hover { color: var(--ink); }
+
+/* Attachments inside a bubble */
+.chat-msg-text { margin-bottom: .35rem; }
+.chat-msg-text:last-child { margin-bottom: 0; }
+
+.chat-attachment-img {
+  display: block;
+  max-width: 100%;
+  max-height: 14rem;
+  border-radius: 8px;
+}
+
+.chat-attachment-file {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: inherit;
+  text-decoration: underline;
+  word-break: break-word;
+}
 
 @media (max-width: 860px) {
   .chat-widget { right: 1rem; bottom: 1rem; }

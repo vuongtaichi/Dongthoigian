@@ -289,11 +289,13 @@
 
   // Chat widget state (private messages to the site owner) — see the
   // "chat widget" section below for the functions that use these.
-  var _chatAdmin = { name: 'tác giả', avatar: null, hue: null };
+  var _chatAdmin = { name: 'tác giả', avatar: null, hue: null, bubbleHue: null };
   var _chatMessages = [];      // the signed-in user's own sent messages, oldest first
   var _chatLoadedFor = null;   // authUser.id the _chatMessages cache belongs to
   var _chatOpen = false;
   var _chatAuthKey;            // authUser.id (or null) last rendered into the panel body
+  var _chatPendingFile = null;   // File chosen but not yet sent, in the reader's chat widget
+  var _inboxPendingFile = null;  // same, in the admin inbox's reply box
 
   var sb = null;
   try {
@@ -381,6 +383,7 @@
       name: displayNameFromUser(u),
       avatar: m.avatar_url || m.picture || null,   // Google photo, if any
       avatarHue: null,
+      bubbleHue: null,
       isAdmin: false
     };
     function fill(d) {
@@ -388,13 +391,14 @@
         if (d.display_name) authUser.name = d.display_name;
         if (d.avatar_url) authUser.avatar = d.avatar_url;
         if (d.avatar_hue != null) authUser.avatarHue = d.avatar_hue;
+        if (d.bubble_hue != null) authUser.bubbleHue = d.bubble_hue;
         authUser.isAdmin = !!d.is_admin;
       }
       if (done) done();
     }
-    sb.from('profiles').select('display_name, avatar_url, avatar_hue, is_admin').eq('id', u.id).single().then(function (res) {
+    sb.from('profiles').select('display_name, avatar_url, avatar_hue, bubble_hue, is_admin').eq('id', u.id).single().then(function (res) {
       if (res.error) {
-        // schema may not have the avatar / is_admin columns yet
+        // schema may not have the avatar / bubble / is_admin columns yet
         sb.from('profiles').select('display_name').eq('id', u.id).single().then(function (r2) {
           fill(r2 && r2.data);
         });
@@ -420,11 +424,17 @@
     { h: 195, l: 78 }, { h: 250, l: 82 }, { h: 300, l: 80 }, { h: 340, l: 82 }
   ];
 
-  function avatarVars(idx) {
+  // Shared by avatarVars (avatar initials circle) and chat bubble colors —
+  // both are just "a color from this palette, by index".
+  function paletteColor(idx) {
     var n = AVATAR_PALETTE.length;
     var c = AVATAR_PALETTE[((idx % n) + n) % n];
-    var fg = c.l >= 62 ? '#1b2436' : '#fff';
-    return '--avatar-bg:hsl(' + c.h + ' 58% ' + c.l + '%);--avatar-fg:' + fg;
+    return { bg: 'hsl(' + c.h + ' 58% ' + c.l + '%)', fg: c.l >= 62 ? '#1b2436' : '#fff' };
+  }
+
+  function avatarVars(idx) {
+    var c = paletteColor(idx);
+    return '--avatar-bg:' + c.bg + ';--avatar-fg:' + c.fg;
   }
 
   function idToPaletteIndex(id, name) {
@@ -603,6 +613,21 @@
     '<svg viewBox="0 0 24 24" width="1.5em" height="1.5em" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+
+  // Chat attachments: a private Storage bucket, RLS-scoped per thread the
+  // same way `messages` itself is (see comments-setup.sql) — so viewing one
+  // means resolving a short-lived signed URL client-side (hydrateChatAttachments)
+  // rather than the bucket being world-readable. 5MB cap matches the
+  // bucket's own file_size_limit in SQL; this client-side check is just to
+  // fail fast with a clear message rather than waiting on a server rejection.
+  var ATTACHMENTS_BUCKET = 'chat-attachments';
+  var ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+  var ATTACHMENT_ACCEPT = 'image/*,.pdf,.doc,.docx';
+
+  // A small curated set (not a full emoji-picker library) for the chat
+  // compose box's "insert an icon" button.
+  var CHAT_EMOJIS = ['😀', '😂', '😍', '🥳', '👍', '❤️', '🎉', '🙏', '😅', '😎',
+    '🤔', '😭', '🔥', '👏', '🥰', '😴', '🙌', '💯', '✨', '😢'];
 
   // Per-chapter view count: a non-clickable "pill" (eye + number) at the front
   // of the reaction row. The server-side RPC records + returns the count, keyed
@@ -857,7 +882,8 @@
 
   // ---- profile editor (display name + avatar colour — no image upload) ----
 
-  var _profileDraftHue = null;   // palette index chosen in the editor
+  var _profileDraftHue = null;         // avatar palette index chosen in the editor
+  var _profileDraftBubbleHue = null;   // chat bubble palette index chosen in the editor
 
   function ensureProfileModal() {
     if (document.getElementById('profileModal')) return;
@@ -880,7 +906,11 @@
         '</label>' +
         '<div class="profile-field profile-colour" id="profileColour" hidden>' +
           '<span>Màu ảnh đại diện</span>' +
-          '<div class="profile-swatches">' + swatches + '</div>' +
+          '<div class="profile-swatches" data-target="avatar">' + swatches + '</div>' +
+        '</div>' +
+        '<div class="profile-field profile-colour">' +
+          '<span>Màu bong bóng chat</span>' +
+          '<div class="profile-swatches" data-target="bubble">' + swatches + '</div>' +
         '</div>' +
         '<p class="profile-modal-msg" id="profileMsg" role="status"></p>' +
         '<div class="profile-modal-btns">' +
@@ -893,14 +923,20 @@
       '</div>';
     host.appendChild(m);
     m.querySelector('#profileName').addEventListener('input', refreshProfilePreview);
-    m.querySelector('.profile-swatches').addEventListener('click', function (ev) {
-      var b = ev.target.closest('.profile-swatch');
-      if (!b) return;
-      _profileDraftHue = parseInt(b.getAttribute('data-hue'), 10);
-      Array.prototype.forEach.call(this.querySelectorAll('.profile-swatch'), function (s) {
-        s.classList.toggle('is-active', s === b);
+    // Two independent swatch groups (avatar color, chat bubble color) — each
+    // only tracks/marks-active within its own group, via data-target.
+    Array.prototype.forEach.call(m.querySelectorAll('.profile-swatches'), function (group) {
+      group.addEventListener('click', function (ev) {
+        var b = ev.target.closest('.profile-swatch');
+        if (!b) return;
+        var hue = parseInt(b.getAttribute('data-hue'), 10);
+        var isBubble = group.getAttribute('data-target') === 'bubble';
+        if (isBubble) _profileDraftBubbleHue = hue; else _profileDraftHue = hue;
+        Array.prototype.forEach.call(group.querySelectorAll('.profile-swatch'), function (s) {
+          s.classList.toggle('is-active', s === b);
+        });
+        if (!isBubble) refreshProfilePreview();
       });
-      refreshProfilePreview();
     });
   }
 
@@ -925,8 +961,14 @@
     // Colour choice only matters when there's no photo (i.e. email sign-ups).
     var colourBlock = document.getElementById('profileColour');
     colourBlock.hidden = !!authUser.avatar;
-    Array.prototype.forEach.call(m.querySelectorAll('.profile-swatch'), function (s) {
+    Array.prototype.forEach.call(m.querySelectorAll('[data-target="avatar"] .profile-swatch'), function (s) {
       s.classList.toggle('is-active', parseInt(s.getAttribute('data-hue'), 10) === _profileDraftHue);
+    });
+    _profileDraftBubbleHue = (authUser.bubbleHue != null)
+      ? authUser.bubbleHue
+      : idToPaletteIndex(authUser.id, authUser.name);
+    Array.prototype.forEach.call(m.querySelectorAll('[data-target="bubble"] .profile-swatch'), function (s) {
+      s.classList.toggle('is-active', parseInt(s.getAttribute('data-hue'), 10) === _profileDraftBubbleHue);
     });
     refreshProfilePreview();
     m.hidden = false;
@@ -960,6 +1002,12 @@
     if (!authUser.avatar && _profileDraftHue != null && _profileDraftHue !== currentIdx) {
       patch.avatar_hue = _profileDraftHue;
     }
+    var currentBubbleIdx = (authUser.bubbleHue != null)
+      ? authUser.bubbleHue
+      : idToPaletteIndex(authUser.id, authUser.name);
+    if (_profileDraftBubbleHue != null && _profileDraftBubbleHue !== currentBubbleIdx) {
+      patch.bubble_hue = _profileDraftBubbleHue;
+    }
     if (!Object.keys(patch).length) { closeProfileModal(); return; }
     if (msg) msg.textContent = 'Đang lưu...';
     saveProfilePatch(patch, msg);
@@ -968,10 +1016,10 @@
   function saveProfilePatch(patch, msg) {
     sb.from('profiles').update(patch).eq('id', authUser.id).then(function (res) {
       if (res.error) {
-        // the avatar_hue column may not exist yet — retry saving just the name
-        if (patch.avatar_hue != null && patch.display_name) {
+        // the avatar_hue/bubble_hue columns may not exist yet — retry with just the name
+        if ((patch.avatar_hue != null || patch.bubble_hue != null) && patch.display_name) {
           saveProfilePatch({ display_name: patch.display_name }, msg);
-          if (msg) msg.textContent = 'Đã lưu tên. Màu ảnh cần thêm cột avatar_hue vào CSDL.';
+          if (msg) msg.textContent = 'Đã lưu tên. Một số cột màu cần thêm vào CSDL.';
           return;
         }
         if (msg) msg.textContent = 'Không lưu được, thử lại nhé.';
@@ -979,6 +1027,12 @@
       }
       if (patch.display_name) authUser.name = patch.display_name;
       if (patch.avatar_hue != null) authUser.avatarHue = patch.avatar_hue;
+      if (patch.bubble_hue != null) {
+        authUser.bubbleHue = patch.bubble_hue;
+        // repaint any of my bubbles already on screen with the new color
+        if (document.getElementById('chatThread')) renderChatThread();
+        if (document.getElementById('inboxConvThread')) renderInboxConversation();
+      }
       renderMastheadAuth();
       closeProfileModal();
     });
@@ -997,11 +1051,16 @@
   // readable by everyone" policy the comments feature already relies on.
   function fetchChatAdmin() {
     if (!sb) return;
-    sb.from('profiles').select('display_name, avatar_url, avatar_hue').eq('is_admin', true).limit(1)
+    sb.from('profiles').select('display_name, avatar_url, avatar_hue, bubble_hue').eq('is_admin', true).limit(1)
       .then(function (res) {
         var row = res && res.data && res.data[0];
         if (!row) return;
-        _chatAdmin = { name: row.display_name || 'tác giả', avatar: row.avatar_url || null, hue: row.avatar_hue };
+        _chatAdmin = {
+          name: row.display_name || 'tác giả',
+          avatar: row.avatar_url || null,
+          hue: row.avatar_hue,
+          bubbleHue: row.bubble_hue
+        };
         var title = document.getElementById('chatPanelTitle');
         if (title) title.textContent = 'Nhắn tin cho ' + _chatAdmin.name;
         var guestMsg = document.getElementById('chatGuestMsg');
@@ -1029,27 +1088,162 @@
     host.appendChild(w);
   }
 
+  var MESSAGE_COLUMNS = 'id, sender_id, body, created_at, attachment_path, attachment_name, attachment_type, attachment_size';
+
+  // ---- compose-box extras: emoji picker + file attach, shared by the
+  // reader's chat widget and the admin's inbox reply box (each instance is
+  // told apart only by an id prefix — "chat" or "inbox"). ----------------
+
+  function chatEmojiButtonsHtml() {
+    return CHAT_EMOJIS.map(function (e) {
+      return '<button type="button" class="chat-emoji-choice" data-action="chat-emoji-pick" data-emoji="' +
+        escapeAttr(e) + '">' + e + '</button>';
+    }).join('');
+  }
+
+  function composePendingFileHtml(prefix) {
+    return '<div class="chat-pending-file" id="' + prefix + 'PendingFile" hidden>' +
+        '<span class="chat-pending-file-name"></span>' +
+        '<button type="button" class="chat-pending-file-remove" data-action="chat-attach-remove" data-for="' +
+          prefix + '" aria-label="Bỏ đính kèm">&times;</button>' +
+      '</div>';
+  }
+
+  function composeToolsHtml(prefix) {
+    return '<span class="chat-emoji-wrap">' +
+        '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">🙂</button>' +
+        '<span class="chat-emoji-popover" hidden>' + chatEmojiButtonsHtml() + '</span>' +
+      '</span>' +
+      '<button type="button" class="chat-tool-btn" data-action="chat-attach" data-for="' + prefix +
+        '" aria-label="Đính kèm tệp">📎</button>' +
+      '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
+  }
+
+  function closeAllChatEmojiPopovers(except) {
+    Array.prototype.forEach.call(document.querySelectorAll('.chat-emoji-popover'), function (p) {
+      if (p !== except) p.hidden = true;
+    });
+  }
+
+  function toggleChatEmojiPopover(btn) {
+    var wrap = btn.closest('.chat-emoji-wrap');
+    var pop = wrap && wrap.querySelector('.chat-emoji-popover');
+    if (!pop) return;
+    var willOpen = pop.hidden;
+    closeAllChatEmojiPopovers();
+    pop.hidden = !willOpen;
+  }
+
+  function insertAtCursor(field, text) {
+    var start = field.selectionStart != null ? field.selectionStart : field.value.length;
+    var end = field.selectionEnd != null ? field.selectionEnd : field.value.length;
+    field.value = field.value.slice(0, start) + text + field.value.slice(end);
+    var pos = start + text.length;
+    try { field.setSelectionRange(pos, pos); } catch (e) {}
+  }
+
+  function onChatEmojiPick(btn) {
+    var form = btn.closest('form');
+    var input = form && form.querySelector('textarea');
+    if (input) { insertAtCursor(input, btn.getAttribute('data-emoji')); input.focus(); }
+    closeAllChatEmojiPopovers();
+  }
+
+  // Shows/clears the small "attached: filename ×" chip above a compose row.
+  function showPendingFile(prefix, file) {
+    var box = document.getElementById(prefix + 'PendingFile');
+    if (!box) return;
+    box.hidden = !file;
+    var nameEl = box.querySelector('.chat-pending-file-name');
+    if (nameEl) nameEl.textContent = file ? file.name : '';
+  }
+
+  function onChatFileChosen(input, prefix) {
+    var file = input.files && input.files[0];
+    input.value = '';   // lets choosing the exact same file again later still fire 'change'
+    if (!file) return;
+    if (file.size > ATTACHMENT_MAX_BYTES) {
+      window.alert('Tệp quá lớn (tối đa 5MB).');
+      return;
+    }
+    if (prefix === 'inbox') _inboxPendingFile = file; else _chatPendingFile = file;
+    showPendingFile(prefix, file);
+  }
+
+  // Uploads into the private "chat-attachments" bucket under
+  // <threadUserId>/<random>-<filename>, matching the Storage RLS in
+  // comments-setup.sql (thread participant or admin). Calls back with
+  // { path, name, type, size } to attach to the message row, or null on
+  // failure.
+  function uploadChatAttachment(file, threadUserId, cb) {
+    if (!sb) { cb(null); return; }
+    var ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8);
+    var path = threadUserId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + (ext ? '.' + ext : '');
+    sb.storage.from(ATTACHMENTS_BUCKET).upload(path, file, { contentType: file.type || undefined })
+      .then(function (res) {
+        if (res.error) { cb(null); return; }
+        cb({ path: path, name: file.name, type: file.type || '', size: file.size });
+      });
+  }
+
   // Shared by both the reader's chat widget and the admin's inbox
   // conversation pane — "mine" is just whoever's viewing (auth.uid()), so
   // the same bubble logic renders correctly from either side of a thread.
-  // `fromLabel` names the OTHER party, shown above a bubble that isn't mine.
-  function chatBubbleHtml(m, fromLabel) {
+  // `fromLabel` names the OTHER party, shown above a bubble that isn't mine;
+  // `theirHue` is that other party's chat bubble color (mine comes from
+  // authUser.bubbleHue directly) — null for either means the default
+  // fixed bubble color from styles.css, unchanged.
+  function chatBubbleHtml(m, fromLabel, theirHue) {
     var mine = authUser && m.sender_id === authUser.id;
+    var hue = mine ? (authUser && authUser.bubbleHue) : theirHue;
+    var style = '';
+    if (hue != null) {
+      var c = paletteColor(hue);
+      style = ' style="background:' + c.bg + ';color:' + c.fg + '"';
+    }
     var label = (!mine && fromLabel) ? '<div class="chat-msg-from">' + escapeHtml(fromLabel) + '</div>' : '';
+    var bodyHtml = m.body ? '<div class="chat-msg-text">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' : '';
+    var attachmentHtml = '';
+    if (m.attachment_path) {
+      var isImage = (m.attachment_type || '').indexOf('image/') === 0;
+      attachmentHtml = isImage
+        ? '<img class="chat-attachment-img" alt="' + escapeAttr(m.attachment_name || '') +
+            '" data-path="' + escapeAttr(m.attachment_path) + '">'
+        : '<a class="chat-attachment-file" href="#" target="_blank" rel="noopener" data-path="' +
+            escapeAttr(m.attachment_path) + '">📎 <span>' + escapeHtml(m.attachment_name || 'Tệp đính kèm') + '</span></a>';
+    }
     return '<div class="chat-msg' + (mine ? '' : ' is-them') + '">' +
         label +
-        '<div class="chat-msg-bubble">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' +
+        '<div class="chat-msg-bubble"' + style + '>' + bodyHtml + attachmentHtml + '</div>' +
         '<div class="chat-msg-time">' + escapeHtml(relTime(m.created_at)) + '</div>' +
       '</div>';
+  }
+
+  // Resolves a short-lived signed URL for each not-yet-hydrated attachment
+  // under `root` and patches it into the <img>/<a> — the bucket is private
+  // (see comments-setup.sql), so there's no public URL to just set upfront.
+  function hydrateChatAttachments(root) {
+    if (!sb || !root) return;
+    Array.prototype.forEach.call(root.querySelectorAll('[data-path]'), function (el) {
+      if (el.getAttribute('data-hydrated')) return;
+      el.setAttribute('data-hydrated', '1');
+      var path = el.getAttribute('data-path');
+      sb.storage.from(ATTACHMENTS_BUCKET).createSignedUrl(path, 3600).then(function (res) {
+        var url = res && res.data && res.data.signedUrl;
+        if (!url) return;
+        if (el.tagName === 'IMG') el.src = url; else el.href = url;
+      });
+    });
   }
 
   function renderChatThread() {
     var thread = document.getElementById('chatThread');
     if (!thread) return;
     thread.innerHTML = _chatMessages.length
-      ? _chatMessages.map(function (m) { return chatBubbleHtml(m, _chatAdmin.name); }).join('')
+      ? _chatMessages.map(function (m) { return chatBubbleHtml(m, _chatAdmin.name, _chatAdmin.bubbleHue); }).join('')
       : '<p class="chat-empty">Chưa có tin nhắn nào. Gửi lời nhắn đầu tiên của bạn nhé!</p>';
     thread.scrollTop = thread.scrollHeight;
+    hydrateChatAttachments(thread);
   }
 
   // Fetches the reader's WHOLE thread (their own messages + the admin's
@@ -1058,7 +1252,7 @@
   function loadChatMessages() {
     if (!sb || !authUser) return;
     var uid = authUser.id;
-    sb.from('messages').select('id, sender_id, body, created_at').eq('thread_user_id', uid)
+    sb.from('messages').select(MESSAGE_COLUMNS).eq('thread_user_id', uid)
       .order('created_at', { ascending: true }).limit(200)
       .then(function (res) {
         if (!authUser || authUser.id !== uid) return;   // signed out/changed meanwhile
@@ -1090,8 +1284,12 @@
     body.innerHTML =
       '<div class="chat-thread" id="chatThread"></div>' +
       '<form class="chat-compose" id="chatForm">' +
-        '<textarea id="chatInput" class="chat-textarea" maxlength="2000" placeholder="Nhập tin nhắn..." required></textarea>' +
-        '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+        composePendingFileHtml('chat') +
+        '<div class="chat-compose-row">' +
+          composeToolsHtml('chat') +
+          '<textarea id="chatInput" class="chat-textarea" maxlength="2000" placeholder="Nhập tin nhắn..."></textarea>' +
+          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+        '</div>' +
       '</form>';
     if (_chatLoadedFor === authUser.id) {
       renderChatThread();
@@ -1172,18 +1370,43 @@
     if (!authUser) return;
     var input = form.querySelector('#chatInput');
     var body = (input.value || '').trim().slice(0, 2000);
-    if (!body) return;
+    var file = _chatPendingFile;
+    if (!body && !file) return;   // needs text, an attachment, or both
     var submit = form.querySelector('.chat-send');
     if (submit) submit.disabled = true;
-    sb.from('messages').insert({ thread_user_id: authUser.id, sender_id: authUser.id, body: body })
-      .select('id, sender_id, body, created_at').single().then(function (res) {
+
+    function insertRow(attachment) {
+      var row = { thread_user_id: authUser.id, sender_id: authUser.id, body: body };
+      if (attachment) {
+        row.attachment_path = attachment.path;
+        row.attachment_name = attachment.name;
+        row.attachment_type = attachment.type;
+        row.attachment_size = attachment.size;
+      }
+      sb.from('messages').insert(row).select(MESSAGE_COLUMNS).single().then(function (res) {
         if (submit) submit.disabled = false;
         if (res.error) return;
         _chatMessages.push(res.data);
         _chatLoadedFor = authUser.id;
         input.value = '';
+        _chatPendingFile = null;
+        showPendingFile('chat', null);
         renderChatThread();
       });
+    }
+
+    if (file) {
+      uploadChatAttachment(file, authUser.id, function (attachment) {
+        if (!attachment) {
+          if (submit) submit.disabled = false;
+          window.alert('Không tải lên được tệp, thử lại nhé.');
+          return;
+        }
+        insertRow(attachment);
+      });
+    } else {
+      insertRow(null);
+    }
   }
 
   // ---- admin inbox: read + reply to every reader's chat thread -------------
@@ -1283,7 +1506,7 @@
         var ids = threads.map(function (t) { return t.uid; });
         if (!ids.length) { _inboxThreads = []; renderInboxThreadList(); updateAdminInboxBadge(); return; }
         Promise.all([
-          sb.from('profiles').select('id, display_name, avatar_url, avatar_hue').in('id', ids),
+          sb.from('profiles').select('id, display_name, avatar_url, avatar_hue, bubble_hue').in('id', ids),
           sb.from('message_reads').select('thread_user_id, last_read_at').eq('viewer_id', authUser.id)
         ]).then(function (results) {
           var pres = results[0], rres = results[1];
@@ -1306,6 +1529,7 @@
               name: p.display_name || 'Người đọc',
               avatar: p.avatar_url || null,
               hue: p.avatar_hue,
+              bubbleHue: p.bubble_hue,
               lastBody: t.lastBody,
               lastCreatedAt: t.lastCreatedAt,
               unread: unread[t.uid] || 0
@@ -1326,18 +1550,23 @@
       '<div class="inbox-conv-head">' + escapeHtml(name) + '</div>' +
       '<div class="chat-thread inbox-conv-thread" id="inboxConvThread"></div>' +
       '<form class="chat-compose" id="inboxReplyForm">' +
-        '<textarea id="inboxReplyInput" class="chat-textarea" maxlength="2000" placeholder="Trả lời..." required></textarea>' +
-        '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+        composePendingFileHtml('inbox') +
+        '<div class="chat-compose-row">' +
+          composeToolsHtml('inbox') +
+          '<textarea id="inboxReplyInput" class="chat-textarea" maxlength="2000" placeholder="Trả lời..."></textarea>' +
+          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+        '</div>' +
       '</form>';
     var threadEl = document.getElementById('inboxConvThread');
     threadEl.innerHTML = _inboxMessages.length
-      ? _inboxMessages.map(function (m) { return chatBubbleHtml(m, name); }).join('')
+      ? _inboxMessages.map(function (m) { return chatBubbleHtml(m, name, t && t.bubbleHue); }).join('')
       : '<p class="chat-empty">Chưa có tin nhắn.</p>';
     threadEl.scrollTop = threadEl.scrollHeight;
+    hydrateChatAttachments(threadEl);
   }
 
   function loadInboxMessages(uid) {
-    sb.from('messages').select('id, sender_id, body, created_at').eq('thread_user_id', uid)
+    sb.from('messages').select(MESSAGE_COLUMNS).eq('thread_user_id', uid)
       .order('created_at', { ascending: true }).limit(500)
       .then(function (res) {
         if (_inboxSelected !== uid) return;   // switched threads meanwhile
@@ -1373,21 +1602,46 @@
     if (!authUser || !authUser.isAdmin || !_inboxSelected) return;
     var input = form.querySelector('#inboxReplyInput');
     var body = (input.value || '').trim().slice(0, 2000);
-    if (!body) return;
+    var file = _inboxPendingFile;
+    if (!body && !file) return;
     var submit = form.querySelector('.chat-send');
     if (submit) submit.disabled = true;
     var uid = _inboxSelected;
-    sb.from('messages').insert({ thread_user_id: uid, sender_id: authUser.id, body: body })
-      .select('id, sender_id, body, created_at').single().then(function (res) {
+
+    function insertRow(attachment) {
+      var row = { thread_user_id: uid, sender_id: authUser.id, body: body };
+      if (attachment) {
+        row.attachment_path = attachment.path;
+        row.attachment_name = attachment.name;
+        row.attachment_type = attachment.type;
+        row.attachment_size = attachment.size;
+      }
+      sb.from('messages').insert(row).select(MESSAGE_COLUMNS).single().then(function (res) {
         if (submit) submit.disabled = false;
         if (res.error) return;
         if (_inboxSelected === uid) {
           _inboxMessages.push(res.data);
           input.value = '';
+          _inboxPendingFile = null;
+          showPendingFile('inbox', null);
           renderInboxConversation();
         }
         loadInboxThreads();   // refresh the left list's preview/ordering
       });
+    }
+
+    if (file) {
+      uploadChatAttachment(file, uid, function (attachment) {
+        if (!attachment) {
+          if (submit) submit.disabled = false;
+          window.alert('Không tải lên được tệp, thử lại nhé.');
+          return;
+        }
+        insertRow(attachment);
+      });
+    } else {
+      insertRow(null);
+    }
   }
 
   function renderAdminInbox() {
@@ -2152,6 +2406,7 @@
       if (!inReactionBar) closeReactionPopovers();
       if (!(ev.target.closest && ev.target.closest('.comment-actions'))) closeAllCreactPopovers();
       if (_chatOpen && !(ev.target.closest && ev.target.closest('#chatWidget'))) closeChatPanel();
+      if (!(ev.target.closest && ev.target.closest('.chat-emoji-wrap'))) closeAllChatEmojiPopovers();
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') { closeProfileModal(); doSignOut(); }
@@ -2168,11 +2423,27 @@
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
+      else if (act === 'chat-emoji-toggle') toggleChatEmojiPopover(a);
+      else if (act === 'chat-emoji-pick') onChatEmojiPick(a);
+      else if (act === 'chat-attach') {
+        var fileInput = document.getElementById(a.getAttribute('data-for') + 'FileInput');
+        if (fileInput) fileInput.click();
+      }
+      else if (act === 'chat-attach-remove') {
+        var prefix = a.getAttribute('data-for');
+        if (prefix === 'inbox') _inboxPendingFile = null; else _chatPendingFile = null;
+        showPendingFile(prefix, null);
+      }
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape') {
-        closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); closeChatPanel(); closeSigninModal();
+        closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers();
+        closeChatPanel(); closeSigninModal(); closeAllChatEmojiPopovers();
       }
+    });
+    document.addEventListener('change', function (ev) {
+      if (ev.target && ev.target.id === 'chatFileInput') onChatFileChosen(ev.target, 'chat');
+      else if (ev.target && ev.target.id === 'inboxFileInput') onChatFileChosen(ev.target, 'inbox');
     });
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'chatForm') { ev.preventDefault(); onChatSubmit(ev.target); }
