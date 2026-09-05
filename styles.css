@@ -1478,6 +1478,40 @@ body {
   gap: .6rem;
 }
 
+/* Custom thin scrollbar for the chat surfaces (thread, textarea, admin
+   thread list), so it looks the same everywhere this app draws one
+   instead of each platform's own default. Only takes effect where the
+   browser honors it — Chrome/Edge/Firefox desktop and Android Chrome;
+   iOS Safari ignores ::-webkit-scrollbar entirely and always shows its
+   own translucent overlay scrollbar regardless of any CSS here. */
+.chat-thread,
+.chat-textarea,
+.inbox-thread-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.chat-thread::-webkit-scrollbar,
+.chat-textarea::-webkit-scrollbar,
+.inbox-thread-list::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-thread::-webkit-scrollbar-track,
+.chat-textarea::-webkit-scrollbar-track,
+.inbox-thread-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-thread::-webkit-scrollbar-thumb,
+.chat-textarea::-webkit-scrollbar-thumb,
+.inbox-thread-list::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+}
+.chat-thread::-webkit-scrollbar-thumb:hover,
+.chat-textarea::-webkit-scrollbar-thumb:hover,
+.inbox-thread-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ink-faint);
+}
+
 .chat-empty {
   margin: auto;
   color: var(--ink-faint);

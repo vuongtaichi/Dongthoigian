@@ -1227,14 +1227,26 @@
   // (max-height, with overflow-y:auto as the fallback) so a huge paste
   // can't make the box itself unbounded.
   function autoGrowTextarea(el) {
+    // overflow-y is switched off (not just left to CSS's own overflow-y:
+    // auto) while regrowing, then only turned back on if the content
+    // genuinely exceeds max-height. Leaving auto in charge here can flash
+    // a scrollbar for a frame during the reflow itself — most visible on
+    // mobile, where paint timing differs from desktop — even though the
+    // box ends up plenty tall enough once the height update lands.
+    el.style.overflowY = 'hidden';
     el.style.height = 'auto';
     // border-box sizing means style.height includes the border, but
     // scrollHeight doesn't — without adding it back, the box lands a
-    // couple px short of its own content and shows a scrollbar for that
-    // sliver on every line added, even though there's plenty of room left
-    // under max-height.
+    // couple px short of its own content and overflows by that sliver.
     var borders = el.offsetHeight - el.clientHeight;
-    el.style.height = (el.scrollHeight + borders) + 'px';
+    var contentHeight = el.scrollHeight + borders;
+    var maxHeight = parseFloat(getComputedStyle(el).maxHeight);
+    if (!maxHeight || contentHeight <= maxHeight) {
+      el.style.height = contentHeight + 'px';
+    } else {
+      el.style.height = maxHeight + 'px';
+      el.style.overflowY = 'auto';
+    }
   }
 
   function onChatEmojiPick(btn) {
