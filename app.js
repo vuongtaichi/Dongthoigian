@@ -1065,6 +1065,10 @@
         _chatMessages = (res && res.data) || [];
         _chatLoadedFor = uid;
         renderChatThread();
+        // Only mark as read while the panel is actually visible — this same
+        // fetch also runs from refresh() on a bare auth-state change, when
+        // the reader hasn't necessarily seen anything.
+        if (_chatOpen) markChatThreadRead();
       });
   }
 
@@ -1095,6 +1099,54 @@
       document.getElementById('chatThread').innerHTML = '<p class="chat-empty">Đang tải...</p>';
     }
     loadChatMessages();   // always refresh — picks up any admin reply sent since the last open
+  }
+
+  // Unread badge on the chat FAB — computed from a message_reads row (this
+  // reader's last_read_at for their own thread) plus a count-only query for
+  // admin messages newer than that. Not realtime: refreshed on auth resolve
+  // and by the poll in initEngagement, same "poll, don't push" approach the
+  // rest of this feature already uses.
+  function setChatBadge(n) {
+    var fab = document.getElementById('chatFab');
+    if (!fab) return;
+    var badge = fab.querySelector('.chat-fab-badge');
+    if (n > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'chat-fab-badge';
+        fab.appendChild(badge);
+      }
+      badge.textContent = n > 9 ? '9+' : String(n);
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
+  function refreshChatUnreadBadge() {
+    if (!sb || !authUser) { setChatBadge(0); return; }
+    var uid = authUser.id;
+    sb.from('message_reads').select('last_read_at').eq('viewer_id', uid).eq('thread_user_id', uid).maybeSingle()
+      .then(function (rres) {
+        if (!authUser || authUser.id !== uid) return;
+        var lastRead = (rres && rres.data && rres.data.last_read_at) || '1970-01-01T00:00:00Z';
+        sb.from('messages').select('id', { count: 'exact', head: true })
+          .eq('thread_user_id', uid).neq('sender_id', uid).gt('created_at', lastRead)
+          .then(function (mres) {
+            if (!authUser || authUser.id !== uid) return;
+            setChatBadge((mres && typeof mres.count === 'number') ? mres.count : 0);
+          });
+      });
+  }
+
+  // Records that this reader has seen every message up through the newest
+  // one currently loaded — using that message's own created_at rather than
+  // the client clock, so a slightly-skewed device clock can't mark a
+  // message read before it actually arrived.
+  function markChatThreadRead() {
+    if (!sb || !authUser || !_chatMessages.length) return;
+    var latest = _chatMessages[_chatMessages.length - 1].created_at;
+    sb.from('message_reads').upsert({ viewer_id: authUser.id, thread_user_id: authUser.id, last_read_at: latest })
+      .then(function () { setChatBadge(0); });
   }
 
   function toggleChatPanel() {
@@ -1168,13 +1220,16 @@
   }
 
   function inboxThreadLi(t) {
-    return '<button type="button" class="inbox-thread-item' + (t.uid === _inboxSelected ? ' active' : '') +
+    var badge = t.unread ? '<span class="inbox-thread-badge">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
+    return '<button type="button" class="inbox-thread-item' +
+        (t.uid === _inboxSelected ? ' active' : '') + (t.unread ? ' has-unread' : '') +
         '" data-action="inbox-open" data-uid="' + escapeAttr(t.uid) + '">' +
       avatarHtml(t.name, t.avatar, t.uid, 'inbox-thread-avatar', t.avatar ? null : t.hue) +
       '<span class="inbox-thread-text">' +
         '<span class="inbox-thread-name">' + escapeHtml(t.name) + '</span>' +
         '<span class="inbox-thread-preview">' + escapeHtml(t.lastBody) + '</span>' +
       '</span>' +
+      badge +
       '<span class="inbox-thread-time">' + escapeHtml(relTime(t.lastCreatedAt)) + '</span>' +
     '</button>';
   }
@@ -1187,12 +1242,34 @@
       : '<p class="chat-empty">Chưa có ai nhắn tin.</p>';
   }
 
-  // One query for the latest message per thread, then one combined profile
-  // fetch for whichever readers those threads belong to — same two-query
-  // pattern loadComments() already uses for authors + reactors.
+  // Sums each thread's unread count onto the "Hộp thư" sidebar entry.
+  function updateAdminInboxBadge() {
+    var li = document.getElementById('tocAdminItem');
+    if (!li) return;
+    var btn = li.querySelector('.toc-item');
+    if (!btn) return;
+    var total = _inboxThreads.reduce(function (sum, t) { return sum + (t.unread || 0); }, 0);
+    var badge = btn.querySelector('.toc-badge');
+    if (total > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'toc-badge';
+        btn.appendChild(badge);
+      }
+      badge.textContent = total > 99 ? '99+' : String(total);
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
+  // One query for the latest message per thread (also used to compute each
+  // thread's unread count client-side, against the admin's own read
+  // receipts), then one combined profile fetch for whichever readers those
+  // threads belong to — same two-query pattern loadComments() already uses
+  // for authors + reactors.
   function loadInboxThreads() {
     if (!sb || !authUser || !authUser.isAdmin) return;
-    sb.from('messages').select('thread_user_id, body, created_at')
+    sb.from('messages').select('thread_user_id, sender_id, body, created_at')
       .order('created_at', { ascending: false }).limit(500)
       .then(function (res) {
         var rows = (res && res.data) || [];
@@ -1204,24 +1281,39 @@
           threads.push({ uid: r.thread_user_id, lastBody: r.body, lastCreatedAt: r.created_at });
         });
         var ids = threads.map(function (t) { return t.uid; });
-        if (!ids.length) { _inboxThreads = []; renderInboxThreadList(); return; }
-        sb.from('profiles').select('id, display_name, avatar_url, avatar_hue').in('id', ids)
-          .then(function (pres) {
-            var byId = {};
-            ((pres && pres.data) || []).forEach(function (p) { byId[p.id] = p; });
-            _inboxThreads = threads.map(function (t) {
-              var p = byId[t.uid] || {};
-              return {
-                uid: t.uid,
-                name: p.display_name || 'Người đọc',
-                avatar: p.avatar_url || null,
-                hue: p.avatar_hue,
-                lastBody: t.lastBody,
-                lastCreatedAt: t.lastCreatedAt
-              };
-            });
-            renderInboxThreadList();
+        if (!ids.length) { _inboxThreads = []; renderInboxThreadList(); updateAdminInboxBadge(); return; }
+        Promise.all([
+          sb.from('profiles').select('id, display_name, avatar_url, avatar_hue').in('id', ids),
+          sb.from('message_reads').select('thread_user_id, last_read_at').eq('viewer_id', authUser.id)
+        ]).then(function (results) {
+          var pres = results[0], rres = results[1];
+          var byId = {};
+          ((pres && pres.data) || []).forEach(function (p) { byId[p.id] = p; });
+          var readMap = {};
+          ((rres && rres.data) || []).forEach(function (r) { readMap[r.thread_user_id] = r.last_read_at; });
+          var unread = {};
+          rows.forEach(function (r) {
+            if (r.sender_id === authUser.id) return;   // the admin's own replies never count as unread
+            var lastRead = readMap[r.thread_user_id];
+            if (!lastRead || r.created_at > lastRead) {
+              unread[r.thread_user_id] = (unread[r.thread_user_id] || 0) + 1;
+            }
           });
+          _inboxThreads = threads.map(function (t) {
+            var p = byId[t.uid] || {};
+            return {
+              uid: t.uid,
+              name: p.display_name || 'Người đọc',
+              avatar: p.avatar_url || null,
+              hue: p.avatar_hue,
+              lastBody: t.lastBody,
+              lastCreatedAt: t.lastCreatedAt,
+              unread: unread[t.uid] || 0
+            };
+          });
+          renderInboxThreadList();
+          updateAdminInboxBadge();
+        });
       });
   }
 
@@ -1251,6 +1343,21 @@
         if (_inboxSelected !== uid) return;   // switched threads meanwhile
         _inboxMessages = (res && res.data) || [];
         renderInboxConversation();
+        markInboxThreadRead(uid);
+      });
+  }
+
+  // Same created_at-of-the-newest-message approach as markChatThreadRead —
+  // avoids a skewed client clock marking something read before it arrived.
+  function markInboxThreadRead(uid) {
+    if (!sb || !authUser || !_inboxMessages.length) return;
+    var latest = _inboxMessages[_inboxMessages.length - 1].created_at;
+    sb.from('message_reads').upsert({ viewer_id: authUser.id, thread_user_id: uid, last_read_at: latest })
+      .then(function () {
+        var t = _inboxThreads.filter(function (x) { return x.uid === uid; })[0];
+        if (t) t.unread = 0;
+        renderInboxThreadList();
+        updateAdminInboxBadge();
       });
   }
 
@@ -2109,6 +2216,12 @@
     function refresh() {
       renderMastheadAuth();
       updateAdminTocItem();
+      if (authUser) {
+        refreshChatUnreadBadge();
+        if (authUser.isAdmin) loadInboxThreads();
+      } else {
+        setChatBadge(0);
+      }
       // Safety net: if whoever's signed in stops being admin (signed out,
       // switched accounts) while the inbox is on screen, don't strand them
       // on an orphaned admin page — send them back to the last chapter.
@@ -2137,6 +2250,15 @@
 
     recordVisit();
     loadTocViewCounts();
+
+    // No realtime — just re-check unread counts every minute while someone's
+    // signed in, same "poll rather than push" approach as the rest of this
+    // feature (loadChatMessages/loadInboxThreads already re-fetch on open).
+    setInterval(function () {
+      if (!authUser) return;
+      refreshChatUnreadBadge();
+      if (authUser.isAdmin) loadInboxThreads();
+    }, 60000);
   }
 
   function applySearch() {

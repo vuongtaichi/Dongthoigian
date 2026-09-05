@@ -916,20 +916,37 @@ body {
 
 .auth-who strong { color: var(--ink); }
 
+/* Fixed brand-blue gradient pill, same look as .masthead-signin-btn — the
+   site's one shared "primary action" button style (Lưu, Đăng xuất, Đăng
+   nhập/Đăng ký, Gửi, ...). Deliberately fixed colors rather than theme
+   tokens, matching a reference button image the user asked to copy
+   everywhere except the Google button. */
 .auth-btn {
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--paper);
-  border-radius: 8px;
-  padding: .45rem 1rem;
+  border: none;
+  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: .5rem 1.2rem;
   font: inherit;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
 }
 
+.auth-btn:hover { filter: brightness(1.08); }
+.auth-btn:disabled { filter: none; opacity: .6; cursor: default; box-shadow: none; }
+
+/* The Google button is excluded from the gradient restyle above — fully
+   restated here (not just overridden) so it stays exactly as before
+   regardless of what .auth-btn does. */
 .auth-btn.auth-ghost {
+  border: 1px solid var(--accent);
   background: transparent;
   color: var(--accent);
+  font-weight: 400;
+  box-shadow: none;
 }
+.auth-btn.auth-ghost:hover { filter: none; }
 
 .auth-btn.auth-google {
   display: inline-flex;
@@ -1081,16 +1098,19 @@ body {
 .comment-status { color: var(--ink-faint); }
 
 .comment-submit {
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--paper);
-  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
+  color: #ffffff;
+  border-radius: 999px;
   padding: .5rem 1.2rem;
   font: inherit;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
 }
 
-.comment-submit:disabled { opacity: .6; cursor: default; }
+.comment-submit:hover { filter: brightness(1.08); }
+.comment-submit:disabled { filter: none; opacity: .6; cursor: default; box-shadow: none; }
 
 .comment-list {
   list-style: none;
@@ -1306,6 +1326,7 @@ body {
 }
 
 .chat-fab {
+  position: relative;
   width: 3.4rem;
   height: 3.4rem;
   border-radius: 50%;
@@ -1320,6 +1341,33 @@ body {
 }
 
 .chat-fab:hover { background: var(--accent-strong); }
+
+/* Unread-count badges — same red pill in all three spots (chat icon,
+   "Hộp thư" sidebar entry, admin inbox thread rows). */
+.chat-fab-badge,
+.toc-badge,
+.inbox-thread-badge {
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 .35rem;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1.3rem;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.chat-fab-badge {
+  position: absolute;
+  top: -.15rem;
+  right: -.15rem;
+  box-shadow: 0 0 0 2px var(--card);
+}
+
+.toc-badge { margin-left: auto; }
 
 .chat-panel {
   position: absolute;
@@ -1512,6 +1560,8 @@ body {
 .inbox-thread-item:last-child { border-bottom: none; }
 .inbox-thread-item:hover { background: var(--accent-soft-bg); }
 .inbox-thread-item.active { background: var(--accent-soft-bg); box-shadow: inset 3px 0 0 var(--accent); }
+.inbox-thread-item.has-unread .inbox-thread-name { font-weight: 700; }
+.inbox-thread-item.has-unread .inbox-thread-preview { color: var(--ink); }
 
 .inbox-thread-avatar { width: 2.1rem; height: 2.1rem; flex: 0 0 auto; }
 
