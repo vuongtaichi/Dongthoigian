@@ -173,6 +173,12 @@
 
   function renderChapter(id, opts) {
     var push = !!(opts && opts.push);
+    // A throwaway placeholder render (chapter 1 shown while the restored
+    // admin-inbox route is still waiting on _pendingAdminInboxRoute/
+    // _authSettled) must not persist itself as "the last place" — that
+    // would clobber the saved admin-inbox route before refresh() gets a
+    // chance to redirect into it.
+    var silent = !!(opts && opts.silent);
     var idx = chapters.findIndex(function (c) { return c.id === id; });
     if (idx === -1) idx = 0;
     var ch = chapters[idx];
@@ -231,14 +237,16 @@
       btn.classList.toggle('active', btn.getAttribute('data-id') === ch.id);
     });
 
-    saveLastChapter(ch.id);
+    if (!silent) saveLastChapter(ch.id);
 
     if (sb) renderEngagement(ch.id);
 
     // Push a history entry per chapter switch (not the initial load) so the
     // device/browser Back button steps back through previously-read
     // chapters instead of immediately leaving the page.
-    if (push) {
+    if (silent) {
+      centerActiveTocItem();
+    } else if (push) {
       history.pushState({ chapterId: ch.id }, '', '#' + ch.id);
     } else {
       history.replaceState({ chapterId: ch.id }, '', '#' + ch.id);
@@ -2754,5 +2762,9 @@
   // actually is the admin.
   _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE);
   if (sb) initEngagement();
-  renderChapter(_pendingAdminInboxRoute ? chapters[0].id : startId);
+  if (_pendingAdminInboxRoute) {
+    renderChapter(chapters[0].id, { silent: true });
+  } else {
+    renderChapter(startId);
+  }
 })();
