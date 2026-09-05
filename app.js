@@ -406,6 +406,14 @@
       bubbleHue: null,
       isAdmin: false
     };
+    // Supabase fires both getSession() and an onAuthStateChange
+    // "INITIAL_SESSION" event on load — each calls applyAuthUser again for
+    // the same user, briefly resetting authUser.isAdmin to this
+    // provisional false before its own profile fetch resolves. Without
+    // this reset, refresh()'s safety net (below) would see that dip as a
+    // real "not admin anymore" and kick an actual admin straight back out
+    // of the inbox it was just correctly routed into.
+    _authSettled = false;
     function fill(d) {
       if (authUser && d) {
         if (d.display_name) authUser.name = d.display_name;
@@ -2675,7 +2683,9 @@
       // Safety net: if whoever's signed in stops being admin (signed out,
       // switched accounts) while the inbox is on screen, don't strand them
       // on an orphaned admin page — send them back to the last chapter.
-      if (readerEl.querySelector('.admin-inbox') && !(authUser && authUser.isAdmin)) {
+      // Gated on _authSettled for the same reason as the pending-route
+      // check above — authUser.isAdmin is unreliable mid-fetch.
+      if (_authSettled && readerEl.querySelector('.admin-inbox') && !(authUser && authUser.isAdmin)) {
         renderChapter(loadLastChapter() || chapters[0].id, { push: false });
       }
       // Only rebuild the chat panel body when who's signed in actually
