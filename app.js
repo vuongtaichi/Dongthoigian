@@ -851,7 +851,7 @@
         '</button>';
     } else {
       el.innerHTML =
-        '<button type="button" class="masthead-signin-btn" data-action="masthead-signin">Đăng nhập/Đăng ký</button>';
+        '<button type="button" class="auth-btn" data-action="masthead-signin">Đăng nhập/Đăng ký</button>';
     }
   }
 
@@ -1656,7 +1656,7 @@
           '" placeholder="Viết bình luận của bạn..." required></textarea>' +
         '<div class="comment-form-row">' +
           '<span class="comment-status" id="commentStatus" role="status"></span>' +
-          '<button type="submit" class="comment-submit" id="commentSubmit">Gửi bình luận</button>' +
+          '<button type="submit" class="auth-btn" id="commentSubmit">Gửi bình luận</button>' +
         '</div>' +
       '</form>';
   }
@@ -1986,7 +1986,7 @@
         '<span class="comment-status comment-reply-status" role="status"></span>' +
         '<span class="comment-edit-btns">' +
           '<button type="button" class="comment-act" data-action="reply-cancel">Huỷ</button>' +
-          '<button type="submit" class="comment-submit">Gửi</button>' +
+          '<button type="submit" class="auth-btn">Gửi</button>' +
         '</span>' +
       '</div>';
     var actionsEl = li.querySelector('.comment-actions');
@@ -2055,7 +2055,7 @@
         '<span class="comment-status comment-edit-status" role="status"></span>' +
         '<span class="comment-edit-btns">' +
           '<button type="button" class="comment-act" data-action="edit-cancel">Huỷ</button>' +
-          '<button type="submit" class="comment-submit">Lưu</button>' +
+          '<button type="submit" class="auth-btn">Lưu</button>' +
         '</span>' +
       '</div>';
     var ta = form.querySelector('textarea');

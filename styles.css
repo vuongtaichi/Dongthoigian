@@ -186,7 +186,8 @@ body {
 
 /* Signed in: avatar + "Xin chào, {name}" under the title (opens the profile
    editor, where "Đăng xuất" lives). Signed out: a "Đăng nhập/Đăng ký" button
-   in the same spot instead (see .masthead-signin-btn below). */
+   in the same spot instead — plain .auth-btn, the site's one shared
+   button style (see that rule below). */
 .masthead-auth {
   margin: .825rem 0 0;
   display: flex;
@@ -214,25 +215,6 @@ body {
 .masthead-profile:hover .masthead-who strong { color: var(--sidebar-active-text); }
 .masthead-avatar { width: 2rem; height: 2rem; }
 .masthead-auth .masthead-who strong { color: var(--sidebar-text); font-weight: 600; }
-
-/* Fixed brand-blue gradient pill (not theme tokens) — matches a reference
-   button image the user asked to copy, same way the Google button uses
-   fixed brand colors rather than adapting to the site palette. Reads as a
-   distinct call-to-action against the dark sidebar either way. */
-.masthead-signin-btn {
-  border: none;
-  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
-  color: #ffffff;
-  border-radius: 999px;
-  padding: .45rem 1.15rem;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
-}
-
-.masthead-signin-btn:hover { filter: brightness(1.08); }
-
 
 /* ---------- Profile editor modal ---------- */
 
@@ -916,37 +898,63 @@ body {
 
 .auth-who strong { color: var(--ink); }
 
-/* Fixed brand-blue gradient pill, same look as .masthead-signin-btn — the
-   site's one shared "primary action" button style (Lưu, Đăng xuất, Đăng
-   nhập/Đăng ký, Gửi, ...). Deliberately fixed colors rather than theme
-   tokens, matching a reference button image the user asked to copy
-   everywhere except the Google button. */
+/* The site's one shared "primary action" button style (Lưu, Đăng xuất,
+   Đăng nhập/Đăng ký, Gửi, ...) — the user's exact reference source for this
+   button, adapted only in two ways: font-family is forced to --font-ui (the
+   chat widget's font) rather than the reference's CircularStd, so buttons
+   look the same regardless of which part of the page they're in (the
+   surrounding per-chapter engagement area is a serif font); and there's no
+   box-shadow anywhere, including on hover/focus, per an explicit
+   "remove the shadow effect" ask. Deliberately fixed brand colors rather
+   than theme tokens, same as the Google button, everywhere except the
+   Google button itself (excluded below). */
 .auth-btn {
+  align-items: center;
+  appearance: none;
+  background-color: #3EB2FD;
+  background-image: linear-gradient(1deg, #4F58FD, #149BF3 99%);
+  background-size: calc(100% + 20px) calc(100% + 20px);
   border: none;
-  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
-  color: #ffffff;
-  border-radius: 999px;
-  padding: .5rem 1.2rem;
-  font: inherit;
-  font-weight: 700;
+  border-radius: 100px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #FFFFFF;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
+  display: inline-flex;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 400;
+  justify-content: center;
+  line-height: 1.5;
+  padding: 6px 20px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color .2s, background-position .2s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: top;
+  white-space: nowrap;
 }
 
-.auth-btn:hover { filter: brightness(1.08); }
-.auth-btn:disabled { filter: none; opacity: .6; cursor: default; box-shadow: none; }
+.auth-btn:active,
+.auth-btn:focus { outline: none; }
 
-/* The Google button is excluded from the gradient restyle above — fully
-   restated here (not just overridden) so it stays exactly as before
-   regardless of what .auth-btn does. */
+.auth-btn:hover { background-position: -20px -20px; }
+
+.auth-btn:disabled { opacity: .6; cursor: default; background-position: 0 0; }
+
+/* The Google button is excluded from the restyle above — fully restated
+   here (not just overridden) so it stays exactly as before regardless of
+   what .auth-btn does. */
 .auth-btn.auth-ghost {
   border: 1px solid var(--accent);
   background: transparent;
   color: var(--accent);
-  font-weight: 400;
   box-shadow: none;
 }
-.auth-btn.auth-ghost:hover { filter: none; }
+.auth-btn.auth-ghost:hover { background-position: 0 0; }
 
 .auth-btn.auth-google {
   display: inline-flex;
@@ -1097,20 +1105,8 @@ body {
 
 .comment-status { color: var(--ink-faint); }
 
-.comment-submit {
-  border: none;
-  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
-  color: #ffffff;
-  border-radius: 999px;
-  padding: .5rem 1.2rem;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
-}
-
-.comment-submit:hover { filter: brightness(1.08); }
-.comment-submit:disabled { filter: none; opacity: .6; cursor: default; box-shadow: none; }
+/* "Gửi bình luận"/"Gửi"/"Lưu" all carry .auth-btn now — the site's one
+   shared button style — rather than their own copy of it. */
 
 .comment-list {
   list-style: none;
