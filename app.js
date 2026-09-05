@@ -287,6 +287,14 @@
   var _pickerOpen = false;   // is the emoji picker showing
   var _whoOpenEmoji = null;  // which pill's "who reacted" list is showing
 
+  // Chat widget state (private messages to the site owner) — see the
+  // "chat widget" section below for the functions that use these.
+  var _chatAdmin = { name: 'tác giả', avatar: null, hue: null };
+  var _chatMessages = [];      // the signed-in user's own sent messages, oldest first
+  var _chatLoadedFor = null;   // authUser.id the _chatMessages cache belongs to
+  var _chatOpen = false;
+  var _chatAuthKey;            // authUser.id (or null) last rendered into the panel body
+
   var sb = null;
   try {
     var _cfg = window.NKLTT_SUPABASE;
@@ -590,6 +598,11 @@
     '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>' +
     '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+  var CHAT_SVG =
+    '<svg viewBox="0 0 24 24" width="1.5em" height="1.5em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
 
   // Per-chapter view count: a non-clickable "pill" (eye + number) at the front
   // of the reaction row. The server-side RPC records + returns the count, keyed
@@ -965,6 +978,146 @@
       renderMastheadAuth();
       closeProfileModal();
     });
+  }
+
+  // ---- chat widget: send the site owner a private message -----------------
+  //
+  // One-directional (reader -> owner): a floating icon opens a panel showing
+  // the signed-in reader's own message history (persisted in the `messages`
+  // table, so it survives a refresh) plus a compose box. There's no reply UI
+  // here — the owner reads these via the Supabase Table Editor, the same way
+  // comment moderation already works. Like the rest of the engagement
+  // section, this never appears on the Artifact build (no `sb`).
+
+  // Fetched once at startup. Readable by everyone via the same "profiles
+  // readable by everyone" policy the comments feature already relies on.
+  function fetchChatAdmin() {
+    if (!sb) return;
+    sb.from('profiles').select('display_name, avatar_url, avatar_hue').eq('is_admin', true).limit(1)
+      .then(function (res) {
+        var row = res && res.data && res.data[0];
+        if (!row) return;
+        _chatAdmin = { name: row.display_name || 'tác giả', avatar: row.avatar_url || null, hue: row.avatar_hue };
+        var title = document.getElementById('chatPanelTitle');
+        if (title) title.textContent = 'Nhắn tin cho ' + _chatAdmin.name;
+        var guestMsg = document.getElementById('chatGuestMsg');
+        if (guestMsg) guestMsg.innerHTML = 'Đăng nhập để gửi tin nhắn cho <strong>' + escapeHtml(_chatAdmin.name) + '</strong>.';
+      });
+  }
+
+  function ensureChatWidget() {
+    if (document.getElementById('chatWidget')) return;
+    var host = document.querySelector('.app') || document.body;
+    var w = document.createElement('div');
+    w.className = 'chat-widget';
+    w.id = 'chatWidget';
+    w.innerHTML =
+      '<button type="button" class="chat-fab" id="chatFab" data-action="chat-toggle" aria-label="Nhắn tin" aria-expanded="false">' +
+        CHAT_SVG +
+      '</button>' +
+      '<div class="chat-panel" id="chatPanel" hidden role="dialog" aria-label="Nhắn tin">' +
+        '<div class="chat-panel-head">' +
+          '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
+          '<button type="button" class="chat-panel-close" data-action="chat-toggle" aria-label="Đóng">&times;</button>' +
+        '</div>' +
+        '<div class="chat-panel-body" id="chatPanelBody"></div>' +
+      '</div>';
+    host.appendChild(w);
+  }
+
+  function chatMsgHtml(m) {
+    return '<div class="chat-msg">' +
+        '<div class="chat-msg-bubble">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' +
+        '<div class="chat-msg-time">' + escapeHtml(relTime(m.created_at)) + '</div>' +
+      '</div>';
+  }
+
+  function renderChatThread() {
+    var thread = document.getElementById('chatThread');
+    if (!thread) return;
+    thread.innerHTML = _chatMessages.length
+      ? _chatMessages.map(chatMsgHtml).join('')
+      : '<p class="chat-empty">Chưa có tin nhắn nào. Gửi lời nhắn đầu tiên của bạn nhé!</p>';
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function loadChatMessages() {
+    if (!sb || !authUser) return;
+    var uid = authUser.id;
+    sb.from('messages').select('id, body, created_at').eq('sender_id', uid)
+      .order('created_at', { ascending: true }).limit(200)
+      .then(function (res) {
+        if (!authUser || authUser.id !== uid) return;   // signed out/changed meanwhile
+        _chatMessages = (res && res.data) || [];
+        _chatLoadedFor = uid;
+        renderChatThread();
+      });
+  }
+
+  // Guest state (sign-in prompt) or signed-in state (thread + compose box).
+  function renderChatPanelBody() {
+    var body = document.getElementById('chatPanelBody');
+    if (!body) return;
+    if (!authUser) {
+      body.innerHTML =
+        '<div class="chat-guest">' +
+          '<p class="chat-guest-msg" id="chatGuestMsg">Đăng nhập để gửi tin nhắn cho <strong>' +
+            escapeHtml(_chatAdmin.name) + '</strong>.</p>' +
+          '<button type="button" class="auth-btn auth-ghost auth-google" data-action="chat-google">' +
+            GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
+          '<p class="chat-guest-hint">Hoặc đăng nhập bằng email/số điện thoại ở khung bình luận bên dưới mỗi chương.</p>' +
+        '</div>';
+      return;
+    }
+    body.innerHTML =
+      '<div class="chat-thread" id="chatThread"></div>' +
+      '<form class="chat-compose" id="chatForm">' +
+        '<textarea id="chatInput" class="chat-textarea" maxlength="2000" placeholder="Nhập tin nhắn..." required></textarea>' +
+        '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+      '</form>';
+    if (_chatLoadedFor === authUser.id) {
+      renderChatThread();
+    } else {
+      document.getElementById('chatThread').innerHTML = '<p class="chat-empty">Đang tải...</p>';
+      loadChatMessages();
+    }
+  }
+
+  function toggleChatPanel() {
+    ensureChatWidget();
+    var panel = document.getElementById('chatPanel');
+    var fab = document.getElementById('chatFab');
+    if (!panel) return;
+    _chatOpen = panel.hidden;
+    panel.hidden = !_chatOpen;
+    if (fab) fab.setAttribute('aria-expanded', String(_chatOpen));
+    if (_chatOpen) renderChatPanelBody();
+  }
+
+  function closeChatPanel() {
+    var panel = document.getElementById('chatPanel');
+    if (panel) panel.hidden = true;
+    var fab = document.getElementById('chatFab');
+    if (fab) fab.setAttribute('aria-expanded', 'false');
+    _chatOpen = false;
+  }
+
+  function onChatSubmit(form) {
+    if (!authUser) return;
+    var input = form.querySelector('#chatInput');
+    var body = (input.value || '').trim().slice(0, 2000);
+    if (!body) return;
+    var submit = form.querySelector('.chat-send');
+    if (submit) submit.disabled = true;
+    sb.from('messages').insert({ sender_id: authUser.id, body: body })
+      .select('id, body, created_at').single().then(function (res) {
+        if (submit) submit.disabled = false;
+        if (res.error) return;
+        _chatMessages.push(res.data);
+        _chatLoadedFor = authUser.id;
+        input.value = '';
+        renderChatThread();
+      });
   }
 
   var PHONE_DOMAIN = 'phone.nkltt';
@@ -1549,24 +1702,33 @@
       else masthead.appendChild(slot);
     }
     ensureProfileModal();
+    ensureChatWidget();
+    fetchChatAdmin();
 
-    // Sidebar (sign-out + open profile) and the profile modal live outside
-    // #reader, so this listener is on document. It also closes the reaction
-    // picker / "who reacted" popover on any click outside the reaction bar.
+    // Sidebar (sign-out + open profile), the profile modal, and the chat
+    // widget all live outside #reader, so this listener is on document. It
+    // also closes the reaction picker / "who reacted" popover on any click
+    // outside the reaction bar, and the chat panel on any click outside it.
     document.addEventListener('click', function (ev) {
       var a = ev.target.closest && ev.target.closest('[data-action]');
       var inReactionBar = ev.target.closest && ev.target.closest('#reactionBar');
       if (!inReactionBar) closeReactionPopovers();
       if (!(ev.target.closest && ev.target.closest('.comment-actions'))) closeAllCreactPopovers();
+      if (_chatOpen && !(ev.target.closest && ev.target.closest('#chatWidget'))) closeChatPanel();
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') { closeProfileModal(); doSignOut(); }
       else if (act === 'profile') openProfileModal();
       else if (act === 'profile-cancel') closeProfileModal();
       else if (act === 'profile-save') onProfileSave();
+      else if (act === 'chat-toggle') toggleChatPanel();
+      else if (act === 'chat-google') doGoogleSignIn();
     });
     document.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); }
+      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); closeChatPanel(); }
+    });
+    document.addEventListener('submit', function (ev) {
+      if (ev.target && ev.target.id === 'chatForm') { ev.preventDefault(); onChatSubmit(ev.target); }
     });
 
     readerEl.addEventListener('click', function (ev) {
@@ -1604,6 +1766,14 @@
 
     function refresh() {
       renderMastheadAuth();
+      // Only rebuild the chat panel body when who's signed in actually
+      // changed — a token-refresh auth event re-fires this with the same
+      // user and would otherwise wipe out a message mid-draft.
+      var chatKey = authUser ? authUser.id : null;
+      if (document.getElementById('chatWidget') && chatKey !== _chatAuthKey) {
+        _chatAuthKey = chatKey;
+        renderChatPanelBody();
+      }
       var cid = readerEl.getAttribute('data-chapter-id');
       if (cid) renderEngagement(cid);
     }
