@@ -1504,7 +1504,12 @@ body {
   flex: 1 1 auto;
   resize: none;
   min-height: 2.5rem;
-  max-height: 6rem;
+  /* Grows with typed content (autoGrowTextarea in app.js) rather than
+     staying this fixed height with an inner scrollbar. This cap is just a
+     sanity ceiling for a huge paste — overflow-y:auto is the fallback past
+     it, not the normal case. */
+  max-height: 12rem;
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: .5rem .6rem;

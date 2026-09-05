@@ -1162,10 +1162,23 @@
     try { field.setSelectionRange(pos, pos); } catch (e) {}
   }
 
+  // Grows a .chat-textarea to fit however many lines it holds, instead of
+  // staying a fixed height with an internal scrollbar. CSS still caps it
+  // (max-height, with overflow-y:auto as the fallback) so a huge paste
+  // can't make the box itself unbounded.
+  function autoGrowTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
   function onChatEmojiPick(btn) {
     var form = btn.closest('form');
     var input = form && form.querySelector('textarea');
-    if (input) { insertAtCursor(input, btn.getAttribute('data-emoji')); input.focus(); }
+    if (input) {
+      insertAtCursor(input, btn.getAttribute('data-emoji'));
+      autoGrowTextarea(input);   // programmatic .value change — no native 'input' event to catch this
+      input.focus();
+    }
     closeAllChatEmojiPopovers();
   }
 
@@ -1301,9 +1314,15 @@
         '</div>';
       return;
     }
-    body.innerHTML =
-      '<div class="chat-thread" id="chatThread"></div>' +
-      composeFormHtml('chatForm', 'chat', 'chatInput', 'Nhập tin nhắn...');
+    // Build the thread + compose form ONCE per sign-in, not on every open —
+    // reopening the panel (or a token-refresh-triggered refresh()) must
+    // never touch an existing #chatForm, or text/a file the reader had
+    // started but not sent yet would get wiped out along with it.
+    if (!document.getElementById('chatForm')) {
+      body.innerHTML =
+        '<div class="chat-thread" id="chatThread"></div>' +
+        composeFormHtml('chatForm', 'chat', 'chatInput', 'Nhập tin nhắn...');
+    }
     if (_chatLoadedFor === authUser.id) {
       renderChatThread();
     } else {
@@ -1402,6 +1421,7 @@
         _chatMessages.push(res.data);
         _chatLoadedFor = authUser.id;
         input.value = '';
+        autoGrowTextarea(input);
         _chatPendingFile = null;
         showPendingFile('chat', null);
         renderChatThread();
@@ -2450,6 +2470,11 @@
     document.addEventListener('change', function (ev) {
       if (ev.target && ev.target.id === 'chatFileInput') onChatFileChosen(ev.target, 'chat');
       else if (ev.target && ev.target.id === 'inboxFileInput') onChatFileChosen(ev.target, 'inbox');
+    });
+    document.addEventListener('input', function (ev) {
+      if (ev.target && ev.target.classList && ev.target.classList.contains('chat-textarea')) {
+        autoGrowTextarea(ev.target);
+      }
     });
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'chatForm') { ev.preventDefault(); onChatSubmit(ev.target); }
