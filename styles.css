@@ -635,19 +635,33 @@ body {
   font: inherit;
   display: flex;
   flex-direction: column;
-  gap: .3rem;
+  gap: .5rem;
   padding: 0;
   max-width: 48%;
 }
 
 .nav-btn:disabled { visibility: hidden; }
 
+/* Dashed dark-navy pill around "Trước"/"Tiếp" — matches a reference button
+   image the user asked to copy. Fixed color (not a theme token) so it stays
+   dark blue in both site themes, same precedent as the Google/.auth-btn
+   fixed brand colors elsewhere. */
 .nav-btn .nav-dir {
-  font-size: .85rem;
-  letter-spacing: .1em;
+  display: inline-flex;
+  align-items: center;
+  padding: .4rem 1.15rem;
+  border: 1.5px dashed #1c3b7a;
+  border-radius: 999px;
+  font-size: .78rem;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  font-weight: 600;
+  color: #1c3b7a;
+  background: transparent;
+  transition: background-color .2s;
 }
+
+.nav-btn:hover .nav-dir { background: rgba(28, 59, 122, .08); }
 
 .nav-btn .nav-chapter {
   font-size: 1rem;
