@@ -1512,6 +1512,24 @@ body {
   background-color: var(--ink-faint);
 }
 
+/* Touch devices never fire :hover, so the lighter --border thumb above
+   never gets a chance to darken there — it just reads as near-invisible.
+   Use the darker, always-on color from the start on touch (this is also
+   the one Android Chrome actually honors; iOS Safari draws its own
+   overlay scrollbar regardless, per the note above). */
+@media (hover: none) {
+  .chat-thread,
+  .chat-textarea,
+  .inbox-thread-list {
+    scrollbar-color: var(--ink-soft) transparent;
+  }
+  .chat-thread::-webkit-scrollbar-thumb,
+  .chat-textarea::-webkit-scrollbar-thumb,
+  .inbox-thread-list::-webkit-scrollbar-thumb {
+    background-color: var(--ink-soft);
+  }
+}
+
 .chat-empty {
   margin: auto;
   color: var(--ink-faint);
