@@ -832,13 +832,17 @@
     }
   }
 
-  // Avatar + "Xin chào, {name}" under the site title. Clicking it opens the
-  // profile editor (which is also where "Đăng xuất" now lives). On auth change.
+  // Signed in: avatar + "Xin chào, {name}" under the site title — clicking it
+  // opens the profile editor (which is also where "Đăng xuất" now lives).
+  // Signed out: a "Đăng nhập/Đăng ký" button in the same spot that scrolls
+  // down to the guest sign-in prompt (#authBar) at the end of the current
+  // chapter, via the same flashAuthBar() other sign-in prompts already use.
+  // Re-rendered on every auth change.
   function renderMastheadAuth() {
     var el = document.getElementById('mastheadAuth');
     if (!el) return;
+    el.hidden = false;
     if (authUser) {
-      el.hidden = false;
       el.innerHTML =
         '<button type="button" class="masthead-profile" data-action="profile" title="Hồ sơ của bạn">' +
           avatarHtml(authUser.name, authUser.avatar, authUser.id, 'masthead-avatar',
@@ -846,8 +850,8 @@
           '<span class="masthead-who">Xin chào, <strong>' + escapeHtml(authUser.name || 'bạn') + '</strong></span>' +
         '</button>';
     } else {
-      el.hidden = true;
-      el.innerHTML = '';
+      el.innerHTML =
+        '<button type="button" class="masthead-signin-btn" data-action="masthead-signin">Đăng nhập/Đăng ký</button>';
     }
   }
 
@@ -1721,6 +1725,7 @@
       else if (act === 'profile') openProfileModal();
       else if (act === 'profile-cancel') closeProfileModal();
       else if (act === 'profile-save') onProfileSave();
+      else if (act === 'masthead-signin') flashAuthBar();
       else if (act === 'chat-toggle') toggleChatPanel();
       else if (act === 'chat-google') doGoogleSignIn();
     });

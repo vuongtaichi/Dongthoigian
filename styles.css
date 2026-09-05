@@ -184,7 +184,9 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* avatar + "Xin chào, {name} · Đăng xuất" under the title when signed in */
+/* Signed in: avatar + "Xin chào, {name}" under the title (opens the profile
+   editor, where "Đăng xuất" lives). Signed out: a "Đăng nhập/Đăng ký" button
+   in the same spot instead (see .masthead-signin-btn below). */
 .masthead-auth {
   margin: .825rem 0 0;
   display: flex;
@@ -212,6 +214,21 @@ body {
 .masthead-profile:hover .masthead-who strong { color: var(--sidebar-active-text); }
 .masthead-avatar { width: 2rem; height: 2rem; }
 .masthead-auth .masthead-who strong { color: var(--sidebar-text); font-weight: 600; }
+
+.masthead-signin-btn {
+  border: 1px solid var(--sidebar-border);
+  background: transparent;
+  color: var(--sidebar-active-text);
+  border-radius: 999px;
+  padding: .4rem 1.05rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.masthead-signin-btn:hover {
+  background: var(--sidebar-bg-elevated);
+  border-color: var(--sidebar-accent);
+}
 
 
 /* ---------- Profile editor modal ---------- */
