@@ -1119,17 +1119,22 @@
       '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
   }
 
-  // Shared by the reader's chat widget and the admin inbox reply box — the
-  // emoji/attach tools sit in their own row above the textarea (rather than
-  // squeezed beside it) so the textarea gets the compose row's full width.
+  // Shared by the reader's chat widget and the admin inbox reply box.
+  // Emoji/attach sit stacked above Send in a fixed-size column to the right
+  // of the textarea (not their own full-width row) — so they don't take up
+  // extra vertical space, and align-items:flex-end on .chat-compose-row
+  // (in styles.css) keeps that column pinned to its own size regardless of
+  // how tall the textarea grows.
   function composeFormHtml(formId, prefix, inputId, placeholder) {
     return '<form class="chat-compose" id="' + formId + '">' +
         composePendingFileHtml(prefix) +
-        '<div class="chat-compose-tools">' + composeToolsHtml(prefix) + '</div>' +
         '<div class="chat-compose-row">' +
           '<textarea id="' + inputId + '" class="chat-textarea" maxlength="2000" placeholder="' +
             escapeAttr(placeholder) + '"></textarea>' +
-          '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+          '<div class="chat-compose-actions">' +
+            composeToolsHtml(prefix) +
+            '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+          '</div>' +
         '</div>' +
       '</form>';
   }

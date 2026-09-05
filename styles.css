@@ -1494,13 +1494,6 @@ body {
   padding-top: .8rem;
 }
 
-/* Emoji/attach tools sit in their own row above the input now, so the
-   textarea gets the full compose-row width instead of sharing it. */
-.chat-compose-tools {
-  display: flex;
-  gap: .5rem;
-}
-
 .chat-compose-row {
   display: flex;
   gap: .5rem;
@@ -1523,17 +1516,29 @@ body {
 
 .chat-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* Emoji + attach stacked above Send, in a fixed-size column to the right of
+   the textarea — align-items:flex-end on .chat-compose-row keeps this
+   column pinned to its own natural height regardless of how tall the
+   textarea grows, so growth never pushes/resizes these buttons. */
+.chat-compose-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  flex: 0 0 auto;
+}
+
 .chat-send { flex: 0 0 auto; }
 
-/* Emoji + attach icon buttons flanking the textarea */
+/* Emoji + attach icon buttons — no border/background box on purpose (removed
+   on request, to save space); just the glyph, with a hover highlight. */
 .chat-tool-btn {
   flex: 0 0 auto;
-  width: 2.4rem;
-  height: 2.4rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card);
-  font-size: 1.1rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
 }
@@ -1544,7 +1549,7 @@ body {
 .chat-emoji-popover {
   position: absolute;
   bottom: calc(100% + .4rem);
-  left: 0;
+  right: 0;
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(5, 1.9rem);
