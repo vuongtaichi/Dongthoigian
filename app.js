@@ -1079,7 +1079,7 @@
             escapeHtml(_chatAdmin.name) + '</strong>.</p>' +
           '<button type="button" class="auth-btn auth-ghost auth-google" data-action="chat-google">' +
             GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
-          '<p class="chat-guest-hint">Hoặc đăng nhập bằng email/số điện thoại ở khung bình luận bên dưới mỗi chương.</p>' +
+          '<button type="button" class="auth-btn" data-action="chat-signin">Đăng nhập/Đăng ký</button>' +
         '</div>';
       return;
     }
@@ -1303,6 +1303,151 @@
     });
     _inboxSelected = null;
     loadInboxThreads();
+  }
+
+  // ---- sign-in modal: Google + email/phone, both usable right away --------
+  //
+  // A centered popup with the same two sign-in paths as the per-chapter
+  // guest auth bar (renderAuthBar/renderEmailForm below), but shown at once
+  // rather than as a "prompt, then tap through to a form" two-step — opened
+  // from the masthead button and the chat widget's guest state, so signing
+  // in doesn't require scrolling to the bottom of the chapter. Deliberately
+  // its own form with its own element ids (signin* rather than auth*) so it
+  // can be open at the same time as the per-chapter form without either one
+  // stealing the other's document.getElementById() lookups.
+
+  function ensureSigninModal() {
+    if (document.getElementById('signinModal')) return;
+    var host = document.querySelector('.app') || document.body;
+    var m = document.createElement('div');
+    m.className = 'signin-modal';
+    m.id = 'signinModal';
+    m.hidden = true;
+    m.innerHTML =
+      '<div class="signin-modal-backdrop" data-action="signin-close"></div>' +
+      '<div class="signin-modal-card" role="dialog" aria-modal="true" aria-label="Đăng nhập / Đăng ký">' +
+        '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
+        '<h3 class="signin-modal-title">Đăng nhập / Đăng ký</h3>' +
+        '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
+          GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
+        '<div class="signin-modal-divider"><span>hoặc</span></div>' +
+        '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on">' +
+          '<div class="auth-tabs">' +
+            '<button type="button" class="auth-tab is-active" data-action="signin-tab" data-mode="signin">Đăng nhập</button>' +
+            '<button type="button" class="auth-tab" data-action="signin-tab" data-mode="signup">Đăng ký</button>' +
+          '</div>' +
+          '<div class="auth-idtype">' +
+            '<button type="button" class="auth-idbtn is-active" data-action="signin-idtype" data-type="email">Email</button>' +
+            '<button type="button" class="auth-idbtn" data-action="signin-idtype" data-type="phone">Số điện thoại</button>' +
+          '</div>' +
+          '<input type="text" id="signinName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" hidden />' +
+          '<input type="email" id="signinIdentity" class="auth-input" placeholder="Email" required autocomplete="email" inputmode="email" />' +
+          '<input type="password" id="signinPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required minlength="6" autocomplete="current-password" />' +
+          '<div class="auth-email-row">' +
+            '<span class="auth-msg" id="signinMsg" role="status"></span>' +
+            '<button type="submit" class="auth-btn" id="signinSubmit">Đăng nhập</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>';
+    host.appendChild(m);
+    defeatAutofillFont(m);
+  }
+
+  function openSigninModal() {
+    if (authUser) return;
+    ensureSigninModal();
+    var msg = document.getElementById('signinMsg');
+    if (msg) msg.textContent = '';
+    document.getElementById('signinModal').hidden = false;
+  }
+
+  function closeSigninModal() {
+    var m = document.getElementById('signinModal');
+    if (m) m.hidden = true;
+  }
+
+  function switchSigninTab(mode) {
+    var form = document.getElementById('signinEmailForm');
+    if (!form) return;
+    form.setAttribute('data-mode', mode);
+    Array.prototype.forEach.call(form.querySelectorAll('.auth-tab'), function (t) {
+      t.classList.toggle('is-active', t.getAttribute('data-mode') === mode);
+    });
+    var nameField = form.querySelector('#signinName');
+    if (nameField) nameField.hidden = (mode !== 'signup');
+    var pass = form.querySelector('#signinPassword');
+    if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
+    var submit = form.querySelector('#signinSubmit');
+    if (submit) submit.textContent = (mode === 'signup') ? 'Đăng ký' : 'Đăng nhập';
+  }
+
+  function switchSigninIdType(type) {
+    var form = document.getElementById('signinEmailForm');
+    if (!form) return;
+    var phone = (type === 'phone');
+    form.setAttribute('data-idtype', phone ? 'phone' : 'email');
+    Array.prototype.forEach.call(form.querySelectorAll('.auth-idbtn'), function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-type') === (phone ? 'phone' : 'email'));
+    });
+    var id = form.querySelector('#signinIdentity');
+    if (!id) return;
+    id.type = phone ? 'tel' : 'email';
+    id.placeholder = phone ? '+84 9xx xxx xxx' : 'Email';
+    id.setAttribute('inputmode', phone ? 'tel' : 'email');
+    id.setAttribute('autocomplete', phone ? 'tel' : 'email');
+    id.value = '';
+    var m = form.querySelector('#signinMsg');
+    if (m) m.textContent = '';
+  }
+
+  // Mirrors onAuthEmailSubmit below (same validation/sign-in calls), but
+  // targets the modal's own #signin* fields and closes the modal on success
+  // instead of leaving that to renderAuthBar's re-render.
+  function onSigninEmailSubmit(form) {
+    var mode = form.getAttribute('data-mode') || 'signin';
+    var idtype = form.getAttribute('data-idtype') || 'email';
+    var identity = fieldVal(form, '#signinIdentity');
+    var pass = fieldVal(form, '#signinPassword');
+    var name = fieldVal(form, '#signinName');
+    var msg = form.querySelector('#signinMsg');
+    var submit = form.querySelector('#signinSubmit');
+
+    var email;
+    if (idtype === 'phone') {
+      email = phoneToEmail(identity);
+      if (!email) {
+        if (msg) msg.textContent = 'Số điện thoại phải kèm mã quốc gia, ví dụ +84…';
+        return;
+      }
+    } else {
+      email = identity;
+      if (!email) { if (msg) msg.textContent = 'Nhập email của bạn.'; return; }
+    }
+    if (pass.length < 6) {
+      if (msg) msg.textContent = 'Mật khẩu cần tối thiểu 6 ký tự.';
+      return;
+    }
+    if (mode === 'signup' && nameLooksLikeAdmin(name, email)) {
+      if (msg) msg.textContent = 'Tên hiển thị không được chứa “Admin”.';
+      return;
+    }
+    if (submit) submit.disabled = true;
+    if (msg) msg.textContent = 'Đang xử lý...';
+    var p = (mode === 'signup')
+      ? sb.auth.signUp({ email: email, password: pass, options: { data: name ? { full_name: name } : {} } })
+      : sb.auth.signInWithPassword({ email: email, password: pass });
+    p.then(function (res) {
+      if (submit) submit.disabled = false;
+      if (res.error) {
+        if (msg) msg.textContent = translateAuthError(res.error.message);
+        return;
+      }
+      if (res.data && !res.data.session) {
+        if (msg) msg.textContent = 'Kiểm tra email để xác nhận tài khoản.';
+        return;
+      }
+      closeSigninModal();   // signed in — onAuthStateChange repaints everything else
+    });
   }
 
   var PHONE_DOMAIN = 'phone.nkltt';
@@ -1906,18 +2051,26 @@
       else if (act === 'profile') openProfileModal();
       else if (act === 'profile-cancel') closeProfileModal();
       else if (act === 'profile-save') onProfileSave();
-      else if (act === 'masthead-signin') flashAuthBar();
+      else if (act === 'masthead-signin') { closeChatPanel(); openSigninModal(); }
       else if (act === 'chat-toggle') toggleChatPanel();
       else if (act === 'chat-google') doGoogleSignIn();
+      else if (act === 'chat-signin') { closeChatPanel(); openSigninModal(); }
+      else if (act === 'signin-close') closeSigninModal();
+      else if (act === 'signin-google') doGoogleSignIn();
+      else if (act === 'signin-tab') switchSigninTab(a.getAttribute('data-mode'));
+      else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
     });
     document.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape') { closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); closeChatPanel(); }
+      if (ev.key === 'Escape') {
+        closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers(); closeChatPanel(); closeSigninModal();
+      }
     });
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'chatForm') { ev.preventDefault(); onChatSubmit(ev.target); }
       else if (ev.target && ev.target.id === 'inboxReplyForm') { ev.preventDefault(); onInboxReplySubmit(ev.target); }
+      else if (ev.target && ev.target.id === 'signinEmailForm') { ev.preventDefault(); onSigninEmailSubmit(ev.target); }
     });
 
     readerEl.addEventListener('click', function (ev) {

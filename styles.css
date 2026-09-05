@@ -215,20 +215,23 @@ body {
 .masthead-avatar { width: 2rem; height: 2rem; }
 .masthead-auth .masthead-who strong { color: var(--sidebar-text); font-weight: 600; }
 
+/* Light background + dark text on purpose — the sidebar around it is dark,
+   so this reads as a distinct call-to-action rather than blending into the
+   other (outlined/transparent) sidebar chrome. --sidebar-active-text is
+   white and --sidebar-bg is the dark navy/near-black in both light and dark
+   site themes, so this stays "light pill, dark text" either way. */
 .masthead-signin-btn {
-  border: 1px solid var(--sidebar-border);
-  background: transparent;
-  color: var(--sidebar-active-text);
+  border: none;
+  background: var(--sidebar-active-text);
+  color: var(--sidebar-bg);
   border-radius: 999px;
   padding: .4rem 1.05rem;
   font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.masthead-signin-btn:hover {
-  background: var(--sidebar-bg-elevated);
-  border-color: var(--sidebar-accent);
-}
+.masthead-signin-btn:hover { opacity: .88; }
 
 
 /* ---------- Profile editor modal ---------- */
@@ -1384,7 +1387,7 @@ body {
 }
 
 .chat-guest-msg { margin: 0; line-height: 1.5; }
-.chat-guest-hint { margin: 0; color: var(--ink-faint); font-size: .85rem; line-height: 1.5; }
+.chat-guest .auth-btn { width: 100%; max-width: 260px; }
 
 .chat-thread {
   flex: 1 1 auto;
@@ -1557,4 +1560,77 @@ body {
   .inbox-layout { flex-direction: column; }
   .inbox-thread-list { width: 100%; max-height: 14rem; }
   .inbox-conversation { width: 100%; min-height: 20rem; }
+}
+
+/* ---------- Sign-in modal (Google + email/phone, opened from the masthead
+   button and the chat widget's guest state) ---------- */
+
+.signin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.signin-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 11, 22, 0.5);
+}
+
+.signin-modal-card {
+  position: relative;
+  width: min(24rem, 100%);
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 1.8rem 1.6rem 1.6rem;
+  font-family: var(--font-ui);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.signin-modal-close {
+  position: absolute;
+  top: .7rem;
+  right: .8rem;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: .2rem .4rem;
+}
+.signin-modal-close:hover { color: var(--ink); }
+
+.signin-modal-title { margin: 0; font-size: 1.3rem; font-weight: 700; text-align: center; }
+
+.signin-modal-card .auth-btn.auth-google { width: 100%; }
+
+.signin-modal-divider {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--ink-faint);
+  font-size: .85rem;
+}
+.signin-modal-divider::before,
+.signin-modal-divider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+.signin-modal-card .auth-email-form { gap: .6rem; }
+
+@media (max-width: 860px) {
+  .signin-modal-card { font-size: 1.1rem; }
 }
