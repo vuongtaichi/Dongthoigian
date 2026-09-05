@@ -215,23 +215,23 @@ body {
 .masthead-avatar { width: 2rem; height: 2rem; }
 .masthead-auth .masthead-who strong { color: var(--sidebar-text); font-weight: 600; }
 
-/* Light background + dark text on purpose — the sidebar around it is dark,
-   so this reads as a distinct call-to-action rather than blending into the
-   other (outlined/transparent) sidebar chrome. --sidebar-active-text is
-   white and --sidebar-bg is the dark navy/near-black in both light and dark
-   site themes, so this stays "light pill, dark text" either way. */
+/* Fixed brand-blue gradient pill (not theme tokens) — matches a reference
+   button image the user asked to copy, same way the Google button uses
+   fixed brand colors rather than adapting to the site palette. Reads as a
+   distinct call-to-action against the dark sidebar either way. */
 .masthead-signin-btn {
   border: none;
-  background: var(--sidebar-active-text);
-  color: var(--sidebar-bg);
+  background: linear-gradient(90deg, #4f8cf0, #2f5fe0);
+  color: #ffffff;
   border-radius: 999px;
-  padding: .4rem 1.05rem;
+  padding: .45rem 1.15rem;
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(47, 95, 224, .45);
 }
 
-.masthead-signin-btn:hover { opacity: .88; }
+.masthead-signin-btn:hover { filter: brightness(1.08); }
 
 
 /* ---------- Profile editor modal ---------- */
