@@ -1721,7 +1721,11 @@
     var t = _inboxThreads.filter(function (x) { return x.uid === _inboxSelected; })[0];
     var name = t ? t.name : 'Người đọc';
     conv.innerHTML =
-      '<div class="inbox-conv-head">' + escapeHtml(name) + '</div>' +
+      '<div class="inbox-conv-head">' +
+        '<button type="button" class="inbox-back" data-action="inbox-back" aria-label="Quay lại danh sách">&larr;</button>' +
+        avatarHtml(name, t && t.avatar, _inboxSelected, 'inbox-conv-avatar', (t && !t.avatar) ? t.hue : null) +
+        '<span class="inbox-conv-name">' + escapeHtml(name) + '</span>' +
+      '</div>' +
       '<div class="chat-thread inbox-conv-thread" id="inboxConvThread"></div>' +
       composeFormHtml('inboxReplyForm', 'inbox', 'inboxReplyInput', 'Trả lời...');
     var threadEl = document.getElementById('inboxConvThread');
@@ -1760,9 +1764,25 @@
   function openInboxThread(uid) {
     _inboxSelected = uid;
     renderInboxThreadList();
+    // On mobile the layout shows one pane at a time — this class makes the
+    // max-width:860px CSS swap the thread list out for the conversation. On
+    // desktop both panes always show, so it's a no-op there.
+    var layout = document.querySelector('.inbox-layout');
+    if (layout) layout.classList.add('showing-conv');
     var conv = document.getElementById('inboxConversation');
     if (conv) conv.innerHTML = '<p class="chat-empty">Đang tải...</p>';
     loadInboxMessages(uid);
+  }
+
+  // The "←" in the conversation header (mobile only — hidden by CSS on desktop):
+  // drop back to the thread list.
+  function backToInboxList() {
+    _inboxSelected = null;
+    _inboxMessages = [];
+    var layout = document.querySelector('.inbox-layout');
+    if (layout) layout.classList.remove('showing-conv');
+    renderInboxThreadList();
+    loadInboxThreads();   // pick up any replies/read-state that landed meanwhile
   }
 
   function onInboxReplySubmit(form) {
@@ -2473,6 +2493,7 @@
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
+      else if (act === 'inbox-back') backToInboxList();
       else if (act === 'chat-msg-delete') onChatMessageDelete(a);
       else if (act === 'chat-msg-toggle') {
         var msgEl = a.closest('.chat-msg');

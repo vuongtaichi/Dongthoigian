@@ -1831,11 +1831,41 @@ body {
 }
 
 .inbox-conv-head {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
   font-weight: 600;
   font-size: 1.05rem;
   margin-bottom: .8rem;
   padding-bottom: .6rem;
   border-bottom: 1px solid var(--border);
+}
+
+/* Back-to-list arrow: only meaningful on the mobile one-pane layout, so
+   it's hidden on desktop (where the thread list is always visible). */
+.inbox-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-left: -.35rem;
+  padding: .1rem .35rem;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.inbox-back:hover { color: var(--accent-strong); }
+
+.inbox-conv-avatar { width: 2rem; height: 2rem; flex: 0 0 auto; }
+.inbox-conv-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .inbox-conv-thread {
@@ -1850,13 +1880,31 @@ body {
 }
 
 @media (max-width: 860px) {
-  /* Below the point where two full-height side-by-side panels fit, fall
-     back to page-level scrolling with content-sized panels instead. */
-  .chapter.admin-inbox { height: auto; }
-  .inbox-layout { flex-direction: column; height: auto; }
-  .inbox-thread-list { width: 100%; height: auto; max-height: 14rem; }
-  .inbox-conversation { width: 100%; height: auto; min-height: 20rem; }
-  .inbox-conv-thread { min-height: 14rem; }
+  /* Mobile: one pane at a time, Messenger-style — the thread list, OR a
+     single open conversation with a "←" back to the list. `.showing-conv`
+     (toggled by openInboxThread / backToInboxList) picks which. */
+  .chapter.admin-inbox { height: auto; padding: 5.5rem 1rem 1.5rem; }
+  .inbox-layout { flex-direction: column; height: auto; gap: 0; }
+
+  .inbox-thread-list {
+    flex: none;
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+
+  .inbox-conversation {
+    display: none;
+    flex: none;
+    width: 100%;
+    height: auto;
+    min-height: calc(100dvh - 9rem);
+  }
+
+  .inbox-layout.showing-conv .inbox-thread-list { display: none; }
+  .inbox-layout.showing-conv .inbox-conversation { display: flex; }
+
+  .inbox-back { display: inline-flex; }
 }
 
 /* ---------- Sign-in modal (Google + email/phone, opened from the masthead
