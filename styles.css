@@ -413,6 +413,15 @@ body {
   flex: 0 0 1.8em;
 }
 
+/* The "Hộp thư" entry puts a line icon where a chapter number would be. */
+.toc-num-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: center;
+  padding-top: 0;
+}
+
 .toc-text { display: flex; flex-direction: column; gap: .18rem; min-width: 0; flex: 1 1 auto; }
 
 .toc-title {
@@ -1333,9 +1342,24 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* so a drag on the button doesn't scroll the page on touch */
+  touch-action: none;
 }
 
 .chat-fab:hover { background: var(--accent-strong); }
+
+/* While the panel is open the button would just sit on top of the panel
+   (and, on a phone, over its Send button) — hide it but keep its box so
+   the panel stays anchored. Close via the × in the panel head. */
+.chat-widget.chat-open .chat-fab { visibility: hidden; }
+
+/* Panel opens toward the screen centre once the button has been dragged
+   (JS sets data-hpos / data-vpos from the button's quadrant). Undragged,
+   the base .chat-panel rule below still applies (bottom-right button). */
+.chat-widget[data-hpos="left"]   .chat-panel { left: 0; right: auto; }
+.chat-widget[data-hpos="right"]  .chat-panel { right: 0; left: auto; }
+.chat-widget[data-vpos="top"]    .chat-panel { top: calc(100% + .75rem); bottom: auto; }
+.chat-widget[data-vpos="bottom"] .chat-panel { bottom: calc(100% + .75rem); top: auto; }
 
 /* Unread-count badges — same red pill in all three spots (chat icon,
    "Hộp thư" sidebar entry, admin inbox thread rows). */
@@ -1382,6 +1406,14 @@ body {
   box-shadow: var(--shadow);
   overflow: hidden;
 }
+
+/* Guest view: no thread to show, so shrink to the sign-in prompt + buttons
+   instead of opening at the full chat height. */
+.chat-panel.chat-panel-compact {
+  height: auto;
+  max-height: min(38rem, calc(100vh - 3rem));
+}
+.chat-panel.chat-panel-compact .chat-panel-body { flex: 0 0 auto; }
 
 .chat-panel-head {
   flex: 0 0 auto;
@@ -1626,6 +1658,10 @@ body {
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
 }
 .chat-tool-btn:hover { background: var(--accent-soft-bg); }
 

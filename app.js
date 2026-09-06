@@ -643,6 +643,20 @@
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
 
+  // Smaller line version of the chat bubble, for the "Hộp thư" sidebar entry
+  // (replaces a 💬 emoji so it reads as a plain sketch, matching the rest of
+  // the UI's line icons rather than a coloured glyph).
+  var CHAT_SVG_SM =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+
+  // Line "paint drop" for the chat-bubble-colour button (was a 🎨 emoji).
+  var DROPLET_SVG =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 3.2c3.6 4.3 6 7.6 6 10.3a6 6 0 0 1-12 0c0-2.7 2.4-6 6-10.3z"/></svg>';
+
   // Chat attachments: a private Storage bucket, RLS-scoped per thread the
   // same way `messages` itself is (see comments-setup.sql) — so viewing one
   // means resolving a short-lived signed URL client-side (hydrateChatAttachments)
@@ -1087,7 +1101,7 @@
         '<div class="chat-panel-head">' +
           '<span class="chat-color-wrap">' +
             '<button type="button" class="chat-tool-btn" id="chatColorBtn" data-action="chat-color-toggle" ' +
-              'aria-label="Đổi màu bong bóng chat" hidden>🎨</button>' +
+              'aria-label="Đổi màu bong bóng chat" hidden>' + DROPLET_SVG + '</button>' +
             '<span class="chat-color-popover" id="chatColorPopover" hidden></span>' +
           '</span>' +
           '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
@@ -1096,6 +1110,127 @@
         '<div class="chat-panel-body" id="chatPanelBody"></div>' +
       '</div>';
     host.appendChild(w);
+    makeChatFabDraggable();
+    restoreChatFabPos();
+  }
+
+  // ---- draggable chat button --------------------------------------------
+  // The reader can drag the chat FAB anywhere on screen; its spot is
+  // remembered per-browser (localStorage). A small movement threshold tells
+  // a drag apart from a tap, and a real drag swallows the click that would
+  // otherwise open the panel. The panel then opens toward whichever screen
+  // edge leaves it the most room (data-hpos / data-vpos → CSS), with
+  // fitChatPanelInViewport() as a final nudge so it can never sit off-screen.
+  var CHAT_FAB_POS_KEY = 'nkltt:chatFabPos';
+  var _suppressFabClick = false;   // true only across the click a drag synthesises
+
+  function readChatFabPos() {
+    try {
+      var p = JSON.parse(localStorage.getItem(CHAT_FAB_POS_KEY) || 'null');
+      if (p && typeof p.x === 'number' && typeof p.y === 'number') return p;
+    } catch (e) {}
+    return null;
+  }
+  function writeChatFabPos(p) {
+    try { localStorage.setItem(CHAT_FAB_POS_KEY, JSON.stringify(p)); } catch (e) {}
+  }
+
+  function chatFabBox() {
+    var fab = document.getElementById('chatFab');
+    var r = fab && fab.getBoundingClientRect();
+    return { w: (r && r.width) || 54, h: (r && r.height) || 54 };
+  }
+
+  // x,y = the widget's desired top-left in viewport px. Clamps inside the
+  // viewport (8px margin), applies as inline left/top, records the quadrant.
+  function applyChatFabPos(x, y, save) {
+    var w = document.getElementById('chatWidget');
+    if (!w) return;
+    var b = chatFabBox(), m = 8;
+    x = Math.max(m, Math.min(x, window.innerWidth - b.w - m));
+    y = Math.max(m, Math.min(y, window.innerHeight - b.h - m));
+    w.style.left = x + 'px';
+    w.style.top = y + 'px';
+    w.style.right = 'auto';
+    w.style.bottom = 'auto';
+    w.dataset.hpos = (x + b.w / 2 < window.innerWidth / 2) ? 'left' : 'right';
+    w.dataset.vpos = (y + b.h / 2 < window.innerHeight / 2) ? 'top' : 'bottom';
+    if (save) writeChatFabPos({ x: x, y: y });
+  }
+
+  function restoreChatFabPos() {
+    var p = readChatFabPos();
+    if (p) applyChatFabPos(p.x, p.y, false);
+  }
+
+  // Viewport changed (resize / rotate / mobile URL bar) — keep it on-screen.
+  function reclampChatWidget() {
+    var p = readChatFabPos();
+    if (p) applyChatFabPos(p.x, p.y, true);
+    fitChatPanelInViewport();
+  }
+
+  // Final safety net: if the open panel still pokes past a viewport edge,
+  // translate it back in.
+  function fitChatPanelInViewport() {
+    var panel = document.getElementById('chatPanel');
+    if (!panel || panel.hidden) return;
+    panel.style.transform = '';
+    var r = panel.getBoundingClientRect();
+    var m = 8, dx = 0, dy = 0;
+    if (r.left < m) dx = m - r.left;
+    else if (r.right > window.innerWidth - m) dx = window.innerWidth - m - r.right;
+    if (r.top < m) dy = m - r.top;
+    else if (r.bottom > window.innerHeight - m) dy = window.innerHeight - m - r.bottom;
+    if (dx || dy) panel.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px)';
+  }
+
+  function makeChatFabDraggable() {
+    var fab = document.getElementById('chatFab');
+    if (!fab || fab._draggable) return;
+    fab._draggable = true;
+    var sx = 0, sy = 0, ox = 0, oy = 0, active = false, dragging = false;
+
+    // Capture-phase, so it runs before the document click handler that reads
+    // data-action. Only swallows the click the browser synthesises right
+    // after a drag's pointerup (flag cleared on the next task) — a real tap
+    // later still opens the panel.
+    fab.addEventListener('click', function (e) {
+      if (_suppressFabClick) { e.stopImmediatePropagation(); e.preventDefault(); }
+    }, true);
+
+    fab.addEventListener('pointerdown', function (e) {
+      if (e.button != null && e.button !== 0) return;
+      active = true; dragging = false;
+      sx = e.clientX; sy = e.clientY;
+      var r = document.getElementById('chatWidget').getBoundingClientRect();
+      ox = r.left; oy = r.top;
+      try { fab.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    fab.addEventListener('pointermove', function (e) {
+      if (!active) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragging && Math.abs(dx) + Math.abs(dy) < 6) return;
+      dragging = true;
+      e.preventDefault();
+      applyChatFabPos(ox + dx, oy + dy, false);
+    });
+
+    function end(e) {
+      if (!active) return;
+      active = false;
+      try { fab.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (!dragging) return;
+      dragging = false;
+      var r = document.getElementById('chatWidget').getBoundingClientRect();
+      applyChatFabPos(r.left, r.top, true);
+      // the pointerup now synthesises a click on the fab — swallow just that one
+      _suppressFabClick = true;
+      setTimeout(function () { _suppressFabClick = false; }, 0);
+    }
+    fab.addEventListener('pointerup', end);
+    fab.addEventListener('pointercancel', end);
   }
 
   var MESSAGE_COLUMNS = 'id, sender_id, body, created_at, deleted, attachment_path, attachment_name, attachment_type, attachment_size';
@@ -1248,9 +1383,10 @@
     if (input) {
       insertAtCursor(input, btn.getAttribute('data-emoji'));
       autoGrowTextarea(input);   // programmatic .value change — no native 'input' event to catch this
-      input.focus();
     }
-    closeAllChatEmojiPopovers();
+    // Leave the popover open so several emojis can be picked in a row — it
+    // closes on the next click outside .chat-emoji-wrap (see the document
+    // click handler) or when the 🙂 toggle is tapped again.
   }
 
   // Shows/clears the small "attached: filename ×" chip above a compose row.
@@ -1439,6 +1575,13 @@
     if (!body) return;
     var colorBtn = document.getElementById('chatColorBtn');
     if (colorBtn) colorBtn.hidden = !authUser;
+    // Signed in → the panel keeps its fixed full height (a chat needs the
+    // room). Guest → it shrinks to just the sign-in prompt + buttons.
+    var panel = document.getElementById('chatPanel');
+    if (panel) {
+      panel.classList.toggle('chat-panel-compact', !authUser);
+      if (_chatOpen) requestAnimationFrame(fitChatPanelInViewport);
+    }
     if (!authUser) {
       closeChatColorPopover();
       body.innerHTML =
@@ -1520,18 +1663,26 @@
     ensureChatWidget();
     var panel = document.getElementById('chatPanel');
     var fab = document.getElementById('chatFab');
+    var widget = document.getElementById('chatWidget');
     if (!panel) return;
     _chatOpen = panel.hidden;
     panel.hidden = !_chatOpen;
     if (fab) fab.setAttribute('aria-expanded', String(_chatOpen));
-    if (_chatOpen) renderChatPanelBody();
+    if (widget) widget.classList.toggle('chat-open', _chatOpen);
+    if (_chatOpen) {
+      renderChatPanelBody();
+      panel.style.transform = '';
+      requestAnimationFrame(fitChatPanelInViewport);
+    }
   }
 
   function closeChatPanel() {
     var panel = document.getElementById('chatPanel');
-    if (panel) panel.hidden = true;
+    if (panel) { panel.hidden = true; panel.style.transform = ''; }
     var fab = document.getElementById('chatFab');
     if (fab) fab.setAttribute('aria-expanded', 'false');
+    var widget = document.getElementById('chatWidget');
+    if (widget) widget.classList.remove('chat-open');
     _chatOpen = false;
   }
 
@@ -1606,7 +1757,7 @@
     li.id = 'tocAdminItem';
     li.innerHTML =
       '<button type="button" class="toc-item toc-admin-item" data-action="admin-inbox" aria-label="Hộp thư (quản trị)">' +
-        '<span class="toc-num" aria-hidden="true">💬</span>' +
+        '<span class="toc-num toc-num-icon" aria-hidden="true">' + CHAT_SVG_SM + '</span>' +
         '<span class="toc-text"><span class="toc-title">Hộp thư</span></span>' +
       '</button>';
     toc.insertBefore(li, toc.firstChild);
@@ -2662,6 +2813,7 @@
   readerEl.addEventListener('scroll', updateProgress);
   window.addEventListener('scroll', updateProgress, { passive: true });
   window.addEventListener('resize', updateProgress);
+  window.addEventListener('resize', reclampChatWidget);
 
   if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
 
