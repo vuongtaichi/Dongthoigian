@@ -889,44 +889,6 @@ body {
 
 .reaction-who .who-more { color: var(--ink-faint); }
 
-/* ---------- Auth bar ---------- */
-
-.auth-bar {
-  margin-top: 1.6rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .6rem;
-  color: var(--ink-soft);
-  background: var(--accent-soft-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: .8rem 1rem;
-}
-
-/* Logged-out state: prompt + the two sign-in buttons stacked and centred */
-.auth-bar.is-guest {
-  flex-direction: column;
-  text-align: center;
-  gap: .7rem;
-}
-
-.auth-bar.is-guest .auth-prompt { width: 100%; }
-
-.auth-bar.is-guest .auth-btn {
-  width: 100%;
-  max-width: 300px;
-}
-
-.auth-bar.flash { animation: authflash .9s ease; }
-
-@keyframes authflash {
-  0%, 100% { border-color: var(--border); }
-  30% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft-bg); }
-}
-
-.auth-who strong { color: var(--ink); }
-
 /* The site's one shared "primary action" button style (Lưu, Đăng xuất,
    Đăng nhập/Đăng ký, Gửi, ...) — the user's exact reference source for this
    button, adapted only in two ways: font-family is forced to --font-ui (the
@@ -995,19 +957,6 @@ body {
 }
 
 .auth-btn.auth-google svg { flex: 0 0 auto; }
-
-.auth-prompt { line-height: 1.45; }
-
-.auth-cancel {
-  border: none;
-  background: none;
-  color: var(--ink-faint);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: .1rem;
-  align-self: flex-start;
-}
 
 .auth-email-form {
   display: flex;

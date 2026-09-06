@@ -507,7 +507,6 @@
           '<div class="reaction-picker" id="reactionPicker" hidden></div>' +
           '<div class="reaction-who" id="reactionWho" hidden></div>' +
         '</div>' +
-        '<div class="auth-bar" id="authBar"></div>' +
         '<div class="comments">' +
           '<h3 class="comments-title" id="commentsTitle">Bình luận</h3>' +
           '<div class="comment-compose" id="commentCompose"></div>' +
@@ -621,7 +620,6 @@
     var token = ++engToken;
     renderReactionBar(chapterId, token);
     loadChapterViews(chapterId, token);
-    renderAuthBar(chapterId);
     renderCompose();
     loadComments(chapterId, token);
   }
@@ -865,32 +863,15 @@
     });
   }
 
-  // The per-chapter box. Only shown to logged-out readers (sign-in prompt +
-  // buttons). When signed in it's hidden — the greeting lives in the sidebar
-  // masthead instead (renderMastheadAuth).
-  function renderAuthBar(chapterId) {
-    var bar = document.getElementById('authBar');
-    if (!bar) return;
-    if (authUser) {
-      bar.hidden = true;
-      bar.innerHTML = '';
-      bar.classList.remove('is-guest');
-    } else {
-      bar.hidden = false;
-      bar.classList.add('is-guest');
-      bar.innerHTML =
-        '<span class="auth-prompt">Đăng nhập để bình luận và bày tỏ cảm xúc</span>' +
-        '<button type="button" class="auth-btn" data-action="email">Đăng nhập/Đăng ký</button>' +
-        '<button type="button" class="auth-btn auth-ghost auth-google" data-action="google">' +
-          GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>';
-    }
-  }
+  // The per-chapter guest sign-in bar was removed: signing in now happens only
+  // from the sidebar masthead button and the chat widget, both of which open
+  // the shared sign-in modal. Guests who try to react/comment/reply get that
+  // same modal via flashAuthBar() below.
 
   // Signed in: avatar + "Xin chào, {name}" under the site title — clicking it
   // opens the profile editor (which is also where "Đăng xuất" now lives).
-  // Signed out: a "Đăng nhập/Đăng ký" button in the same spot that scrolls
-  // down to the guest sign-in prompt (#authBar) at the end of the current
-  // chapter, via the same flashAuthBar() other sign-in prompts already use.
+  // Signed out: a "Đăng nhập/Đăng ký" button in the same spot that opens the
+  // sign-in modal (data-action="masthead-signin").
   // Re-rendered on every auth change.
   function renderMastheadAuth() {
     var el = document.getElementById('mastheadAuth');
@@ -1844,14 +1825,10 @@
 
   // ---- sign-in modal: Google + email/phone, both usable right away --------
   //
-  // A centered popup with the same two sign-in paths as the per-chapter
-  // guest auth bar (renderAuthBar/renderEmailForm below), but shown at once
-  // rather than as a "prompt, then tap through to a form" two-step — opened
-  // from the masthead button and the chat widget's guest state, so signing
-  // in doesn't require scrolling to the bottom of the chapter. Deliberately
-  // its own form with its own element ids (signin* rather than auth*) so it
-  // can be open at the same time as the per-chapter form without either one
-  // stealing the other's document.getElementById() lookups.
+  // The only sign-in surface on the site. A centered popup with both sign-in
+  // paths shown at once, opened from the sidebar masthead button and the chat
+  // widget's guest state (and from flashAuthBar() when a guest tries to react
+  // or comment). Its fields use signin* ids of their own.
 
   function ensureSigninModal() {
     if (document.getElementById('signinModal')) return;
@@ -1937,9 +1914,9 @@
     if (m) m.textContent = '';
   }
 
-  // Mirrors onAuthEmailSubmit below (same validation/sign-in calls), but
-  // targets the modal's own #signin* fields and closes the modal on success
-  // instead of leaving that to renderAuthBar's re-render.
+  // Validates the modal's own #signin* fields, runs the Supabase email/phone
+  // sign-in or sign-up, and closes the modal on success (onAuthStateChange
+  // repaints the rest of the page).
   function onSigninEmailSubmit(form) {
     var mode = form.getAttribute('data-mode') || 'signin';
     var idtype = form.getAttribute('data-idtype') || 'email';
@@ -1997,32 +1974,6 @@
     return 'p' + s.slice(1) + '@' + PHONE_DOMAIN;
   }
 
-  function renderEmailForm() {
-    var bar = document.getElementById('authBar');
-    if (!bar) return;
-    bar.classList.remove('is-guest');
-    bar.innerHTML =
-      '<form class="auth-email-form" id="authEmailForm" data-mode="signin" data-idtype="email" autocomplete="on">' +
-        '<div class="auth-tabs">' +
-          '<button type="button" class="auth-tab is-active" data-action="tab" data-mode="signin">Đăng nhập</button>' +
-          '<button type="button" class="auth-tab" data-action="tab" data-mode="signup">Đăng ký</button>' +
-        '</div>' +
-        '<div class="auth-idtype">' +
-          '<button type="button" class="auth-idbtn is-active" data-action="idtype" data-type="email">Email</button>' +
-          '<button type="button" class="auth-idbtn" data-action="idtype" data-type="phone">Số điện thoại</button>' +
-        '</div>' +
-        '<input type="text" id="authName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" hidden />' +
-        '<input type="email" id="authIdentity" class="auth-input" placeholder="Email" required autocomplete="email" inputmode="email" />' +
-        '<input type="password" id="authPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required minlength="6" autocomplete="current-password" />' +
-        '<div class="auth-email-row">' +
-          '<span class="auth-msg" id="authMsg" role="status"></span>' +
-          '<button type="submit" class="auth-btn" id="authSubmit">Đăng nhập</button>' +
-        '</div>' +
-        '<button type="button" class="auth-cancel" data-action="cancel">Huỷ</button>' +
-      '</form>';
-    defeatAutofillFont(bar);
-  }
-
   // Chrome renders :-webkit-autofill fields in its own small font and ignores
   // CSS font rules on that pseudo-class. Re-assigning .value the moment autofill
   // fires clears the pseudo-state so the field picks up our font. The CSS side
@@ -2037,40 +1988,6 @@
         }, 0);
       });
     });
-  }
-
-  function switchAuthTab(mode) {
-    var form = document.getElementById('authEmailForm');
-    if (!form) return;
-    form.setAttribute('data-mode', mode);
-    Array.prototype.forEach.call(form.querySelectorAll('.auth-tab'), function (t) {
-      t.classList.toggle('is-active', t.getAttribute('data-mode') === mode);
-    });
-    var nameField = form.querySelector('#authName');
-    if (nameField) nameField.hidden = (mode !== 'signup');
-    var pass = form.querySelector('#authPassword');
-    if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
-    var submit = form.querySelector('#authSubmit');
-    if (submit) submit.textContent = (mode === 'signup') ? 'Đăng ký' : 'Đăng nhập';
-  }
-
-  function switchIdType(type) {
-    var form = document.getElementById('authEmailForm');
-    if (!form) return;
-    var phone = (type === 'phone');
-    form.setAttribute('data-idtype', phone ? 'phone' : 'email');
-    Array.prototype.forEach.call(form.querySelectorAll('.auth-idbtn'), function (b) {
-      b.classList.toggle('is-active', b.getAttribute('data-type') === (phone ? 'phone' : 'email'));
-    });
-    var id = form.querySelector('#authIdentity');
-    if (!id) return;
-    id.type = phone ? 'tel' : 'email';
-    id.placeholder = phone ? '+84 9xx xxx xxx' : 'Email';
-    id.setAttribute('inputmode', phone ? 'tel' : 'email');
-    id.setAttribute('autocomplete', phone ? 'tel' : 'email');
-    id.value = '';
-    var m = form.querySelector('#authMsg');
-    if (m) m.textContent = '';
   }
 
   function renderCompose() {
@@ -2299,54 +2216,6 @@
   }
   function doSignOut() { sb.auth.signOut(); }
 
-  function onAuthEmailSubmit(form) {
-    var mode = form.getAttribute('data-mode') || 'signin';
-    var idtype = form.getAttribute('data-idtype') || 'email';
-    var identity = fieldVal(form, '#authIdentity');
-    var pass = fieldVal(form, '#authPassword');
-    var name = fieldVal(form, '#authName');
-    var msg = form.querySelector('#authMsg');
-    var submit = form.querySelector('#authSubmit');
-
-    var email;
-    if (idtype === 'phone') {
-      email = phoneToEmail(identity);
-      if (!email) {
-        if (msg) msg.textContent = 'Số điện thoại phải kèm mã quốc gia, ví dụ +84…';
-        return;
-      }
-    } else {
-      email = identity;
-      if (!email) { if (msg) msg.textContent = 'Nhập email của bạn.'; return; }
-    }
-    if (pass.length < 6) {
-      if (msg) msg.textContent = 'Mật khẩu cần tối thiểu 6 ký tự.';
-      return;
-    }
-    if (mode === 'signup' && nameLooksLikeAdmin(name, email)) {
-      if (msg) msg.textContent = 'Tên hiển thị không được chứa “Admin”.';
-      return;
-    }
-    if (submit) submit.disabled = true;
-    if (msg) msg.textContent = 'Đang xử lý...';
-    var p = (mode === 'signup')
-      ? sb.auth.signUp({ email: email, password: pass, options: { data: name ? { full_name: name } : {} } })
-      : sb.auth.signInWithPassword({ email: email, password: pass });
-    p.then(function (res) {
-      if (submit) submit.disabled = false;
-      if (res.error) {
-        if (msg) msg.textContent = translateAuthError(res.error.message);
-        return;
-      }
-      // Email confirmation is off, so signUp returns a session right away and
-      // onAuthStateChange re-renders. This branch is only a safety net in case
-      // confirmation gets switched on later.
-      if (res.data && !res.data.session) {
-        if (msg) msg.textContent = 'Kiểm tra email để xác nhận tài khoản.';
-      }
-    });
-  }
-
   function onCommentSubmit(form) {
     if (!authUser) return;
     var chapterId = readerEl.getAttribute('data-chapter-id');
@@ -2543,13 +2412,12 @@
       });
   }
 
+  // A guest tried to react / comment / reply. There's no per-chapter sign-in
+  // bar anymore, so send them straight to the shared sign-in modal (the same
+  // one the sidebar and chat widget open).
   function flashAuthBar() {
-    var bar = document.getElementById('authBar');
-    if (!bar) return;
-    bar.classList.remove('flash');
-    void bar.offsetWidth;
-    bar.classList.add('flash');
-    try { bar.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+    closeChatPanel();
+    openSigninModal();
   }
 
   // ---- one-time wiring (readerEl is stable across chapter renders) ----------
@@ -2646,12 +2514,7 @@
       var a = t.closest('[data-action]');
       if (!a) return;
       var act = a.getAttribute('data-action');
-      if (act === 'google') doGoogleSignIn();
-      else if (act === 'email') renderEmailForm();
-      else if (act === 'cancel') renderAuthBar(readerEl.getAttribute('data-chapter-id'));
-      else if (act === 'tab') switchAuthTab(a.getAttribute('data-mode'));
-      else if (act === 'idtype') switchIdType(a.getAttribute('data-type'));
-      else if (act === 'del') onCommentDelete(a);
+      if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);
       else if (act === 'reply') onCommentReplyStart(a);
@@ -2668,7 +2531,6 @@
       var f = ev.target;
       if (!f) return;
       if (f.id === 'commentForm') { ev.preventDefault(); onCommentSubmit(f); }
-      else if (f.id === 'authEmailForm') { ev.preventDefault(); onAuthEmailSubmit(f); }
       else if (f.classList && f.classList.contains('comment-edit-form')) { ev.preventDefault(); onCommentEditSave(f); }
       else if (f.classList && f.classList.contains('comment-reply-form')) { ev.preventDefault(); onCommentReplySubmit(f); }
     });
