@@ -664,6 +664,8 @@ body {
 .nav-btn .nav-dir {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 7rem;               /* both pills the same fixed width */
   padding: .4rem 1.15rem;
   border: 2.5px solid #1c3b7a;
   border-radius: 999px;
@@ -690,6 +692,9 @@ body {
   line-height: 1.4;
 }
 
+/* Mirror layouts: prev hugs the left with left-aligned text, next the right.
+   align-items also stops the pill stretching to the column's full width. */
+.nav-btn.prev { text-align: left; align-items: flex-start; }
 .nav-btn.next { text-align: right; align-items: flex-end; }
 
 /* ---------- Responsive ---------- */
