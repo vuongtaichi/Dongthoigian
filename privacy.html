@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chính sách quyền riêng tư — Nhật Ký Lính Thông Tin</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="alternate icon" type="image/png" href="assets/favicon-32.png" />
+  <style>
+    :root {
+      --paper: #f5f7fb;
+      --card: #ffffff;
+      --ink: #1b2436;
+      --ink-soft: #4b5670;
+      --ink-faint: #7a869e;
+      --accent: #2951a3;
+      --border: #dce3f0;
+      --font-body: 'Times New Roman', Georgia, 'Iowan Old Style', serif;
+      --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 1.15rem;
+      line-height: 1.75;
+    }
+    .wrap {
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 6rem;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-ui);
+    }
+    header img { width: 2.5rem; height: 2.5rem; flex: 0 0 auto; }
+    header a { color: var(--accent); text-decoration: none; font-size: 1rem; }
+    header a:hover { text-decoration: underline; }
+    h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 .4rem; }
+    h2 {
+      font-family: var(--font-ui);
+      font-size: 1.2rem;
+      margin: 2.4rem 0 .6rem;
+      color: var(--accent);
+    }
+    p, li { margin: .6rem 0; }
+    ul { padding-left: 1.4rem; }
+    .meta { color: var(--ink-faint); font-family: var(--font-ui); font-size: .95rem; margin-top: 0; }
+    a { color: var(--accent); }
+    .box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-ui);
+      font-size: 1rem;
+    }
+    footer {
+      margin-top: 3.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-ui);
+      font-size: .95rem;
+      color: var(--ink-faint);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="assets/logo.svg" alt="" />
+      <a href="/">&larr; Về trang chính</a>
+    </header>
+
+    <h1>Chính sách quyền riêng tư</h1>
+    <p class="meta">Trang <strong>Nhật Ký Lính Thông Tin</strong> (dongthoigian27.vercel.app)<br />
+      Cập nhật lần cuối: 6 tháng 9, 2026</p>
+
+    <p>
+      Trang này là một trang đọc nhật ký cá nhân. Bạn có thể đọc toàn bộ nội dung
+      mà <strong>không cần đăng nhập</strong>. Bạn chỉ cần tạo tài khoản nếu muốn
+      bình luận, bày tỏ cảm xúc, hoặc nhắn tin cho người quản trị trang. Chính
+      sách này giải thích trang thu thập dữ liệu gì, dùng để làm gì, và lưu ở đâu.
+    </p>
+
+    <h2>1. Dữ liệu trang thu thập</h2>
+    <ul>
+      <li>
+        <strong>Khi bạn đăng nhập bằng Google:</strong> tên hiển thị, địa chỉ
+        email và ảnh đại diện mà tài khoản Google của bạn cung cấp. Trang chỉ yêu
+        cầu các quyền cơ bản (<code>email</code>, hồ sơ công khai) và không truy
+        cập bất kỳ dữ liệu Google nào khác của bạn.
+      </li>
+      <li>
+        <strong>Khi bạn đăng nhập bằng email hoặc số điện thoại + mật khẩu:</strong>
+        email hoặc số điện thoại đó, cùng một mật khẩu. Mật khẩu do dịch vụ xác
+        thực Supabase quản lý ở dạng đã băm — trang chủ không bao giờ nhìn thấy
+        mật khẩu của bạn.
+      </li>
+      <li>
+        <strong>Hồ sơ:</strong> tên hiển thị và màu ảnh đại diện bạn tự chọn.
+      </li>
+      <li>
+        <strong>Bình luận và cảm xúc:</strong> nội dung bình luận, biểu tượng cảm
+        xúc bạn chọn, chương tương ứng và thời điểm — gắn với tài khoản của bạn.
+      </li>
+      <li>
+        <strong>Tin nhắn gửi cho người quản trị</strong> và tệp bạn đính kèm: lưu
+        ở chế độ riêng tư, chỉ bạn và người quản trị trang xem được.
+      </li>
+      <li>
+        <strong>Trạng thái đã đọc</strong> của tin nhắn, để hiển thị chỉ báo tin
+        chưa đọc.
+      </li>
+      <li>
+        <strong>Số lượt xem:</strong> để đếm số người đọc mỗi ngày mà không dùng
+        cookie, trang tạo một <em>mã băm một chiều</em> từ (địa chỉ IP + thông tin
+        trình duyệt) của bạn theo từng ngày. Mã này thay đổi mỗi ngày, không thể
+        đảo ngược để nhận ra bạn, và không được lưu cùng địa chỉ IP gốc.
+      </li>
+      <li>
+        <strong>Bộ nhớ cục bộ của trình duyệt (localStorage):</strong> ghi nhớ
+        chương bạn đọc gần nhất và vài tuỳ chọn giao diện nhỏ. Dữ liệu này nằm
+        trên thiết bị của bạn và không được gửi đi đâu.
+      </li>
+    </ul>
+    <p>Trang <strong>không</strong> chạy quảng cáo, <strong>không</strong> dùng
+      công cụ phân tích của bên thứ ba, và <strong>không</strong> bán hay chia sẻ
+      dữ liệu của bạn cho mục đích tiếp thị.</p>
+
+    <h2>2. Dữ liệu được dùng để làm gì</h2>
+    <ul>
+      <li>Vận hành tính năng bình luận, cảm xúc và nhắn tin.</li>
+      <li>Hiển thị tên và ảnh đại diện của bạn bên cạnh bình luận của chính bạn.</li>
+      <li>Đếm số lượt xem mỗi chương và toàn trang.</li>
+      <li>Ghi nhớ vị trí đọc của bạn trên thiết bị.</li>
+      <li>Cho phép người quản trị kiểm duyệt bình luận và trả lời tin nhắn.</li>
+    </ul>
+
+    <h2>3. Các bên xử lý dữ liệu</h2>
+    <p>Trang dựa vào các dịch vụ sau. Dữ liệu của bạn được lưu và xử lý trên hạ
+      tầng của họ theo chính sách riêng của từng bên:</p>
+    <ul>
+      <li>
+        <strong>Google</strong> — đăng nhập bằng tài khoản Google (OAuth). Xem
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Chính sách quyền riêng tư của Google</a>.
+      </li>
+      <li>
+        <strong>Supabase</strong> (supabase.com) — cơ sở dữ liệu, xác thực và lưu
+        trữ tệp. Xem
+        <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Chính sách của Supabase</a>.
+      </li>
+      <li>
+        <strong>Vercel</strong> (vercel.com) — lưu trữ và phân phối trang web;
+        nhật ký máy chủ tiêu chuẩn (địa chỉ IP, thông tin yêu cầu). Xem
+        <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Chính sách của Vercel</a>.
+      </li>
+    </ul>
+
+    <h2>4. Thời gian lưu trữ</h2>
+    <p>
+      Dữ liệu tài khoản, bình luận, cảm xúc và tin nhắn được giữ chừng nào tài
+      khoản của bạn còn tồn tại hoặc cho tới khi được xoá. Bản ghi lượt xem (mã
+      băm theo ngày) được giữ ở dạng tổng hợp để thống kê.
+    </p>
+
+    <h2>5. Quyền của bạn</h2>
+    <ul>
+      <li>Sửa tên hiển thị và màu ảnh đại diện bất cứ lúc nào trong phần hồ sơ.</li>
+      <li>Xoá bình luận của chính bạn.</li>
+      <li>
+        Yêu cầu xoá tài khoản cùng toàn bộ dữ liệu liên quan (bình luận, cảm xúc,
+        tin nhắn) bằng cách gửi email tới địa chỉ bên dưới. Yêu cầu sẽ được xử lý
+        trong thời gian hợp lý.
+      </li>
+      <li>Yêu cầu bản sao dữ liệu mà trang lưu về bạn.</li>
+    </ul>
+
+    <h2>6. Trẻ em</h2>
+    <p>Trang không hướng tới trẻ em dưới 13 tuổi và không cố ý thu thập dữ liệu
+      của trẻ em.</p>
+
+    <h2>7. Thay đổi chính sách</h2>
+    <p>Nếu chính sách này thay đổi, ngày "Cập nhật lần cuối" ở đầu trang sẽ được
+      cập nhật.</p>
+
+    <h2>8. Liên hệ</h2>
+    <div class="box">
+      Mọi câu hỏi về quyền riêng tư, hoặc yêu cầu xoá dữ liệu, xin gửi tới:<br />
+      <strong><a href="mailto:vuongtaichi@gmail.com">vuongtaichi@gmail.com</a></strong>
+    </div>
+
+    <footer>
+      <a href="/">Trang chính</a> &nbsp;·&nbsp;
+      <a href="/terms.html">Điều khoản sử dụng</a>
+    </footer>
+  </div>
+</body>
+</html>

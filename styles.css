@@ -478,6 +478,17 @@ body {
   letter-spacing: .02em;
 }
 
+.sidebar-footer-links {
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.sidebar-footer-links a { color: var(--sidebar-text-dim); text-decoration: none; }
+.sidebar-footer-links a:hover { color: var(--sidebar-text); text-decoration: underline; }
+.sidebar-footer-links span { color: var(--sidebar-text-dim); }
+
 /* footer visitor count: a plain white pill, black text, eye icon — not clickable */
 .sidebar-footer .visit-count {
   display: inline-flex;
