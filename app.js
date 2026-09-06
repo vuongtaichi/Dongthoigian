@@ -638,6 +638,10 @@
     '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 
+  var FACEBOOK_F_SVG =
+    '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path fill="#1877F2" d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>';
+
   var CHAT_SVG =
     '<svg viewBox="0 0 24 24" width="1.5em" height="1.5em" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -1447,6 +1451,8 @@
             escapeHtml(_chatAdmin.name) + '</strong>.</p>' +
           '<button type="button" class="auth-btn auth-ghost auth-google" data-action="chat-google">' +
             GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
+          '<button type="button" class="auth-btn auth-ghost auth-facebook" data-action="chat-facebook">' +
+            FACEBOOK_F_SVG + '<span>Đăng nhập bằng Facebook</span></button>' +
           '<button type="button" class="auth-btn" data-action="chat-signin">Đăng nhập/Đăng ký</button>' +
         '</div>';
       return;
@@ -1856,6 +1862,8 @@
         '<h3 class="signin-modal-title">Đăng nhập / Đăng ký</h3>' +
         '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
           GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
+        '<button type="button" class="auth-btn auth-ghost auth-facebook" data-action="signin-facebook">' +
+          FACEBOOK_F_SVG + '<span>Đăng nhập bằng Facebook</span></button>' +
         '<div class="signin-modal-divider"><span>hoặc</span></div>' +
         '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on">' +
           '<div class="auth-tabs">' +
@@ -2222,11 +2230,16 @@
 
   // ---- actions -------------------------------------------------------------
 
-  function doGoogleSignIn() {
+  // Same PKCE flow for every OAuth provider — redirectTo must be listed in
+  // Supabase → Auth → URL Configuration → Redirect URLs (see the OAuth note in
+  // README.internal.md). Google and Facebook both land back on this same URL.
+  function doOAuthSignIn(provider) {
     var redirectTo;
     try { redirectTo = location.href.split('#')[0]; } catch (e) { redirectTo = undefined; }
-    sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo } });
+    sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: redirectTo } });
   }
+  function doGoogleSignIn() { doOAuthSignIn('google'); }
+  function doFacebookSignIn() { doOAuthSignIn('facebook'); }
   function doSignOut() { sb.auth.signOut(); }
 
   function onCommentSubmit(form) {
@@ -2466,9 +2479,11 @@
       else if (act === 'masthead-signin') { closeChatPanel(); openSigninModal(); }
       else if (act === 'chat-toggle') toggleChatPanel();
       else if (act === 'chat-google') doGoogleSignIn();
+      else if (act === 'chat-facebook') doFacebookSignIn();
       else if (act === 'chat-signin') { closeChatPanel(); openSigninModal(); }
       else if (act === 'signin-close') closeSigninModal();
       else if (act === 'signin-google') doGoogleSignIn();
+      else if (act === 'signin-facebook') doFacebookSignIn();
       else if (act === 'signin-tab') switchSigninTab(a.getAttribute('data-mode'));
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
