@@ -879,10 +879,12 @@ body {
 
 .reaction-bar { position: relative; }
 
-/* Emoji picker + "who reacted" list: floating cards anchored below their
-   trigger, so they overlay the content instead of pushing it down. */
+/* Emoji picker + "who reacted" list + guest sign-in hint: floating cards
+   anchored below their trigger, so they overlay the content instead of
+   pushing it down. */
 .reaction-picker,
-.reaction-who {
+.reaction-who,
+.reaction-hint {
   position: absolute;
   z-index: 20;
   margin: 0;
@@ -893,6 +895,18 @@ body {
   padding: .5rem .6rem;
   max-width: calc(100% - .4rem);
 }
+
+/* Shown to signed-out readers who tap ＋ or a reaction pill. */
+.reaction-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .55rem;
+  padding: .7rem .8rem;
+  font-family: var(--font-ui);
+}
+.reaction-hint-msg { font-size: .9rem; line-height: 1.4; color: var(--ink-soft); }
+.reaction-hint .reaction-hint-btn { padding: .4rem 1rem; }
 
 .reaction-picker { display: flex; flex-wrap: wrap; gap: .35rem; }
 

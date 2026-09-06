@@ -511,6 +511,7 @@
           '<div class="reactions" id="reactions"></div>' +
           '<div class="reaction-picker" id="reactionPicker" hidden></div>' +
           '<div class="reaction-who" id="reactionWho" hidden></div>' +
+          '<div class="reaction-hint" id="reactionHint" hidden></div>' +
         '</div>' +
         '<div class="comments">' +
           '<div class="guest-gate" id="guestGate" hidden></div>' +
@@ -783,7 +784,8 @@
         var mine = _myEmojis.indexOf(r.emoji) !== -1;
         return '<button type="button" class="reaction reaction-pill' + (mine ? ' reacted' : '') +
           '" data-action="react-who" data-emoji="' + escapeHtml(r.emoji) +
-          '" title="' + escapeHtml(r.label) + ' — xem ai đã bày tỏ">' +
+          '" title="' + (authUser ? escapeHtml(r.label) + ' — xem ai đã bày tỏ'
+                                  : 'Đăng nhập để xem ai đã bày tỏ') + '">' +
           '<span class="reaction-emoji">' + r.emoji + '</span>' +
           '<span class="reaction-count">' + _reactors[r.emoji].length + '</span></button>';
       }).join('');
@@ -812,9 +814,13 @@
     pop.style.left = left + 'px';
   }
 
+  // Guests can't see who reacted — clicking a pill shows the sign-in hint
+  // (onReactionWho), and this is a belt-and-suspenders guard so the list
+  // never renders for them even if _whoOpenEmoji somehow got set.
   function paintWho() {
     var who = document.getElementById('reactionWho');
     if (!who) return;
+    if (!authUser) { who.hidden = true; who.innerHTML = ''; return; }
     var e = _whoOpenEmoji;
     var list = e && _reactors[e];
     if (!e || !list || !list.length) { who.hidden = true; who.innerHTML = ''; return; }
@@ -835,6 +841,8 @@
     var changed = _pickerOpen || _whoOpenEmoji;
     _pickerOpen = false;
     _whoOpenEmoji = null;
+    var hint = document.getElementById('reactionHint');
+    if (hint && !hint.hidden) { hint.hidden = true; changed = true; }
     if (changed) {
       var pk = document.getElementById('reactionPicker');
       if (pk) pk.hidden = true;
@@ -842,7 +850,26 @@
     }
   }
 
+  // A guest tapped the ＋ button or a reaction pill — a small popover anchored
+  // to the bar telling them to sign in (with a button that opens the modal).
+  function showReactionHint(anchor) {
+    var hint = document.getElementById('reactionHint');
+    if (!hint) return;
+    _pickerOpen = false;
+    _whoOpenEmoji = null;
+    var pk = document.getElementById('reactionPicker');
+    if (pk) pk.hidden = true;
+    var who = document.getElementById('reactionWho');
+    if (who) who.hidden = true;
+    hint.innerHTML =
+      '<span class="reaction-hint-msg">Đăng nhập để bày tỏ cảm xúc và xem ai đã bày tỏ.</span>' +
+      '<button type="button" class="auth-btn reaction-hint-btn" data-action="guest-signin">Đăng nhập</button>';
+    hint.hidden = false;
+    positionPopover(hint, anchor || document.querySelector('#reactions .reaction-add'));
+  }
+
   function onReactionWho(pill) {
+    if (!authUser) { showReactionHint(pill); return; }
     var e = pill.getAttribute('data-emoji');
     _whoOpenEmoji = (_whoOpenEmoji === e) ? null : e;
     _pickerOpen = false;
@@ -852,14 +879,14 @@
   }
 
   function onReactionAdd() {
-    if (!authUser) return;   // guests: no pop-up; the sign-in gate sits above "Bình luận"
+    if (!authUser) { showReactionHint(document.querySelector('#reactions .reaction-add')); return; }
     _pickerOpen = !_pickerOpen;
     _whoOpenEmoji = null;
     paintReactions();
   }
 
   function onReactionChoice(btn) {
-    if (!authUser) return;
+    if (!authUser) { showReactionHint(btn); return; }
     var chapterId = readerEl.getAttribute('data-chapter-id');
     var emoji = btn.getAttribute('data-emoji');
     var have = _myEmojis.indexOf(emoji) !== -1;
@@ -2699,7 +2726,7 @@
       var a = t.closest('[data-action]');
       if (!a) return;
       var act = a.getAttribute('data-action');
-      if (act === 'guest-signin') openSigninModal();
+      if (act === 'guest-signin') { closeReactionPopovers(); openSigninModal(); }
       else if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);
