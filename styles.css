@@ -954,16 +954,14 @@ body {
 }
 .auth-btn.auth-ghost:hover { background-position: 0 0; }
 
-.auth-btn.auth-google,
-.auth-btn.auth-facebook {
+.auth-btn.auth-google {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .55rem;
 }
 
-.auth-btn.auth-google svg,
-.auth-btn.auth-facebook svg { flex: 0 0 auto; }
+.auth-btn.auth-google svg { flex: 0 0 auto; }
 
 .auth-email-form {
   display: flex;
@@ -1911,8 +1909,7 @@ body {
 
 .signin-modal-title { margin: 0; font-size: 1.3rem; font-weight: 700; text-align: center; }
 
-.signin-modal-card .auth-btn.auth-google,
-.signin-modal-card .auth-btn.auth-facebook { width: 100%; }
+.signin-modal-card .auth-btn.auth-google { width: 100%; }
 
 .signin-modal-divider {
   display: flex;
