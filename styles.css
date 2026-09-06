@@ -1048,6 +1048,25 @@ body {
 
 .comments { margin-top: 2rem; }
 
+/* Signed-out gate, sits just above the "Bình luận" heading */
+.guest-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .8rem;
+  margin-bottom: 1.6rem;
+  padding: 1rem 1.1rem;
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.guest-gate-msg {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
 .comments-title {
   font-size: inherit;
   font-weight: 700;
@@ -1055,12 +1074,7 @@ body {
   margin: 0 0 1rem;
 }
 
-.comment-compose { margin-bottom: 1.8rem; }
-
-.compose-locked {
-  margin: 0;
-  color: var(--ink-faint);
-}
+.comment-compose:not(:empty) { margin-bottom: 1.8rem; }
 
 .comment-form { display: flex; flex-direction: column; gap: .6rem; }
 

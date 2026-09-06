@@ -508,6 +508,7 @@
           '<div class="reaction-who" id="reactionWho" hidden></div>' +
         '</div>' +
         '<div class="comments">' +
+          '<div class="guest-gate" id="guestGate" hidden></div>' +
           '<h3 class="comments-title" id="commentsTitle">Bình luận</h3>' +
           '<div class="comment-compose" id="commentCompose"></div>' +
           '<ul class="comment-list" id="commentList"></ul>' +
@@ -620,6 +621,7 @@
     var token = ++engToken;
     renderReactionBar(chapterId, token);
     loadChapterViews(chapterId, token);
+    renderGuestGate();
     renderCompose();
     loadComments(chapterId, token);
   }
@@ -826,14 +828,14 @@
   }
 
   function onReactionAdd() {
-    if (!authUser) { flashAuthBar(); return; }
+    if (!authUser) return;   // guests: no pop-up; the sign-in gate sits above "Bình luận"
     _pickerOpen = !_pickerOpen;
     _whoOpenEmoji = null;
     paintReactions();
   }
 
   function onReactionChoice(btn) {
-    if (!authUser) { flashAuthBar(); return; }
+    if (!authUser) return;
     var chapterId = readerEl.getAttribute('data-chapter-id');
     var emoji = btn.getAttribute('data-emoji');
     var have = _myEmojis.indexOf(emoji) !== -1;
@@ -863,10 +865,20 @@
     });
   }
 
-  // The per-chapter guest sign-in bar was removed: signing in now happens only
-  // from the sidebar masthead button and the chat widget, both of which open
-  // the shared sign-in modal. Guests who try to react/comment/reply get that
-  // same modal via flashAuthBar() below.
+  // Shown to signed-out readers, just above the "Bình luận" heading: one line
+  // saying they need to sign in to comment or react, plus a "Đăng nhập" button
+  // that opens the sign-in modal. Hidden once signed in. This and the sidebar
+  // masthead button + the chat widget are the only sign-in surfaces — a guest
+  // tapping a reaction just does nothing (no pop-up).
+  function renderGuestGate() {
+    var el = document.getElementById('guestGate');
+    if (!el) return;
+    if (authUser) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    el.innerHTML =
+      '<p class="guest-gate-msg">Bạn cần đăng nhập để viết bình luận và bày tỏ cảm xúc.</p>' +
+      '<button type="button" class="auth-btn" data-action="guest-signin">Đăng nhập</button>';
+  }
 
   // Signed in: avatar + "Xin chào, {name}" under the site title — clicking it
   // opens the profile editor (which is also where "Đăng xuất" now lives).
@@ -1825,10 +1837,10 @@
 
   // ---- sign-in modal: Google + email/phone, both usable right away --------
   //
-  // The only sign-in surface on the site. A centered popup with both sign-in
-  // paths shown at once, opened from the sidebar masthead button and the chat
-  // widget's guest state (and from flashAuthBar() when a guest tries to react
-  // or comment). Its fields use signin* ids of their own.
+  // A centered popup with both sign-in paths shown at once, opened from the
+  // sidebar masthead button, the chat widget's guest state, and the "Đăng nhập"
+  // button in the guest gate above the comments (renderGuestGate). Its fields
+  // use signin* ids of their own.
 
   function ensureSigninModal() {
     if (document.getElementById('signinModal')) return;
@@ -1994,7 +2006,8 @@
     var host = document.getElementById('commentCompose');
     if (!host) return;
     if (!authUser) {
-      host.innerHTML = '<p class="compose-locked">Bạn cần đăng nhập để viết bình luận.</p>';
+      // The "please sign in" line lives above the heading now (renderGuestGate).
+      host.innerHTML = '';
       return;
     }
     host.innerHTML =
@@ -2127,7 +2140,7 @@
 
   // Toggle my reaction — only reachable from the picker.
   function onCommentReact(btn) {
-    if (!authUser) { flashAuthBar(); return; }
+    if (!authUser) return;
     var row = btn.closest('.comment-actions');
     if (!row) return;
     var cid = row.getAttribute('data-cid');
@@ -2153,7 +2166,7 @@
   }
 
   function onCommentReactAdd(btn) {
-    if (!authUser) { flashAuthBar(); return; }
+    if (!authUser) return;
     var row = btn.closest('.comment-actions');
     var pk = row && row.querySelector('.creact-picker');
     if (!pk) return;
@@ -2269,7 +2282,7 @@
   // ---- replies (one level deep) ----
 
   function onCommentReplyStart(btn) {
-    if (!authUser) { flashAuthBar(); return; }
+    if (!authUser) return;
     var li = btn.closest('.comment');
     if (!li) return;
     var col = li.querySelector('.comment-body-col');
@@ -2412,14 +2425,6 @@
       });
   }
 
-  // A guest tried to react / comment / reply. There's no per-chapter sign-in
-  // bar anymore, so send them straight to the shared sign-in modal (the same
-  // one the sidebar and chat widget open).
-  function flashAuthBar() {
-    closeChatPanel();
-    openSigninModal();
-  }
-
   // ---- one-time wiring (readerEl is stable across chapter renders) ----------
 
   function initEngagement() {
@@ -2514,7 +2519,8 @@
       var a = t.closest('[data-action]');
       if (!a) return;
       var act = a.getAttribute('data-action');
-      if (act === 'del') onCommentDelete(a);
+      if (act === 'guest-signin') openSigninModal();
+      else if (act === 'del') onCommentDelete(a);
       else if (act === 'edit') onCommentEditStart(a);
       else if (act === 'edit-cancel') onCommentEditCancel(a);
       else if (act === 'reply') onCommentReplyStart(a);
