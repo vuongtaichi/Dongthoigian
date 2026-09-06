@@ -239,9 +239,9 @@
 
     if (!silent) saveLastChapter(ch.id);
 
-    // A dragged chat button only lasts as long as you stay on one chapter —
-    // reading a different chapter (or a reload landing here) puts it back in
-    // its default corner. renderAdminInbox deliberately doesn't do this.
+    // A dragged chat button only lasts as long as you stay on one page —
+    // reading a different chapter (or a reload) puts it back in its default
+    // corner. renderAdminInbox resets it too.
     if (!silent) resetChatFabPos();
 
     if (sb) renderEngagement(ch.id);
@@ -656,11 +656,16 @@
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
 
-  // Line "paint drop" for the chat-bubble-colour button (was a 🎨 emoji).
-  var DROPLET_SVG =
-    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
-    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M12 3.2c3.6 4.3 6 7.6 6 10.3a6 6 0 0 1-12 0c0-2.7 2.4-6 6-10.3z"/></svg>';
+  // Artist's palette (like the old 🎨 glyph) but black-and-white: outline +
+  // solid dots in the current text colour, no fixed colours.
+  var PALETTE_SVG =
+    '<svg viewBox="0 0 24 24" width="1.2em" height="1.2em" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.17-.83-.44-1.12-.28-.29-.44-.66-.44-1.13a1.64 1.64 0 0 1 1.67-1.67H16c3.05 0 5.5-2.45 5.5-5.5C21.5 6.01 17.46 2 12 2z"/>' +
+    '<circle cx="8.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/>' +
+    '<circle cx="13.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/>' +
+    '<circle cx="17" cy="10" r="1.2" fill="currentColor" stroke="none"/>' +
+    '<circle cx="6.5" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
   // Chat attachments: a private Storage bucket, RLS-scoped per thread the
   // same way `messages` itself is (see comments-setup.sql) — so viewing one
@@ -1106,7 +1111,7 @@
         '<div class="chat-panel-head">' +
           '<span class="chat-color-wrap">' +
             '<button type="button" class="chat-tool-btn" id="chatColorBtn" data-action="chat-color-toggle" ' +
-              'aria-label="Đổi màu bong bóng chat" hidden>' + DROPLET_SVG + '</button>' +
+              'aria-label="Đổi màu bong bóng chat" hidden>' + PALETTE_SVG + '</button>' +
             '<span class="chat-color-popover" id="chatColorPopover" hidden></span>' +
           '</span>' +
           '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
@@ -1120,13 +1125,13 @@
 
   // ---- draggable chat button --------------------------------------------
   // The reader can drag the chat FAB anywhere on screen. The moved spot is
-  // NOT persisted — reloading, or moving to another chapter (renderChapter),
-  // snaps it back to the default corner; only the admin inbox leaves a
-  // dragged position alone. A small movement threshold tells a drag apart
-  // from a tap, and a real drag swallows the click that would otherwise open
-  // the panel. The panel then opens toward whichever screen edge leaves it
-  // the most room (data-hpos / data-vpos → CSS), with fitChatPanelInViewport()
-  // as a final nudge so it can never sit off-screen.
+  // NOT persisted — any full page render (renderChapter or renderAdminInbox)
+  // snaps it back to the default corner via resetChatFabPos(). A small
+  // movement threshold tells a drag apart from a tap, and a real drag
+  // swallows the click that would otherwise open the panel. The panel then
+  // opens toward whichever screen edge leaves it the most room (data-hpos /
+  // data-vpos → CSS), with fitChatPanelInViewport() as a final nudge so it
+  // can never sit off-screen.
   var _suppressFabClick = false;   // true only across the click a drag synthesises
 
   function chatFabBox() {
@@ -1151,7 +1156,8 @@
     w.dataset.vpos = (y + b.h / 2 < window.innerHeight / 2) ? 'top' : 'bottom';
   }
 
-  // Back to the CSS default corner (bottom-right). Called from renderChapter.
+  // Back to the CSS default corner (bottom-right). Called on every full page
+  // render (renderChapter, renderAdminInbox).
   function resetChatFabPos() {
     var w = document.getElementById('chatWidget');
     if (!w) return;
@@ -1998,6 +2004,7 @@
       btn.classList.toggle('active', btn.getAttribute('data-action') === 'admin-inbox');
     });
     _inboxSelected = null;
+    resetChatFabPos();
     loadInboxThreads();
     saveLastChapter(ADMIN_INBOX_ROUTE);
     history.replaceState({ chapterId: ADMIN_INBOX_ROUTE }, '', '#' + ADMIN_INBOX_ROUTE);
