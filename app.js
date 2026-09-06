@@ -239,6 +239,11 @@
 
     if (!silent) saveLastChapter(ch.id);
 
+    // A dragged chat button only lasts as long as you stay on one chapter —
+    // reading a different chapter (or a reload landing here) puts it back in
+    // its default corner. renderAdminInbox deliberately doesn't do this.
+    if (!silent) resetChatFabPos();
+
     if (sb) renderEngagement(ch.id);
 
     // Push a history entry per chapter switch (not the initial load) so the
@@ -1111,29 +1116,18 @@
       '</div>';
     host.appendChild(w);
     makeChatFabDraggable();
-    restoreChatFabPos();
   }
 
   // ---- draggable chat button --------------------------------------------
-  // The reader can drag the chat FAB anywhere on screen; its spot is
-  // remembered per-browser (localStorage). A small movement threshold tells
-  // a drag apart from a tap, and a real drag swallows the click that would
-  // otherwise open the panel. The panel then opens toward whichever screen
-  // edge leaves it the most room (data-hpos / data-vpos → CSS), with
-  // fitChatPanelInViewport() as a final nudge so it can never sit off-screen.
-  var CHAT_FAB_POS_KEY = 'nkltt:chatFabPos';
+  // The reader can drag the chat FAB anywhere on screen. The moved spot is
+  // NOT persisted — reloading, or moving to another chapter (renderChapter),
+  // snaps it back to the default corner; only the admin inbox leaves a
+  // dragged position alone. A small movement threshold tells a drag apart
+  // from a tap, and a real drag swallows the click that would otherwise open
+  // the panel. The panel then opens toward whichever screen edge leaves it
+  // the most room (data-hpos / data-vpos → CSS), with fitChatPanelInViewport()
+  // as a final nudge so it can never sit off-screen.
   var _suppressFabClick = false;   // true only across the click a drag synthesises
-
-  function readChatFabPos() {
-    try {
-      var p = JSON.parse(localStorage.getItem(CHAT_FAB_POS_KEY) || 'null');
-      if (p && typeof p.x === 'number' && typeof p.y === 'number') return p;
-    } catch (e) {}
-    return null;
-  }
-  function writeChatFabPos(p) {
-    try { localStorage.setItem(CHAT_FAB_POS_KEY, JSON.stringify(p)); } catch (e) {}
-  }
 
   function chatFabBox() {
     var fab = document.getElementById('chatFab');
@@ -1143,7 +1137,7 @@
 
   // x,y = the widget's desired top-left in viewport px. Clamps inside the
   // viewport (8px margin), applies as inline left/top, records the quadrant.
-  function applyChatFabPos(x, y, save) {
+  function applyChatFabPos(x, y) {
     var w = document.getElementById('chatWidget');
     if (!w) return;
     var b = chatFabBox(), m = 8;
@@ -1155,18 +1149,25 @@
     w.style.bottom = 'auto';
     w.dataset.hpos = (x + b.w / 2 < window.innerWidth / 2) ? 'left' : 'right';
     w.dataset.vpos = (y + b.h / 2 < window.innerHeight / 2) ? 'top' : 'bottom';
-    if (save) writeChatFabPos({ x: x, y: y });
   }
 
-  function restoreChatFabPos() {
-    var p = readChatFabPos();
-    if (p) applyChatFabPos(p.x, p.y, false);
+  // Back to the CSS default corner (bottom-right). Called from renderChapter.
+  function resetChatFabPos() {
+    var w = document.getElementById('chatWidget');
+    if (!w) return;
+    w.style.left = w.style.top = w.style.right = w.style.bottom = '';
+    delete w.dataset.hpos;
+    delete w.dataset.vpos;
   }
 
-  // Viewport changed (resize / rotate / mobile URL bar) — keep it on-screen.
+  // Viewport changed (resize / rotate / mobile URL bar) — if it's been
+  // dragged, keep it on-screen; then re-fit any open panel.
   function reclampChatWidget() {
-    var p = readChatFabPos();
-    if (p) applyChatFabPos(p.x, p.y, true);
+    var w = document.getElementById('chatWidget');
+    if (w && w.style.left) {
+      var r = w.getBoundingClientRect();
+      applyChatFabPos(r.left, r.top);
+    }
     fitChatPanelInViewport();
   }
 
@@ -1214,7 +1215,7 @@
       if (!dragging && Math.abs(dx) + Math.abs(dy) < 6) return;
       dragging = true;
       e.preventDefault();
-      applyChatFabPos(ox + dx, oy + dy, false);
+      applyChatFabPos(ox + dx, oy + dy);
     });
 
     function end(e) {
@@ -1224,7 +1225,7 @@
       if (!dragging) return;
       dragging = false;
       var r = document.getElementById('chatWidget').getBoundingClientRect();
-      applyChatFabPos(r.left, r.top, true);
+      applyChatFabPos(r.left, r.top);
       // the pointerup now synthesises a click on the fab — swallow just that one
       _suppressFabClick = true;
       setTimeout(function () { _suppressFabClick = false; }, 0);
@@ -1663,12 +1664,10 @@
     ensureChatWidget();
     var panel = document.getElementById('chatPanel');
     var fab = document.getElementById('chatFab');
-    var widget = document.getElementById('chatWidget');
     if (!panel) return;
     _chatOpen = panel.hidden;
     panel.hidden = !_chatOpen;
     if (fab) fab.setAttribute('aria-expanded', String(_chatOpen));
-    if (widget) widget.classList.toggle('chat-open', _chatOpen);
     if (_chatOpen) {
       renderChatPanelBody();
       panel.style.transform = '';
@@ -1681,8 +1680,6 @@
     if (panel) { panel.hidden = true; panel.style.transform = ''; }
     var fab = document.getElementById('chatFab');
     if (fab) fab.setAttribute('aria-expanded', 'false');
-    var widget = document.getElementById('chatWidget');
-    if (widget) widget.classList.remove('chat-open');
     _chatOpen = false;
   }
 

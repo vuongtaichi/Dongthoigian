@@ -1348,11 +1348,6 @@ body {
 
 .chat-fab:hover { background: var(--accent-strong); }
 
-/* While the panel is open the button would just sit on top of the panel
-   (and, on a phone, over its Send button) — hide it but keep its box so
-   the panel stays anchored. Close via the × in the panel head. */
-.chat-widget.chat-open .chat-fab { visibility: hidden; }
-
 /* Panel opens toward the screen centre once the button has been dragged
    (JS sets data-hpos / data-vpos from the button's quadrant). Undragged,
    the base .chat-panel rule below still applies (bottom-right button). */
