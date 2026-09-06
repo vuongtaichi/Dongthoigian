@@ -2605,15 +2605,19 @@
   function initEngagement() {
     if (!sb) return;
 
-    // Slot for the avatar + "Xin chào … Đăng xuất", under the site title.
+    // Slot for the avatar + "Xin chào … Đăng xuất", right under the brand
+    // row (logo + title). `.masthead-brand` wraps the title, so anchor to
+    // that; fall back to the title itself, then to appending.
     var masthead = document.querySelector('.masthead');
     if (masthead && !document.getElementById('mastheadAuth')) {
       var slot = document.createElement('div');
       slot.className = 'masthead-auth';
       slot.id = 'mastheadAuth';
       slot.hidden = true;
-      var titleEl = masthead.querySelector('.masthead-title');
-      if (titleEl) masthead.insertBefore(slot, titleEl.nextSibling);
+      var anchor = masthead.querySelector('.masthead-brand')
+                || masthead.querySelector('.masthead-title');
+      if (anchor && anchor.parentNode === masthead) masthead.insertBefore(slot, anchor.nextSibling);
+      else if (anchor) anchor.insertAdjacentElement('afterend', slot);
       else masthead.appendChild(slot);
     }
     ensureProfileModal();

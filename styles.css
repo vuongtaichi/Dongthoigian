@@ -166,6 +166,20 @@ body {
   border-bottom: 1px solid var(--sidebar-border);
 }
 
+/* Logo + wordmark, side by side, above the chapter count. */
+.masthead-brand {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+}
+
+.masthead-logo {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+}
+
 .masthead-title {
   margin: 0;
   font-family: var(--font-body);
