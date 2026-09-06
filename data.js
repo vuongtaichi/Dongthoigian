@@ -7,7 +7,7 @@ const chapters = [
     id: "ch-1",
     title: "Mở đầu",
     intro: [
-      "Lúc nhập ngũ, câu nói mình được nghe nhiều nhất chính là “2 năm như một giấc ngủ trưa”. Một câu nói nghe thật nhẹ nhàng, nhưng đối với mình, chỉ phù hợp với một người đã kết thúc 2 năm nghĩa vụ, và đang hồi tưởng lại hành trình của mình mà thôi. Còn với một người đang nhập ngũ, 2 năm giống như sống thêm một cuộc đời khác vậy. Trong quân đội, từng giờ đồng hồ đều đã được lên kế hoạch, thật hiếm hoi để tìm thấy một khoảng thời gian nào đó cho riêng mình. Vào những lúc chỉ có sách và cuốn sổ tay làm bạn, mình thường viết nhật ký để giữ lại những kỷ niệm mà một đời người chắc chỉ một lần được trải qua. Cuốn nhật ký đó đang cũ dần, nét chữ từ mặt sau đang dần hằn lên mặt trước, những trang giấy cứng cáp đang mềm đi và cũ hơn. Một phần vì thời gian, một phần vì mình đọc nó rất nhiều lần.",
+      "Lúc nhập ngũ, câu nói mình được nghe nhiều nhất chính là “2 năm như một giấc ngủ trưa”. Một câu nói nghe thật nhẹ nhàng, nhưng đối với mình, chỉ phù hợp với một người đã kết thúc 2 năm nghĩa vụ, và đang hồi tưởng lại hành trình của mình mà thôi. Còn với một người đang nhập ngũ, 2 năm giống như sống thêm một cuộc đời khác vậy. Trong quân đội, từng giờ đồng hồ đều đã được lên kế hoạch, thật hiếm hoi để tìm thấy một khoảng thời gian nào đó cho riêng mình. Vào những lúc chỉ có sách và cuốn sổ tay làm bạn, mình thường viết nhật ký để giữ lại những kỷ niệm mà một đời người chắc chỉ một lần được trải qua. Cuốn nhật ký đó đang cũ dần, một phần vì thời gian, một phần vì mình đọc nó rất nhiều lần.",
       "Rồi có một ngày mình đột nhiên muốn gõ lại toàn bộ quyển nhật ký, để giữ nó thật lâu trên hành trình trưởng thành của mình. Và từ lúc đó, ý định về một trang web cá nhân bắt đầu được nhen nhóm. Đến khi A.I. phát triển, việc làm web đã trở nên đơn giản hơn rất nhiều, ý định kia của mình bắt đầu được thực hiện. Với một trang web, nhật ký không chỉ được lưu lại mà còn có thể chia sẻ, để ai đó muốn nhập ngũ hay chuẩn bị nhập ngũ cũng có thể đọc được, và mường tượng về một phần những gì có thể diễn ra trong những ngày tháng rất dài sắp tới.",
       "Mình nói “một phần”, bởi vì chương trình huấn luyện có thể sẽ khác nhau ở từng đơn vị. Mình thuộc tiểu đoàn bộ binh nên chương trình huấn luyện cũng theo chuyên ngành bộ binh. Sau khi kết thúc 3 tháng huấn luyện tân binh, mình được biên chế về trung đội thông tin, việc huấn luyện lúc này lại theo chuyên ngành thông tin. Ngoài ra, trước khi nhập ngũ, mình không cần phải làm gì nặng và gần như không rèn luyện sức khỏe, nên diễn biến tâm lý ở một vài phân đoạn có thể sẽ nặng nề hơn so với người bình thường. Thêm nữa, nhiệm vụ của mình trong lúc nhập ngũ cũng không giống với nhiều chiến sĩ khác, nên nhật ký này sẽ không thể đại diện cho số đông, mà chỉ đóng góp một góc nhìn chủ quan của cá nhân mình.",
       "Tên của đơn vị và các nhân vật xuất hiện trong nhật ký đều đã được thay đổi để đảm bảo sự riêng tư. Hy vọng 94 chương trong nhật ký này sẽ góp thêm những góc nhìn mới về chuyện nhập ngũ."
@@ -114,7 +114,7 @@ const chapters = [
     ],
     ps: [
       "Cả trung đội 40 người chỉ cần vài bia ngắm bắn, nên chỉ những ai cao lớn mới được giao mang theo bia ngắm ra thao trường. Thường sẽ luân phiên, một tiểu đội đi trước để cắm bia ngắm và một tiểu đội ở lại sau buổi học để thu dọn bia mang về. Buổi học thao trường đầu tiên, tiểu đội mình được giao nhiệm vụ đi trước cắm bia.",
-      "Cuốc, xẻng dùng trong huấn luyện rất nhỏ và ngắn, ngắn hơn cánh tay mình, thường đeo sau lưng. Nhỏ như vậy để dễ mang theo, và lúc bò trườn trên mặt đất cũng có thể đào hầm ẩn náu.",
+      "Cuốc, xẻng dùng trong huấn luyện rất nhỏ và ngắn, ngắn hơn cánh tay mình, thường đeo sau lưng. Nhỏ như vậy để dễ mang theo, và lúc bò trườn trên mặt đất cũng có thể đào hầm ẩn náu. Còn cuốc, xẻng dùng lúc tăng gia thì vẫn là loại bình thường giống bên ngoài.",
       "Khi mới vào, mỗi người sẽ được biên chế một khẩu súng. Mỗi khẩu có một mã số riêng, từng người phải nhớ mã số trên báng súng của mình để không bị nhầm với súng của người khác. Sau mỗi buổi học ngoài thao trường về, việc đầu tiên cần làm là lau súng bằng dẻ khô và giấy thấm dầu. Sau khi cất súng vào tủ xong thì mới được phép cởi quần áo và vệ sinh cá nhân."
     ]
   },
@@ -166,7 +166,10 @@ const chapters = [
       "Buổi tối trung đội tổ chức sinh nhật cho chiến sĩ sinh vào tháng này, có rất nhiều bánh kẹo và nước ngọt. Cả trung đội cùng ăn uống và hát hò. Cả phòng rộn rã tiếng cười đùa, không có phiền lo, không còn cái nắng, cũng không còn những khuôn mặt ướt đẫm mồ hôi. Trong lúc nhập ngũ, điều khiến mình cảm thấy quý giá nhất và đáng nhớ nhất là tình cảm giữa mấy anh em. Ngày nào cũng ăn, ngủ, huấn luyện cùng nhau nên dễ thân hơn so với lúc mình ở ngoài.",
       "Hôm nay thức muộn để xử lý chồng sổ và giáo án của anh Vĩ. Chắc phải một thời gian nữa mới có thể vực phần sổ sách lên được. Nhiều cái bị thiếu và bị sai. Ngày mai sẽ có nhiều việc phải làm đây!"
     ],
-    signature: "Chủ nhật, 00:09"
+    signature: "Chủ nhật, 00:09",
+    ps: [
+      "Hồi đó mình chỉ cần viết sổ cho anh Quang một thời gian rồi chuyển hẳn về chép sổ cho anh Vĩ."
+    ]
   },
   {
     id: "ch-16",
@@ -186,7 +189,6 @@ const chapters = [
     ],
     signature: "Thứ 7, 22:25",
     ps: [
-      "Hồi đó mình chỉ cần viết sổ cho anh Quang một thời gian rồi chuyển hẳn về chép sổ cho anh Vĩ.",
       "Anh Khánh là anh trai mình",
       "Anh Hoạt là Chính trị viên Đại đội, cùng cấp với Đại đội trưởng"
     ]
@@ -560,7 +562,7 @@ const chapters = [
     title: "Đại hội sư đoàn (ngày 1)",
     intro: [
       "12h trưa xe county xuất phát từ trung đoàn trở mình với mọi người lên sư đoàn dự đại hội. Xe chở vào trạm khách, đại biểu sẽ ngủ qua đêm ở đây trong thời gian đại hội. Lúc đi mấy anh em không đem theo chiếu vì tưởng phản giống ở d2 không có cũng chẳng sao. Hóa ra là phản tre giống ở nhà. Đặt balo xuống rồi nghỉ một lúc trước khi tập trung và đi bộ sang sư đoàn để dự đại hội trù bị.",
-      "Sư đoàn đúng khác xa với trung đoàn, đẹp hơn nhiều. Có cả nhà truyền thống với đài tưởng niệm. Nhà sở chỉ huy có thêm hai khẩu pháo mô hình, bình thường đã tráng lệ lại càng thêm hoành tráng.",
+      "Sư đoàn đúng khác xa với trung đoàn, đẹp hơn nhiều. Có cả nhà truyền thống với đài tưởng niệm. Nhà sở chỉ huy có thêm hai khẩu pháo mô hình, nhìn rất hoành tráng.",
       "Ăn uống ở đây thì khác xa so với ở d2, thức ăn vừa ngon vừa nhiều. Nước tắm thì trong vắt, căng-tin thì nhiều đồ. Tân binh mà ở đây thì đúng là thiên đường. Nhưng điều vui nhất lúc đi đại hội là gặp lại Đạt. Từ lúc Đạt nhập ngũ năm ngoái tới giờ chưa được gặp. Giờ gặp lại nhau thì cả 2 đều đang cùng nhập ngũ. 2 đứa nói chuyện vội vã lúc đến và lúc nghỉ giữa giờ, rồi cả lúc đại hội kết thúc. Gặp lại bạn cũ ở đây thật là sướng."
     ],
     ps: [
@@ -596,7 +598,7 @@ const chapters = [
     title: "Dã ngoại (ngày 1)",
     intro: [
       "Ăn sáng từ 5h, không tập thể dục để lên đường đi dã ngoại. 4 cáng toàn gỗ với cuốc xẻng, thêm 1 bó lứa. Có tất cả 8 bó gỗ chia đều vào 4 cáng, mỗi cáng 2 người. 12 người đi tính cả anh Hoàn (tiểu đội trưởng). 8 người cáng gỗ, 1 người vác bó lứa, nếu không tính anh Hoàn thì 2 người còn lại sẽ vào cáng thay khi có ai đó cần nghỉ. Mình với Việt 1 cặp vì 2 đứa cao gần bằng nhau. Vừa đặt lên vai đã thấy khác biệt hẳn so với những ngày hành quân. Bình thường cho thêm cuộn dây với quả tạ thì tất cả khoảng 20kg hoặc hơn 1 chút. Nhưng lần này vẫn balo đó, không có cuộn dây với tạ, thay bằng cáng gỗ. Không biết bao nhiêu kg, chỉ thấy nặng vô cùng, mới đi 1 đoạn đã thấy rã cả vai, phải đảo qua đảo lại liên tục. Không chỉ nặng thôi đâu, bình thường không hay cáng đồ trên vai nên chưa quen, cáng tì lên vai vừa đau vừa khó chịu. Đi độ 100m đã thở hổn hển như đi hành quân mấy cây số. May mà có người đổi, cứ đi một đoạn mọi người lại đổi cho nhau, người vác nhẹ sang cáng cho người nặng, người không cáng nặng được lâu thì mang thêm balo cho người cáng khỏe. Bình thường tiểu đội trưởng chỉ đi theo để quản, nhưng hôm nay cũng phải xắn tay áo lên để vào cáng hộ.",
-      "Cứ đi và đi như thế, không biết đã đi qua bao nhiêu con dốc và không đếm nổi đã đổi cho nhau bao nhiêu lần. Nếu có chút gì đó hối hận về chuyện đi lính hay có khao khát muốn trở về nhà, thì rất có thể đây chính là khoảnh khắc ấy. Giây phút đó chắc chẳng có ai yêu nổi chuyện đi lính. Cứ thay phiên đổi nhau cáng, đứa nào đứa nấy đỏ mặt tía tai, thở không ra hơi, mồ hôi lã chã. Càng đi đường lại càng hẹp và lầy. Không đếm nổi đã giẫm lên bao nhiêu vũng nước, bước qua bao nhiêu đoạn suối nhỏ, giày đứa nào cũng ướt sũng. Mát thì có mát, nhưng hai chân vốn đang nặng nề lại càng thêm nặng chịch.",
+      "Cứ đi và đi như thế, không biết đã đi qua bao nhiêu đoạn dốc và không đếm nổi đã đổi cho nhau bao nhiêu lần. Nếu có chút gì đó hối hận về chuyện đi lính hay có khao khát muốn trở về nhà, thì rất có thể đây chính là khoảnh khắc ấy. Giây phút đó chắc chẳng có ai yêu nổi chuyện đi lính. Cứ thay phiên đổi nhau cáng, đứa nào đứa nấy đỏ mặt tía tai, thở không ra hơi, mồ hôi lã chã. Càng đi đường lại càng hẹp và lầy. Không đếm nổi đã giẫm lên bao nhiêu vũng nước, bước qua bao nhiêu đoạn suối nhỏ, giày đứa nào cũng ướt sũng. Mát thì có mát, nhưng hai chân vốn đang nặng nề lại càng thêm nặng chịch.",
       "Trong lúc đi, thứ duy nhất hiện lên trước mắt chỉ có con đường mòn quanh co không thấy điểm đến. Cứ đi và đi, chẳng đứa nào xem giờ, không biết đã đi được bao lâu, và không biết còn bao lâu nữa mới tới. Đến lúc nhìn thấy mấy nhóm người của các trung đội khác trên sườn đồi, đang ngồi nghỉ cạnh mấy cáng gỗ, cả đám mới reo lên “ĐÂY RỒI, ĐÍCH ĐẾN ĐÂY RỒI!!!” Đích đến ở đó và chỉ còn cách một đoạn đường nữa. Vai đang rất mỏi nhưng cũng cố đi thêm cho kết thúc. Nhưng chỉ cố được đến nửa sườn đồi, không thể cáng thêm được nữa. Đường bằng đã khó nói chi sườn dốc. Phải nhờ Phụng với Thành cáng hộ thêm một đoạn.",
       "HƠN 10KM!!! Thật không thể tin được mình với mọi người đã cáng đống gỗ kia một đoạn xa thế. Giờ bảo làm lại thì chắc chắn không thể. Ngay lúc đầu mà bảo cáng đống gỗ kia hơn 10km mình sẽ nghĩ đấy là chuyện hoang đường.",
       "Đến đỉnh đồi, vừa ngồi nghỉ được một lúc lại tiếp tục cáng chỗ gỗ đó sang phía bên kia đồi để đào hầm âm ở đấy. Hầm âm có vết đào sẵn, chỉ khoét cho rõ thêm hoặc đào sâu vào trong cho đủ kích thước. Sau này nếu đi dã ngoại qua đêm thì sẽ ngủ trong đó. Chắc chỉ làm được độ 30’ - 1h thì trời mưa lớn, bên trên có lệnh thu dọn đồ quay về đơn vị. Đứa nào đứa nấy há hốc miệng nhìn nhau, rồi nhìn đống gỗ vừa đặt xuống chưa nóng chỗ. Nhưng may mắn chỉ phải mang balo với cuốc xẻng quay về, còn gỗ thì để lại trên đồi để lần sau đến làm tiếp.",
@@ -749,7 +751,7 @@ const chapters = [
     title: "Đại hội Quân khu (ngày 1)",
     intro: [
       "Bỏ bê quyển nhật ký lâu quá rồi. Tối nay là ngày lễ, cả trung đội đi xem phim hết, mình cũng không có nhiều việc để làm, ngồi ghi lại mấy dòng để sau này đọc lại mà nhớ.",
-      "Dậy từ sáng sớm để gói ghém chăn màn với chiếu, cùng anh Tài đi dự đại hội quân khu. Xe xuất phát từ trung đoàn lúc 5h sáng, dừng ở sư đoàn lúc 6h kém 15 để hội quân. Đủ đại biểu trong sư mới bắt đầu di chuyển lên quân khu ở Thái Nguyên, tầm 6h sáng. Lần thứ 2 được đi ra ngoài đường phố rồi mà lòng vẫn háo hức lắm. Lần này không chỉ tới tỉnh X, còn lên tỉnh Y. Gần 2h đồng hồ chạy xe, được ngủ nhiều và cũng được ngắm nghía nhiều. Đi lính mới hơn nửa năm mà lúc nhìn thấy những dãy nhà san sát nhau vẫn mừng rỡ hết sảy.",
+      "Dậy từ sáng sớm để gói ghém chăn màn với chiếu, cùng anh Tài đi dự đại hội quân khu. Xe xuất phát từ trung đoàn lúc 5h sáng, dừng ở sư đoàn lúc 6h kém 15 để hội quân. Đủ đại biểu trong sư mới bắt đầu di chuyển lên quân khu, tầm 6h sáng. Lần thứ 2 được đi ra ngoài đường phố rồi mà lòng vẫn háo hức lắm. Lần này không chỉ tới tỉnh X, còn lên tỉnh Y. Gần 2h đồng hồ chạy xe, được ngủ nhiều và cũng được ngắm nghía nhiều. Đi lính mới hơn nửa năm mà lúc nhìn thấy những dãy nhà san sát nhau vẫn mừng rỡ hết sảy.",
       "Quân khu đúng khác biệt hẳn so với sư đoàn, trạm khách ở 4 người 1 phòng mà có phòng tắm với chỗ phơi đồ ngay phía sau, cảm giác chẳng khác gì ở nhà. Mỗi người được tặng 1 túi quà, bên trong có 1 hũ sứ và 1 tập tài liệu, đựng 1 quyển văn kiện và 1 quyển sổ tay dày bìa cứng, nhìn giống hệt quyển dịch mã điện của mình.",
       "Buổi chiều mới họp phiên trù bị mà 8h sáng đã đến nơi rồi nên có nhiều thời gian nghỉ ngơi. Cơm buổi trưa ngồi theo bàn 7 người như cơm nhà không chia suất. Thức ăn vừa nhiều vừa ngon, hơn hẳn trên sư đoàn. Đi đại hội trên quân khu đúng đã đời. Buổi chiều có xe county đưa đại biểu vào trong nhà văn hóa. Ở đây mọi người không tự đi mà phải có xe của quân khu chở thì mới được qua cổng, chắc để kiểm soát người ra vào. Hội trường mát lạnh, 4 phía đều có camera, 2 bên sân khấu có 2 màn hình lớn chiếu hình từ camera, ai đang ngáp ngủ là biết liền.",
       "Hết phiên trù bị mọi người về phòng tắm rửa, đi ăn tối, rồi lại tập trung để sang sân vận động xem dạ hội. Quân khu có hẳn 1 bộ phận văn công để biểu diễn trong những dịp lễ hoặc hội họp như thế này. Khá chuyên nghiệp và khá cuốn. Cuối dạ hội có màn đốt lửa trại, lâu lắm không được thấy cảnh này. Tự nhiên làm mình nhớ buổi đốt lửa trại ở hội trường dưới quê hồi mới thi xong đại học.",
@@ -959,6 +961,9 @@ const chapters = [
     intro: [
       "Thấm thoát 1 tháng huấn luyện VB kết thúc, chấm dứt chuỗi ngày an nhàn và vô cùng thoải mái. Thi kết thúc khóa tập huấn từ thứ 6 tuần trước, từ đó đến hôm qua chủ yếu nằm đọc tạp chí với xem review phim, không phải làm gì mấy, có làm thì cũng chỉ một lúc là xong. Suốt một tháng, hầu như ngày nào cũng ngủ từ 21h30 đúng chế độ. Từ thứ 6 đến chủ nhật, tối nào cũng có thời gian ra ngoài sinh hoạt và xem tivi. Ở d2 chưa bao giờ mình được như vậy.",
       "Bữa tiệc nào rồi cũng đến lúc phải tàn. Từ đầu buổi sáng đã được thông báo sắp xếp quân tư trang, và dọn dẹp lại đơn vị lần cuối để bàn giao. Lúc 8h, chuyến xe đưa lớp huấn luyện VB e1 xuất phát từ d17, tạm biệt 1 tháng tốt đẹp. Dù thỉnh thoảng vẫn bị phạt vì xếp balo xấu, và cũng có một vài chuyện không vui, nhưng tổng thể là 1 tháng vô cùng lý tưởng. Về đến d2 mọi thứ lại trở về bình thường."
+    ],
+    ps: [
+      "Hình phạt phổ biến khi xếp balo xấu hoặc gấp chăn xấu thường là không được ngủ trưa, thời gian đó phải mang balo/ chăn ra ngoài hiên hoặc sân ngồi xếp/ gấp lại đến khi nào đẹp thì thôi."
     ]
   },
   {
