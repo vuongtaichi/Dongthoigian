@@ -784,8 +784,7 @@
         var mine = _myEmojis.indexOf(r.emoji) !== -1;
         return '<button type="button" class="reaction reaction-pill' + (mine ? ' reacted' : '') +
           '" data-action="react-who" data-emoji="' + escapeHtml(r.emoji) +
-          '" title="' + (authUser ? escapeHtml(r.label) + ' — xem ai đã bày tỏ'
-                                  : 'Đăng nhập để xem ai đã bày tỏ') + '">' +
+          '" title="' + escapeHtml(r.label) + (authUser ? ' — xem ai đã bày tỏ' : '') + '">' +
           '<span class="reaction-emoji">' + r.emoji + '</span>' +
           '<span class="reaction-count">' + _reactors[r.emoji].length + '</span></button>';
       }).join('');
@@ -850,8 +849,9 @@
     }
   }
 
-  // A guest tapped the ＋ button or a reaction pill — a small popover anchored
-  // to the bar telling them to sign in (with a button that opens the modal).
+  // A guest tapped the ＋ button — a small popover anchored to the bar telling
+  // them to sign in (with a button that opens the modal). Guests tapping an
+  // existing reaction pill get nothing (onReactionWho).
   function showReactionHint(anchor) {
     var hint = document.getElementById('reactionHint');
     if (!hint) return;
@@ -862,14 +862,14 @@
     var who = document.getElementById('reactionWho');
     if (who) who.hidden = true;
     hint.innerHTML =
-      '<span class="reaction-hint-msg">Đăng nhập để bày tỏ cảm xúc và xem ai đã bày tỏ.</span>' +
+      '<span class="reaction-hint-msg">Đăng nhập để bày tỏ cảm xúc</span>' +
       '<button type="button" class="auth-btn reaction-hint-btn" data-action="guest-signin">Đăng nhập</button>';
     hint.hidden = false;
     positionPopover(hint, anchor || document.querySelector('#reactions .reaction-add'));
   }
 
   function onReactionWho(pill) {
-    if (!authUser) { showReactionHint(pill); return; }
+    if (!authUser) return;   // guests: pills do nothing (and can't see who reacted)
     var e = pill.getAttribute('data-emoji');
     _whoOpenEmoji = (_whoOpenEmoji === e) ? null : e;
     _pickerOpen = false;
