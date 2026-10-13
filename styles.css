@@ -2535,7 +2535,7 @@ body {
 .inbox-layout {
   display: flex;
   align-items: stretch;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-top: 1rem;
   font-family: var(--font-ui);
   /* Fills whatever's left of .chapter.admin-inbox's fixed 100vh height
@@ -2546,52 +2546,115 @@ body {
   min-height: 0;
 }
 
-.inbox-thread-list {
-  flex: 0 0 16rem;
+/* Left pane: "Tin nhắn" header + search, then the scrolling thread list. */
+.inbox-side {
+  flex: 0 0 20rem;
+  min-width: 0;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--note-border);
+  border-radius: 18px;
+  box-shadow: var(--note-shadow);
+  overflow: hidden;
+}
+.inbox-side-head {
+  flex: 0 0 auto;
+  padding: 1rem 1rem .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  border-bottom: 1px solid var(--border);
+}
+.inbox-side-title {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.inbox-side-count:empty { display: none; }
+.inbox-side-count {
+  padding: 0 .5rem;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  color: var(--accent);
+  font-size: .75rem;
+  line-height: 1.5rem;
+}
+.inbox-search {
+  width: 100%;
+  padding: .55rem .9rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: .9rem;
+}
+.inbox-search:focus { outline: none; border-color: #1184CF; background: var(--card); }
+
+.inbox-thread-list {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card);
+  gap: .15rem;
+  padding: .45rem;
 }
 
 .inbox-thread-item {
   display: flex;
   align-items: center;
-  gap: .6rem;
+  gap: .75rem;
   width: 100%;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-radius: 12px;
   background: none;
   text-align: left;
-  padding: .7rem .8rem;
+  padding: .6rem .65rem;
   cursor: pointer;
   font: inherit;
   font-size: .95rem;
   color: var(--ink);
+  transition: background .12s ease;
 }
-.inbox-thread-item:last-child { border-bottom: none; }
 .inbox-thread-item:hover { background: var(--accent-soft-bg); }
-.inbox-thread-item.active { background: var(--accent-soft-bg); box-shadow: inset 3px 0 0 var(--accent); }
+.inbox-thread-item.active {
+  background: linear-gradient(90deg, rgba(17, 132, 207, .16), rgba(67, 75, 215, .10));
+}
 .inbox-thread-item.has-unread .inbox-thread-name { font-weight: 700; }
-.inbox-thread-item.has-unread .inbox-thread-preview { color: var(--ink); }
+.inbox-thread-item.has-unread .inbox-thread-preview { color: var(--ink); font-weight: 600; }
+.inbox-thread-item.has-unread .inbox-thread-time { color: #1184CF; font-weight: 600; }
 
-.inbox-thread-avatar { width: 2.1rem; height: 2.1rem; flex: 0 0 auto; }
+.inbox-thread-avatar { width: 2.75rem; height: 2.75rem; flex: 0 0 auto; }
 
-.inbox-thread-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
-.inbox-thread-name { font-weight: 600; }
+.inbox-thread-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.inbox-thread-top,
+.inbox-thread-bottom { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.inbox-thread-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .inbox-thread-preview {
-  font-size: .82rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: .84rem;
   color: var(--ink-faint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.inbox-thread-time { flex: 0 0 auto; font-size: .75rem; color: var(--ink-faint); }
 
-.inbox-thread-time { flex: 0 0 auto; font-size: .78rem; color: var(--ink-faint); }
-
+/* Right pane: the open conversation. */
 .inbox-conversation {
   flex: 1 1 auto;
   min-width: 0;
@@ -2599,23 +2662,52 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 10px;
   background: var(--card);
-  padding: 1rem;
+  border: 1px solid var(--note-border);
+  border-radius: 18px;
+  box-shadow: var(--note-shadow);
   font-family: var(--font-ui);
 }
+.inbox-conversation > .chat-empty { margin: auto; }
+
+.inbox-placeholder {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .8rem;
+  color: var(--ink-faint);
+  font-size: .95rem;
+}
+.inbox-placeholder svg {
+  width: 3.4rem;
+  height: 3.4rem;
+  padding: .85rem;
+  border-radius: 50%;
+  color: #1184CF;
+  background: var(--accent-soft-bg);
+}
+.inbox-placeholder p { margin: 0; }
 
 .inbox-conv-head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: .55rem;
-  font-weight: 600;
-  font-size: 1.05rem;
-  margin-bottom: .8rem;
-  padding-bottom: .6rem;
+  gap: .7rem;
+  padding: .8rem 1.1rem;
   border-bottom: 1px solid var(--border);
 }
+.inbox-conv-avatar { width: 2.5rem; height: 2.5rem; flex: 0 0 auto; }
+.inbox-conv-who { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.inbox-conv-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inbox-conv-sub { display: flex; align-items: center; gap: .35rem; font-size: .8rem; color: var(--ink-faint); }
+.inbox-conv-flag { width: 1.1rem; height: .8rem; }
 
 /* Back-to-list arrow: only meaningful on the mobile one-pane layout, so
    it's hidden on desktop (where the thread list is always visible). */
@@ -2624,46 +2716,35 @@ body {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  margin-left: -.35rem;
-  padding: .1rem .35rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-left: -.4rem;
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: none;
-  color: var(--accent);
-  font-size: 1.5rem;
-  line-height: 1;
+  color: #1184CF;
   cursor: pointer;
 }
-.inbox-back:hover { color: var(--accent-strong); }
-
-.inbox-conv-avatar { width: 2rem; height: 2rem; flex: 0 0 auto; }
-.inbox-conv-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.inbox-back:hover { background: var(--accent-soft-bg); }
 
 .inbox-conv-thread {
-  /* .inbox-conversation now has a definite height (100% of the fixed-
-     height .inbox-layout), so this flex:1 1 auto child needs min-height:0
-     to actually shrink to the space left after the head/reply box —
-     without it, this inherits .chat-thread's overflow-y:auto but never
-     gets to use it, and the fixed-height parent overflows instead. */
+  /* .inbox-conversation has a definite height (100% of the fixed-height
+     .inbox-layout), so this flex child needs min-height:0 to shrink to the
+     space left after the head/reply box and scroll on its own. */
   flex: 1 1 auto;
   min-height: 0;
-  margin-bottom: .8rem;
+  padding: 1rem 1.1rem;
+  background: var(--paper);
 }
+.inbox-conversation .chat-compose { padding: .75rem 1rem 1rem; border-top: 1px solid var(--border); }
 
 @media (max-width: 860px) {
   /* Mobile: one pane at a time, Messenger-style — the thread list, OR a
-     single open conversation with a "←" back to the list. `.showing-conv`
-     (toggled by openInboxThread / backToInboxList) picks which. */
-  /* Fixed frame, same as desktop: only the pane below (list or conversation)
-     scrolls — the page itself never scrolls while the inbox is open. 100dvh
-     tracks the visible viewport as the mobile URL bar shows/hides. The
-     "Quản trị" / "Hộp thư" heading is dropped here to hand all the height
-     to the chats. */
+     single open conversation with a back arrow. `.showing-conv` (toggled by
+     openInboxThread / backToInboxList) picks which. The page itself never
+     scrolls; 100dvh tracks the visible viewport. The heading is dropped to
+     give all the height to the chats. */
   .chapter.admin-inbox {
     max-width: 100%;
     height: 100dvh;
@@ -2674,13 +2755,7 @@ body {
   .chapter.admin-inbox .chapter-lead-rule { display: none; }
   .inbox-layout { flex-direction: column; height: auto; gap: 0; margin-top: 0; }
 
-  .inbox-thread-list {
-    flex: 1 1 auto;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-  }
+  .inbox-side { flex: 1 1 auto; width: 100%; height: auto; min-height: 0; }
 
   .inbox-conversation {
     display: none;
@@ -2690,10 +2765,29 @@ body {
     min-height: 0;
   }
 
-  .inbox-layout.showing-conv .inbox-thread-list { display: none; }
+  .inbox-layout.showing-conv .inbox-side { display: none; }
   .inbox-layout.showing-conv .inbox-conversation { display: flex; }
 
   .inbox-back { display: inline-flex; }
+}
+
+/* ---------- Country flags (admin pages) ---------- */
+.flag {
+  display: inline-block;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(15, 27, 51, .12);
+  vertical-align: middle;
+}
+.avatar-wrap { position: relative; display: inline-flex; flex: 0 0 auto; }
+.avatar-flag {
+  position: absolute;
+  right: -.2rem;
+  bottom: -.1rem;
+  width: 1.15rem;
+  height: .82rem;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--card);
 }
 
 /* ---------- Sign-in modal (Google + email/phone, opened from the masthead
@@ -2769,92 +2863,176 @@ body {
   .signin-modal-card { font-size: 1.1rem; }
 }
 
-/* ---- Admin user list ("Người dùng", admin only) ---- */
-.chapter.admin-users { max-width: min(900px, calc(100vw - 4rem)); }
+/* ---- Admin user list ("Người dùng", admin only) ----
+   Dashboard style: stat tiles, search + filter chips, then a grid of cards. */
+.chapter.admin-users { max-width: min(1000px, calc(100vw - 4rem)); font-family: var(--font-ui); }
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .8rem;
+  margin: 1.4rem 0 1.2rem;
+}
+.admin-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: 1rem 1.1rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 16px;
+  box-shadow: var(--note-shadow);
+  overflow: hidden;
+}
+.admin-stat::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1184CF, #434BD7);
+}
+.admin-stat-n { font-size: 1.7rem; font-weight: 700; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.admin-stat-label { font-size: .82rem; color: var(--ink-faint); }
+.admin-stat-sub { display: flex; gap: .3rem; margin-top: .25rem; }
+.admin-stat-flag { width: 1.2rem; height: .86rem; }
 
 .admin-users-bar {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 1.4rem 0 1rem;
-  font-family: var(--font-ui);
+  margin: 0 0 .75rem;
 }
 .admin-users-search {
   flex: 1 1 auto;
   min-width: 0;
-  padding: .6rem .85rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  padding: .65rem 1rem;
+  border: 1px solid var(--note-border);
+  border-radius: 999px;
   background: var(--card);
   color: var(--ink);
   font: inherit;
   font-size: .95rem;
 }
-.admin-users-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-.admin-users-count { flex: 0 0 auto; color: var(--ink-faint); font-size: .9rem; }
+.admin-users-search:focus { outline: none; border-color: #1184CF; box-shadow: 0 0 0 3px rgba(17, 132, 207, .18); }
+.admin-users-count { flex: 0 0 auto; color: var(--ink-faint); font-size: .88rem; font-variant-numeric: tabular-nums; }
+
+.admin-chips { display: flex; flex-wrap: wrap; gap: .45rem; margin: 0 0 1.1rem; }
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .8rem;
+  border: 1px solid var(--note-border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.admin-chip:hover { background: var(--accent-soft-bg); color: var(--ink); }
+.admin-chip.is-active {
+  border-color: transparent;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+}
+.admin-chip-flag { width: 1.1rem; height: .8rem; }
+.admin-chip-n { opacity: .7; font-variant-numeric: tabular-nums; }
 
 .admin-user-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card);
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: .8rem;
 }
-.admin-user-list > .chat-empty { padding: 1.2rem; }
+.admin-user-list > .chat-empty { grid-column: 1 / -1; padding: 1.2rem; }
 .admin-user {
   display: flex;
-  align-items: center;
-  gap: .85rem;
-  padding: .8rem 1rem;
-  border-top: 1px solid var(--border);
-  font-family: var(--font-ui);
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1rem 1.1rem;
+  background: var(--card);
+  border: 1px solid var(--note-border);
+  border-radius: 16px;
+  box-shadow: var(--note-shadow);
+  transition: transform .12s ease, box-shadow .12s ease;
 }
-.admin-user:first-child { border-top: 0; }
-.admin-user-avatar { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; }
+.admin-user:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(17, 132, 207, .18); }
+.admin-user-top { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.admin-user-avatar { width: 2.9rem; height: 2.9rem; flex: 0 0 auto; }
 .admin-user-main { flex: 1 1 auto; min-width: 0; }
 .admin-user-main p { margin: 0; }
-.admin-user-name { color: var(--ink); font-weight: 600; font-size: .98rem; }
-.admin-user-contact,
-.admin-user-stats {
+.admin-user-name {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.admin-user-name > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-user-contact {
+  margin-top: .1rem !important;
   color: var(--ink-soft);
-  font-size: .85rem;
+  font-size: .84rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.admin-user-stats { color: var(--ink-faint); }
 .admin-user-tag {
-  display: inline-block;
-  margin-left: .35rem;
-  padding: .05rem .45rem;
+  flex: 0 0 auto;
+  padding: .05rem .5rem;
   border-radius: 999px;
   background: var(--accent-soft-bg);
   color: var(--accent);
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 600;
-  vertical-align: middle;
 }
+.admin-user-tag-new { background: #e5484d; color: #fff; }
+
+.admin-user-meta { display: flex; flex-wrap: wrap; gap: .35rem; }
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: .78rem;
+}
+.admin-pill-provider { background: var(--accent-soft-bg); color: var(--accent); font-weight: 600; }
+.admin-pill-flag { width: 1rem; height: .72rem; }
+
 .admin-user-dates {
-  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: .15rem;
+  justify-content: space-between;
+  gap: .5rem;
+  padding-top: .65rem;
+  border-top: 1px solid var(--border);
   color: var(--ink-faint);
-  font-size: .8rem;
-  white-space: nowrap;
+  font-size: .78rem;
 }
 
 @media (max-width: 860px) {
   .chapter.admin-users { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
+  .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  .admin-stat { padding: .8rem .9rem; }
+  .admin-stat-n { font-size: 1.4rem; }
   .admin-users-bar { flex-direction: column; align-items: stretch; gap: .4rem; }
   .admin-users-count { align-self: flex-end; }
-  .admin-user { flex-wrap: wrap; }
-  .admin-user-dates { flex-basis: 100%; flex-direction: row; justify-content: space-between; padding-left: 3.25rem; }
+  .admin-chips { flex-wrap: nowrap; overflow-x: auto; margin-left: -1rem; margin-right: -1rem; padding: 0 1rem .2rem; scrollbar-width: none; }
+  .admin-chip { flex: 0 0 auto; }
 }
-.admin-user-tag-new { background: #e5484d; color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-user, .admin-chip, .inbox-thread-item { transition: none; }
+  .admin-user:hover { transform: none; }
+}
 
 /* ---- Floating prev/next chapter buttons (always visible) ----
    Fixed to the bottom-left / bottom-right corners of the reader (right of

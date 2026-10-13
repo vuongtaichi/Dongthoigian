@@ -608,6 +608,100 @@
     }
     return u.email ? u.email.split('@')[0] : 'Người đọc';
   }
+  // ---- where a reader comes from (flag on the admin pages) ---------------
+  //
+  // Two sources, best first:
+  //  1. profiles.country — the 2-letter country of the reader's IP, read by
+  //     /api/geo (Vercel's X-Vercel-IP-Country header) and saved by the reader's
+  //     own browser after sign-in (syncMyCountry). Needs the `country` column
+  //     from supabase/country.sql; until it exists the query just fails quietly.
+  //  2. the calling code of a phone sign-up (+61… → AU), as a fallback.
+  var CALLING_CODES = {
+    '1': 'US', '7': 'RU', '20': 'EG', '27': 'ZA', '30': 'GR', '31': 'NL', '32': 'BE', '33': 'FR',
+    '34': 'ES', '36': 'HU', '39': 'IT', '40': 'RO', '41': 'CH', '43': 'AT', '44': 'GB', '45': 'DK',
+    '46': 'SE', '47': 'NO', '48': 'PL', '49': 'DE', '51': 'PE', '52': 'MX', '54': 'AR', '55': 'BR',
+    '56': 'CL', '57': 'CO', '60': 'MY', '61': 'AU', '62': 'ID', '63': 'PH', '64': 'NZ', '65': 'SG',
+    '66': 'TH', '81': 'JP', '82': 'KR', '84': 'VN', '86': 'CN', '90': 'TR', '91': 'IN', '92': 'PK',
+    '94': 'LK', '95': 'MM', '234': 'NG', '254': 'KE', '351': 'PT', '353': 'IE', '358': 'FI',
+    '380': 'UA', '420': 'CZ', '670': 'TL', '673': 'BN', '852': 'HK', '853': 'MO', '855': 'KH',
+    '856': 'LA', '880': 'BD', '886': 'TW', '966': 'SA', '971': 'AE', '972': 'IL', '974': 'QA', '977': 'NP'
+  };
+  function countryFromPhoneEmail(email) {
+    var m = /^p(\d+)@phone\.nkltt$/i.exec(email || '');
+    if (!m) return null;
+    for (var n = 3; n >= 1; n--) {
+      var c = CALLING_CODES[m[1].slice(0, n)];
+      if (c) return c;
+    }
+    return null;
+  }
+  var _regionNames = null;
+  function countryName(code) {
+    try {
+      if (!_regionNames) _regionNames = new Intl.DisplayNames(['vi'], { type: 'region' });
+      return _regionNames.of(code) || code;
+    } catch (e) { return code; }
+  }
+  // Flag as a small image (flagcdn.com) rather than an emoji: Windows has no
+  // flag emoji and would show the bare letters "VN".
+  function flagHtml(code, cls) {
+    if (!code || !/^[A-Z]{2}$/i.test(code)) return '';
+    var c = code.toLowerCase();
+    var name = countryName(code.toUpperCase());
+    return '<img class="flag' + (cls ? ' ' + cls : '') + '" src="https://flagcdn.com/w40/' + c + '.png" ' +
+      'srcset="https://flagcdn.com/w80/' + c + '.png 2x" alt="' + escapeAttr(name) + '" title="' + escapeAttr(name) +
+      '" loading="lazy" referrerpolicy="no-referrer">';
+  }
+  // Avatar with the flag pinned to its bottom-right corner.
+  function avatarFlagHtml(name, url, id, cls, idx, country) {
+    return '<span class="avatar-wrap">' + avatarHtml(name, url, id, cls, idx) +
+      flagHtml(country, 'avatar-flag') + '</span>';
+  }
+  // id → country for the given profile ids, merged into `into`. Quietly does
+  // nothing until the profiles.country column exists.
+  function loadCountries(ids, into, done) {
+    if (!sb || !ids.length) { if (done) done(); return; }
+    sb.from('profiles').select('id, country').in('id', ids).then(function (res) {
+      if (res && !res.error && res.data) {
+        res.data.forEach(function (r) { if (r.country) into[r.id] = String(r.country).toUpperCase(); });
+      }
+      if (done) done();
+    });
+  }
+  // After sign-in: ask /api/geo where this browser is and save it on the
+  // reader's own profile. At most once a day per browser.
+  var _countries = {};      // profile id → 'VN' (admin pages)
+  var _emailById = {};      // profile id → email, from admin_list_users (phone fallback)
+  function countryOf(uid) { return _countries[uid] || countryFromPhoneEmail(_emailById[uid]) || null; }
+  // Admin only: fills _emailById once from admin_list_users so phone sign-ups
+  // get a flag in the inbox too.
+  var _emailsLoaded = false;
+  function ensureAdminEmails(done) {
+    if (_emailsLoaded || !sb) { if (done) done(); return; }
+    sb.rpc('admin_list_users').then(function (res) {
+      if (res && !res.error && res.data) {
+        _emailsLoaded = true;
+        res.data.forEach(function (u) { _emailById[u.id] = u.email || ''; });
+      }
+      if (done) done();
+    });
+  }
+  var GEO_KEY = 'nkltt:geoSynced';
+  function syncMyCountry(uid) {
+    if (!sb || !uid || !window.fetch) return;
+    var today = new Date().toISOString().slice(0, 10);
+    try { if (localStorage.getItem(GEO_KEY) === uid + ':' + today) return; } catch (e) {}
+    fetch('/api/geo', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        var c = j && j.country;
+        if (!c || !/^[A-Z]{2}$/i.test(c)) return;
+        sb.from('profiles').update({ country: c.toUpperCase() }).eq('id', uid).then(function (res) {
+          if (res && !res.error) { try { localStorage.setItem(GEO_KEY, uid + ':' + today); } catch (e) {} }
+        });
+      })
+      .catch(function () {});
+  }
+
   // Sets `authUser` from the session, then fills in the display name, avatar and
   // is_admin flag from the profiles row (calls `done` again once that lands).
   function applyAuthUser(u, done) {
@@ -639,6 +733,7 @@
         authUser.isAdmin = !!d.is_admin;
       }
       _authSettled = true;
+      syncMyCountry(u.id);
       if (done) done();
     }
     sb.from('profiles').select('display_name, avatar_url, avatar_hue, bubble_hue, is_admin').eq('id', u.id).single().then(function (res) {
@@ -2088,27 +2183,40 @@
     }
   }
 
+  // Messenger-style row: avatar (+ flag), name and time on the first line,
+  // last message and the unread pill on the second.
   function inboxThreadLi(t) {
     var badge = t.unread ? '<span class="inbox-thread-badge">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
     return '<button type="button" class="inbox-thread-item' +
         (t.uid === _inboxSelected ? ' active' : '') + (t.unread ? ' has-unread' : '') +
         '" data-action="inbox-open" data-uid="' + escapeAttr(t.uid) + '">' +
-      avatarHtml(t.name, t.avatar, t.uid, 'inbox-thread-avatar', t.avatar ? null : t.hue) +
+      avatarFlagHtml(t.name, t.avatar, t.uid, 'inbox-thread-avatar', t.avatar ? null : t.hue, countryOf(t.uid)) +
       '<span class="inbox-thread-text">' +
-        '<span class="inbox-thread-name">' + escapeHtml(t.name) + '</span>' +
-        '<span class="inbox-thread-preview">' + escapeHtml(t.lastBody) + '</span>' +
+        '<span class="inbox-thread-top">' +
+          '<span class="inbox-thread-name">' + escapeHtml(t.name) + '</span>' +
+          '<span class="inbox-thread-time">' + escapeHtml(relTime(t.lastCreatedAt)) + '</span>' +
+        '</span>' +
+        '<span class="inbox-thread-bottom">' +
+          '<span class="inbox-thread-preview">' + escapeHtml(t.lastBody) + '</span>' +
+          badge +
+        '</span>' +
       '</span>' +
-      badge +
-      '<span class="inbox-thread-time">' + escapeHtml(relTime(t.lastCreatedAt)) + '</span>' +
     '</button>';
   }
 
+  var _inboxQuery = '';
   function renderInboxThreadList() {
     var list = document.getElementById('inboxThreadList');
     if (!list) return;
-    list.innerHTML = _inboxThreads.length
-      ? _inboxThreads.map(inboxThreadLi).join('')
-      : '<p class="chat-empty">Chưa có ai nhắn tin.</p>';
+    var q = _inboxQuery.trim().toLowerCase();
+    var rows = !q ? _inboxThreads : _inboxThreads.filter(function (t) {
+      return (t.name + ' ' + (t.lastBody || '')).toLowerCase().indexOf(q) !== -1;
+    });
+    list.innerHTML = rows.length
+      ? rows.map(inboxThreadLi).join('')
+      : '<p class="chat-empty">' + (q ? 'Không tìm thấy cuộc trò chuyện.' : 'Chưa có ai nhắn tin.') + '</p>';
+    var count = document.getElementById('inboxThreadCount');
+    if (count) count.textContent = _inboxThreads.length ? String(_inboxThreads.length) : '';
   }
 
   // Sums each thread's unread count onto the "Hộp thư" sidebar entry.
@@ -2192,6 +2300,13 @@
           });
           renderInboxThreadList();
           updateAdminInboxBadge();
+          // flags arrive a moment later; repaint once they're in
+          ensureAdminEmails(function () {
+            loadCountries(ids, _countries, function () {
+              renderInboxThreadList();
+              if (_inboxSelected) renderInboxConvHead();
+            });
+          });
         });
       });
   }
@@ -2202,11 +2317,7 @@
     var t = _inboxThreads.filter(function (x) { return x.uid === _inboxSelected; })[0];
     var name = t ? t.name : 'Người đọc';
     conv.innerHTML =
-      '<div class="inbox-conv-head">' +
-        '<button type="button" class="inbox-back" data-action="inbox-back" aria-label="Quay lại danh sách">&larr;</button>' +
-        avatarHtml(name, t && t.avatar, _inboxSelected, 'inbox-conv-avatar', (t && !t.avatar) ? t.hue : null) +
-        '<span class="inbox-conv-name">' + escapeHtml(name) + '</span>' +
-      '</div>' +
+      '<div class="inbox-conv-head" id="inboxConvHead">' + inboxConvHeadInner() + '</div>' +
       '<div class="chat-thread inbox-conv-thread" id="inboxConvThread"></div>' +
       composeFormHtml('inboxReplyForm', 'inbox', 'inboxReplyInput', 'Trả lời...');
     var threadEl = document.getElementById('inboxConvThread');
@@ -2215,6 +2326,25 @@
       : '<p class="chat-empty">Chưa có tin nhắn.</p>';
     threadEl.scrollTop = threadEl.scrollHeight;
     hydrateChatAttachments(threadEl);
+  }
+
+  function inboxConvHeadInner() {
+    var t = _inboxThreads.filter(function (x) { return x.uid === _inboxSelected; })[0];
+    var name = t ? t.name : 'Người đọc';
+    var c = countryOf(_inboxSelected);
+    var sub = c ? flagHtml(c, 'inbox-conv-flag') + '<span>' + escapeHtml(countryName(c)) + '</span>' : '';
+    return '<button type="button" class="inbox-back" data-action="inbox-back" aria-label="Quay lại danh sách">' +
+        '<svg viewBox="0 0 24 24" width="1.2em" height="1.2em" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+      avatarHtml(name, t && t.avatar, _inboxSelected, 'inbox-conv-avatar', (t && !t.avatar) ? t.hue : null) +
+      '<span class="inbox-conv-who">' +
+        '<span class="inbox-conv-name">' + escapeHtml(name) + '</span>' +
+        (sub ? '<span class="inbox-conv-sub">' + sub + '</span>' : '') +
+      '</span>';
+  }
+  function renderInboxConvHead() {
+    var h = document.getElementById('inboxConvHead');
+    if (h) h.innerHTML = inboxConvHeadInner();
   }
 
   function loadInboxMessages(uid) {
@@ -2323,8 +2453,16 @@
         '<h2 class="chapter-title">Hộp thư</h2>' +
         '<hr class="chapter-lead-rule">' +
         '<div class="inbox-layout">' +
-          '<div class="inbox-thread-list" id="inboxThreadList"><p class="chat-empty">Đang tải...</p></div>' +
-          '<div class="inbox-conversation" id="inboxConversation"><p class="chat-empty">Chọn một cuộc trò chuyện để xem.</p></div>' +
+          '<div class="inbox-side">' +
+            '<div class="inbox-side-head">' +
+              '<span class="inbox-side-title">Tin nhắn <span class="inbox-side-count" id="inboxThreadCount"></span></span>' +
+              '<input type="search" class="inbox-search" id="inboxSearch" placeholder="Tìm người hoặc tin nhắn..." autocomplete="off">' +
+            '</div>' +
+            '<div class="inbox-thread-list" id="inboxThreadList"><p class="chat-empty">Đang tải...</p></div>' +
+          '</div>' +
+          '<div class="inbox-conversation" id="inboxConversation">' +
+            '<div class="inbox-placeholder">' + CHAT_SVG_SM + '<p>Chọn một cuộc trò chuyện để xem.</p></div>' +
+          '</div>' +
         '</div>' +
       '</article>';
     scrollReaderToTop();
@@ -2333,6 +2471,11 @@
       btn.classList.toggle('active', btn.getAttribute('data-action') === 'admin-inbox');
     });
     _inboxSelected = null;
+    _inboxQuery = '';
+    document.getElementById('inboxSearch').addEventListener('input', function (ev) {
+      _inboxQuery = ev.target.value;
+      renderInboxThreadList();
+    });
     resetChatFabPos();
     loadInboxThreads();
     saveLastChapter(ADMIN_INBOX_ROUTE);
@@ -2388,19 +2531,27 @@
     return 'Email';
   }
 
+  // One card per account: avatar with flag, name + tags, contact line,
+  // activity pills, joined / last sign-in.
   function adminUserRow(u) {
-    var stats = [];
-    if (u.comment_count) stats.push(u.comment_count + ' bình luận');
-    if (u.message_count) stats.push(u.message_count + ' tin nhắn');
+    var c = countryOf(u.id);
+    var pills = [];
+    if (u.comment_count) pills.push('<span class="admin-pill">' + u.comment_count + ' bình luận</span>');
+    if (u.message_count) pills.push('<span class="admin-pill">' + u.message_count + ' tin nhắn</span>');
     return '<li class="admin-user">' +
-      avatarHtml(u.display_name, u.avatar_url, u.id, 'admin-user-avatar', u.avatar_url ? null : u.avatar_hue) +
-      '<div class="admin-user-main">' +
-        '<p class="admin-user-name">' + escapeHtml(u.display_name || 'Người đọc') +
-          (u.is_admin ? ' <span class="admin-user-tag">Quản trị</span>' : '') +
-          (u._new ? ' <span class="admin-user-tag admin-user-tag-new">Mới</span>' : '') + '</p>' +
-        '<p class="admin-user-contact">' + escapeHtml(adminUserContact(u)) +
-          ' · ' + escapeHtml(adminUserProvider(u)) + '</p>' +
-        (stats.length ? '<p class="admin-user-stats">' + escapeHtml(stats.join(' · ')) + '</p>' : '') +
+      '<div class="admin-user-top">' +
+        avatarFlagHtml(u.display_name, u.avatar_url, u.id, 'admin-user-avatar', u.avatar_url ? null : u.avatar_hue, c) +
+        '<div class="admin-user-main">' +
+          '<p class="admin-user-name"><span>' + escapeHtml(u.display_name || 'Người đọc') + '</span>' +
+            (u.is_admin ? '<span class="admin-user-tag">Quản trị</span>' : '') +
+            (u._new ? '<span class="admin-user-tag admin-user-tag-new">Mới</span>' : '') + '</p>' +
+          '<p class="admin-user-contact">' + escapeHtml(adminUserContact(u)) + '</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="admin-user-meta">' +
+        '<span class="admin-pill admin-pill-provider">' + escapeHtml(adminUserProvider(u)) + '</span>' +
+        (c ? '<span class="admin-pill">' + flagHtml(c, 'admin-pill-flag') + escapeHtml(countryName(c)) + '</span>' : '') +
+        pills.join('') +
       '</div>' +
       '<div class="admin-user-dates">' +
         '<span>Tham gia ' + escapeHtml(relTime(u.created_at)) + '</span>' +
@@ -2409,19 +2560,69 @@
     '</li>';
   }
 
+  var _adminUserFilter = 'all';     // all | new | google | email | phone | country:XX
+  var WEEK_MS = 7 * 24 * 3600 * 1000;
+
+  function adminUserMatchesFilter(u, f) {
+    if (f === 'all') return true;
+    if (f === 'new') return Date.now() - Date.parse(u.created_at) < WEEK_MS;
+    if (f.indexOf('country:') === 0) return countryOf(u.id) === f.slice(8);
+    var p = adminUserProvider(u);
+    return (f === 'google' && p === 'Google') || (f === 'email' && p === 'Email') || (f === 'phone' && p === 'Số điện thoại');
+  }
+
+  // Stat tiles + filter chips above the list (re-drawn with the list).
+  function renderAdminUserSummary() {
+    var stats = document.getElementById('adminUserStats');
+    var chips = document.getElementById('adminUserChips');
+    if (!stats || !chips) return;
+    var now = Date.now();
+    var newN = 0, activeN = 0, byCountry = {};
+    _adminUsers.forEach(function (u) {
+      if (now - Date.parse(u.created_at) < WEEK_MS) newN++;
+      if (u.last_sign_in_at && now - Date.parse(u.last_sign_in_at) < WEEK_MS) activeN++;
+      var c = countryOf(u.id);
+      if (c) byCountry[c] = (byCountry[c] || 0) + 1;
+    });
+    var codes = Object.keys(byCountry).sort(function (a, b) { return byCountry[b] - byCountry[a]; });
+    function tile(label, n, sub) {
+      return '<div class="admin-stat"><span class="admin-stat-n">' + n.toLocaleString('vi-VN') + '</span>' +
+        '<span class="admin-stat-label">' + label + '</span>' + (sub ? '<span class="admin-stat-sub">' + sub + '</span>' : '') + '</div>';
+    }
+    stats.innerHTML =
+      tile('Người dùng', _adminUsers.length) +
+      tile('Mới (7 ngày)', newN) +
+      tile('Hoạt động (7 ngày)', activeN) +
+      tile('Quốc gia', codes.length, codes.slice(0, 5).map(function (c) { return flagHtml(c, 'admin-stat-flag'); }).join(''));
+    function chip(key, label) {
+      return '<button type="button" class="admin-chip' + (_adminUserFilter === key ? ' is-active' : '') +
+        '" data-user-filter="' + escapeAttr(key) + '">' + label + '</button>';
+    }
+    chips.innerHTML =
+      chip('all', 'Tất cả') + chip('new', 'Mới') + chip('google', 'Google') + chip('email', 'Email') + chip('phone', 'SĐT') +
+      codes.map(function (c) {
+        return chip('country:' + c, flagHtml(c, 'admin-chip-flag') + escapeHtml(countryName(c)) +
+          ' <span class="admin-chip-n">' + byCountry[c] + '</span>');
+      }).join('');
+  }
+
   function renderAdminUserList() {
     var list = document.getElementById('adminUserList');
     if (!list) return;
+    renderAdminUserSummary();
     var input = document.getElementById('adminUserSearch');
     var q = input ? input.value.trim().toLowerCase() : '';
-    var rows = !q ? _adminUsers : _adminUsers.filter(function (u) {
-      return ((u.display_name || '') + ' ' + adminUserContact(u)).toLowerCase().indexOf(q) !== -1;
+    var rows = _adminUsers.filter(function (u) {
+      if (!adminUserMatchesFilter(u, _adminUserFilter)) return false;
+      if (!q) return true;
+      var c = countryOf(u.id);
+      return ((u.display_name || '') + ' ' + adminUserContact(u) + ' ' + (c ? countryName(c) : '')).toLowerCase().indexOf(q) !== -1;
     });
     var count = document.getElementById('adminUserCount');
-    if (count) count.textContent = (q ? rows.length + ' / ' : '') + _adminUsers.length + ' người dùng';
+    if (count) count.textContent = rows.length + ' / ' + _adminUsers.length;
     list.innerHTML = rows.length
       ? rows.map(adminUserRow).join('')
-      : '<li class="chat-empty">' + (q ? 'Không tìm thấy ai.' : 'Chưa có người dùng nào.') + '</li>';
+      : '<li class="chat-empty">' + ((q || _adminUserFilter !== 'all') ? 'Không tìm thấy ai.' : 'Chưa có người dùng nào.') + '</li>';
   }
 
   function loadAdminUsers() {
@@ -2436,6 +2637,11 @@
       var prevNew = {};
       _adminUsers.forEach(function (u) { if (u._new) prevNew[u.id] = true; });
       _adminUsers = res.data || [];
+      _adminUsers.forEach(function (u) { _emailById[u.id] = u.email || ''; });
+      _emailsLoaded = true;
+      loadCountries(_adminUsers.map(function (u) { return u.id; }), _countries, function () {
+        if (readerEl.querySelector('.admin-users')) renderAdminUserList();
+      });
       // "Mới" = new since the previous visit; keeps the tag through a
       // re-load while the page stays open.
       _adminUsers.forEach(function (u) { u._new = prevNew[u.id] || isNewAdminUser(u); });
@@ -2464,13 +2670,22 @@
         '<p class="chapter-kicker">Quản trị</p>' +
         '<h2 class="chapter-title">Người dùng</h2>' +
         '<hr class="chapter-lead-rule">' +
+        '<div class="admin-stats" id="adminUserStats"></div>' +
         '<div class="admin-users-bar">' +
-          '<input type="search" id="adminUserSearch" class="admin-users-search" placeholder="Tìm theo tên, email, số điện thoại..." autocomplete="off">' +
+          '<input type="search" id="adminUserSearch" class="admin-users-search" placeholder="Tìm theo tên, email, số điện thoại, quốc gia..." autocomplete="off">' +
           '<span class="admin-users-count" id="adminUserCount"></span>' +
         '</div>' +
+        '<div class="admin-chips" id="adminUserChips" role="group" aria-label="Lọc người dùng"></div>' +
         '<ul class="admin-user-list" id="adminUserList"><li class="chat-empty">Đang tải...</li></ul>' +
       '</article>';
+    _adminUserFilter = 'all';
     document.getElementById('adminUserSearch').addEventListener('input', renderAdminUserList);
+    document.getElementById('adminUserChips').addEventListener('click', function (ev) {
+      var b = ev.target.closest && ev.target.closest('[data-user-filter]');
+      if (!b) return;
+      _adminUserFilter = b.getAttribute('data-user-filter');
+      renderAdminUserList();
+    });
     scrollReaderToTop();
     updateProgress();
     Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
