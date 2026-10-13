@@ -1949,6 +1949,10 @@ body {
   font-family: var(--font-ui);
 }
 
+/* Admin "Hộp thư" page open: the inbox already is the chat, so the floating
+   button (and its panel) is hidden while it's on screen. */
+.app:has(.chapter.admin-inbox) .chat-widget { display: none; }
+
 .chat-fab {
   position: relative;
   width: 3.4rem;
