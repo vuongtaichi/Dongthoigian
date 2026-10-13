@@ -875,6 +875,16 @@ body {
 .reaction:disabled { cursor: default; }
 
 .reaction-emoji { line-height: 1; }
+
+/* Noto emoji artwork used in place of the OS emoji font (see emojiImg in
+   app.js). Sized in em so each spot keeps its existing emoji size. */
+.emoji-img {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -.22em;
+  pointer-events: none;   /* clicks land on the surrounding button */
+}
 .reaction-count { font-variant-numeric: tabular-nums; }
 
 /* the "＋ / smiley" add-reaction button */
@@ -1404,13 +1414,33 @@ body {
   transition: box-shadow .15s ease;
   /* so a drag on the button doesn't scroll the page on touch */
   touch-action: none;
+  isolation: isolate;
+}
+
+/* Hover/focus ring: the sign-in .auth-btn blue gradient, drawn as a 3px
+   ring just outside the logo (box-shadow can't take a gradient, so it's a
+   masked pseudo-element). */
+.chat-fab::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+          mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  opacity: 0;
+  transition: opacity .15s ease;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .chat-fab:hover,
 .chat-fab:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--fab-bg), var(--fab-shadow);
+  box-shadow: var(--fab-shadow);
 }
+.chat-fab:hover::before,
+.chat-fab:focus-visible::before { opacity: 1; }
 
 /* Site logo badge filling the round chat button. */
 .chat-fab-logo {

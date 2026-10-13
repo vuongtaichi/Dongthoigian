@@ -390,6 +390,45 @@
     { emoji: '😮', label: 'Ngạc nhiên' },
     { emoji: '😢', label: 'Buồn' }
   ];
+
+  // Emojis are drawn as Google's Noto emoji artwork (static SVG from the
+  // Google Fonts CDN) instead of the OS emoji font, so they look the same —
+  // and modern — on every device. Only the emojis the site itself offers
+  // (REACTIONS, CHAT_EMOJIS, the 🙂 / 📎 buttons) are swapped; anything else
+  // stays plain text, so an unknown emoji can never show a broken image.
+  var NOTO_EMOJI_BASE = 'https://fonts.gstatic.com/s/e/notoemoji/latest/';
+  function emojiCode(e) {
+    var out = [];
+    for (var i = 0; i < e.length; i++) {
+      var cp = e.codePointAt(i);
+      if (cp > 0xffff) i++;
+      out.push(cp.toString(16));
+    }
+    return out.join('_');
+  }
+  function knownEmojis() {
+    return REACTIONS.map(function (r) { return r.emoji; }).concat(CHAT_EMOJIS, ['🙂', '📎']);
+  }
+  function emojiImg(e) {
+    if (knownEmojis().indexOf(e) === -1) return escapeHtml(e);
+    return '<img class="emoji-img" src="' + NOTO_EMOJI_BASE + emojiCode(e) + '/emoji.svg" alt="' +
+      escapeAttr(e) + '" draggable="false">';
+  }
+  // Swap the site's known emojis inside already-escaped text (chat messages).
+  // A bare "❤" (no U+FE0F selector) is matched as "❤️" too.
+  var _emojiRe = null;
+  function bareEmoji(e) { return e.replace(/\uFE0F/g, ''); }
+  function emojifyHtml(html) {
+    var list = knownEmojis();
+    if (!_emojiRe) {
+      _emojiRe = new RegExp(list.slice().sort(function (a, b) { return b.length - a.length; })
+        .map(function (e) { return bareEmoji(e) + '\uFE0F?'; }).join('|'), 'g');
+    }
+    return html.replace(_emojiRe, function (m) {
+      var hit = list.filter(function (k) { return bareEmoji(k) === bareEmoji(m); })[0];
+      return hit ? emojiImg(hit) : m;
+    });
+  }
   var COMMENT_MAX = 2000;
   var NAME_MAX = 60;
 
@@ -640,10 +679,10 @@
     var choices = REACTIONS.map(function (r) {
       var mine = byEmoji[r.emoji] && byEmoji[r.emoji].mine;
       return '<button type="button" class="creact-choice' + (mine ? ' reacted' : '') +
-        '" data-action="creact-pick" data-emoji="' + escapeHtml(r.emoji) + '">' + r.emoji + '</button>';
+        '" data-action="creact-pick" data-emoji="' + escapeHtml(r.emoji) + '">' + emojiImg(r.emoji) + '</button>';
     }).join('');
     return '<button type="button" class="creact-add" data-action="creact-add" ' +
-        'aria-label="Bày tỏ cảm xúc">🙂<span class="creact-add-plus">+</span></button>' +
+        'aria-label="Bày tỏ cảm xúc">' + emojiImg('🙂') + '<span class="creact-add-plus">+</span></button>' +
       '<span class="creact-picker" hidden>' + choices + '</span>';
   }
 
@@ -657,7 +696,7 @@
         return '<button type="button" class="creact' + (d.mine ? ' reacted' : '') +
           '" data-action="creact-who" data-emoji="' + escapeHtml(r.emoji) +
           '" title="Xem ai đã bày tỏ">' +
-          r.emoji + ' <span>' + d.count + '</span></button>';
+          emojiImg(r.emoji) + ' <span>' + d.count + '</span></button>';
       }).join('');
   }
 
@@ -669,7 +708,7 @@
       return '<span class="who-chip">' + escapeHtml(label) + '</span>';
     }).join('');
     var more = d.users.length > 40 ? '<span class="who-more">và ' + (d.users.length - 40) + ' người khác</span>' : '';
-    return '<span class="who-emoji">' + emoji + '</span>' + chips + more;
+    return '<span class="who-emoji">' + emojiImg(emoji) + '</span>' + chips + more;
   }
 
   function repaintCommentReacts(commentId) {
@@ -845,7 +884,7 @@
       picker.innerHTML = REACTIONS.map(function (r) {
         return '<button type="button" class="reaction-choice" data-action="react-choice" ' +
           'data-emoji="' + escapeHtml(r.emoji) + '" title="' + escapeHtml(r.label) + '">' +
-          r.emoji + '</button>';
+          emojiImg(r.emoji) + '</button>';
       }).join('');
     }
     var who = document.getElementById('reactionWho');
@@ -892,7 +931,7 @@
         return '<button type="button" class="reaction reaction-pill' + (mine ? ' reacted' : '') +
           '" data-action="react-who" data-emoji="' + escapeHtml(r.emoji) +
           '" title="' + escapeHtml(r.label) + (authUser ? ' — xem ai đã bày tỏ' : '') + '">' +
-          '<span class="reaction-emoji">' + r.emoji + '</span>' +
+          '<span class="reaction-emoji">' + emojiImg(r.emoji) + '</span>' +
           '<span class="reaction-count">' + _reactors[r.emoji].length + '</span></button>';
       }).join('');
       addBtn.insertAdjacentHTML('beforebegin', html);
@@ -1401,7 +1440,7 @@
   function chatEmojiButtonsHtml() {
     return CHAT_EMOJIS.map(function (e) {
       return '<button type="button" class="chat-emoji-choice" data-action="chat-emoji-pick" data-emoji="' +
-        escapeAttr(e) + '">' + e + '</button>';
+        escapeAttr(e) + '" aria-label="' + escapeAttr(e) + '">' + emojiImg(e) + '</button>';
     }).join('');
   }
 
@@ -1416,11 +1455,11 @@
   function composeToolsHtml(prefix) {
     return '<div class="chat-compose-icons">' +
         '<span class="chat-emoji-wrap">' +
-          '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">🙂</button>' +
+          '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">' + emojiImg('🙂') + '</button>' +
           '<span class="chat-emoji-popover" hidden>' + chatEmojiButtonsHtml() + '</span>' +
         '</span>' +
         '<button type="button" class="chat-tool-btn" data-action="chat-attach" data-for="' + prefix +
-          '" aria-label="Đính kèm tệp">📎</button>' +
+          '" aria-label="Đính kèm tệp">' + emojiImg('📎') + '</button>' +
       '</div>' +
       '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
   }
@@ -1612,7 +1651,7 @@
       var c = paletteColor(hue);
       style = ' style="background:' + c.bg + ';color:' + c.fg + '"';
     }
-    var bodyHtml = m.body ? '<div class="chat-msg-text">' + escapeHtml(m.body).replace(/\r?\n/g, '<br>') + '</div>' : '';
+    var bodyHtml = m.body ? '<div class="chat-msg-text">' + emojifyHtml(escapeHtml(m.body)).replace(/\r?\n/g, '<br>') + '</div>' : '';
     var attachmentHtml = '';
     if (m.attachment_path) {
       var isImage = (m.attachment_type || '').indexOf('image/') === 0;
@@ -1620,7 +1659,7 @@
         ? '<img class="chat-attachment-img" alt="' + escapeAttr(m.attachment_name || '') +
             '" data-path="' + escapeAttr(m.attachment_path) + '">'
         : '<a class="chat-attachment-file" href="#" target="_blank" rel="noopener" data-path="' +
-            escapeAttr(m.attachment_path) + '">📎 <span>' + escapeHtml(m.attachment_name || 'Tệp đính kèm') + '</span></a>';
+            escapeAttr(m.attachment_path) + '">' + emojiImg('📎') + ' <span>' + escapeHtml(m.attachment_name || 'Tệp đính kèm') + '</span></a>';
     }
     // A short "undo", not general moderation — matches the 2-minute recall
     // policy in comments-setup.sql, so a click past the window just fails
