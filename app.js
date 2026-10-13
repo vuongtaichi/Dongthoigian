@@ -616,16 +616,32 @@
   //     own browser after sign-in (syncMyCountry). Needs the `country` column
   //     from supabase/country.sql; until it exists the query just fails quietly.
   //  2. the calling code of a phone sign-up (+61… → AU), as a fallback.
-  var CALLING_CODES = {
-    '1': 'US', '7': 'RU', '20': 'EG', '27': 'ZA', '30': 'GR', '31': 'NL', '32': 'BE', '33': 'FR',
-    '34': 'ES', '36': 'HU', '39': 'IT', '40': 'RO', '41': 'CH', '43': 'AT', '44': 'GB', '45': 'DK',
-    '46': 'SE', '47': 'NO', '48': 'PL', '49': 'DE', '51': 'PE', '52': 'MX', '54': 'AR', '55': 'BR',
-    '56': 'CL', '57': 'CO', '60': 'MY', '61': 'AU', '62': 'ID', '63': 'PH', '64': 'NZ', '65': 'SG',
-    '66': 'TH', '81': 'JP', '82': 'KR', '84': 'VN', '86': 'CN', '90': 'TR', '91': 'IN', '92': 'PK',
-    '94': 'LK', '95': 'MM', '234': 'NG', '254': 'KE', '351': 'PT', '353': 'IE', '358': 'FI',
-    '380': 'UA', '420': 'CZ', '670': 'TL', '673': 'BN', '852': 'HK', '853': 'MO', '855': 'KH',
-    '856': 'LA', '880': 'BD', '886': 'TW', '966': 'SA', '971': 'AE', '972': 'IL', '974': 'QA', '977': 'NP'
-  };
+  // Every country's calling code ('VN84' = Việt Nam, +84), from Google's
+  // libphonenumber. Ordered by code; where several countries share one (+1,
+  // +7, +44…) the main one comes first. Names come from Intl.DisplayNames.
+  var CALLING_CODE_DATA =
+    'US1,AG1,AI1,AS1,BB1,BM1,BS1,CA1,DM1,DO1,GD1,GU1,JM1,KN1,KY1,LC1,MP1,MS1,PR1,SX1,TC1,TT1,VC1,VG1,' +
+    'VI1,RU7,KZ7,EG20,ZA27,GR30,NL31,BE32,FR33,ES34,HU36,IT39,VA39,RO40,CH41,AT43,GB44,GG44,IM44,JE44,' +
+    'DK45,SE46,NO47,SJ47,PL48,DE49,PE51,MX52,CU53,AR54,BR55,CL56,CO57,VE58,MY60,AU61,CC61,CX61,ID62,' +
+    'PH63,NZ64,SG65,TH66,JP81,KR82,VN84,CN86,TR90,IN91,PK92,AF93,LK94,MM95,IR98,SS211,MA212,EH212,' +
+    'DZ213,TN216,LY218,GM220,SN221,MR222,ML223,GN224,CI225,BF226,NE227,TG228,BJ229,MU230,LR231,SL232,' +
+    'GH233,NG234,TD235,CF236,CM237,CV238,ST239,GQ240,GA241,CG242,CD243,AO244,GW245,IO246,AC247,SC248,' +
+    'SD249,RW250,ET251,SO252,DJ253,KE254,TZ255,UG256,BI257,MZ258,ZM260,MG261,RE262,YT262,ZW263,NA264,' +
+    'MW265,LS266,BW267,SZ268,KM269,SH290,TA290,ER291,AW297,FO298,GL299,GI350,PT351,LU352,IE353,IS354,' +
+    'AL355,MT356,CY357,FI358,AX358,BG359,LT370,LV371,EE372,MD373,AM374,BY375,AD376,MC377,SM378,UA380,' +
+    'RS381,ME382,XK383,HR385,SI386,BA387,MK389,CZ420,SK421,LI423,FK500,BZ501,GT502,SV503,HN504,NI505,' +
+    'CR506,PA507,PM508,HT509,GP590,BL590,MF590,BO591,GY592,EC593,GF594,PY595,MQ596,SR597,UY598,CW599,' +
+    'BQ599,TL670,NF672,BN673,NR674,PG675,TO676,SB677,VU678,FJ679,PW680,WF681,CK682,NU683,WS685,KI686,' +
+    'NC687,TV688,PF689,TK690,FM691,MH692,KP850,HK852,MO853,KH855,LA856,BD880,TW886,MV960,LB961,JO962,' +
+    'SY963,IQ964,KW965,SA966,YE967,OM968,PS970,AE971,IL972,BH973,QA974,BT975,MN976,NP977,TJ992,TM993,' +
+    'AZ994,GE995,KG996,UZ998';
+  var PHONE_COUNTRIES = [];        // [{ iso: 'VN', code: '84' }, …]
+  var CALLING_CODES = {};          // '84' → 'VN' (main country for each code)
+  CALLING_CODE_DATA.split(',').forEach(function (e) {
+    var iso = e.slice(0, 2), code = e.slice(2);
+    PHONE_COUNTRIES.push({ iso: iso, code: code });
+    if (!CALLING_CODES[code]) CALLING_CODES[code] = iso;
+  });
   function countryFromPhoneEmail(email) {
     var m = /^p(\d+)@phone\.nkltt$/i.exec(email || '');
     if (!m) return null;
@@ -650,7 +666,7 @@
     var name = countryName(code.toUpperCase());
     return '<img class="flag' + (cls ? ' ' + cls : '') + '" src="https://flagcdn.com/w40/' + c + '.png" ' +
       'srcset="https://flagcdn.com/w80/' + c + '.png 2x" alt="' + escapeAttr(name) + '" title="' + escapeAttr(name) +
-      '" loading="lazy" referrerpolicy="no-referrer">';
+      '" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility=\'hidden\'">';
   }
   // Avatar with the flag pinned to its bottom-right corner.
   function avatarFlagHtml(name, url, id, cls, idx, country) {
@@ -3058,6 +3074,13 @@
   // button in the guest gate above the comments (renderGuestGate). Its fields
   // use signin* ids of their own.
 
+  // Small line icons inside the sign-in fields.
+  var ICON_MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+  var ICON_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+  var ICON_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  var ICON_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var ICON_CARET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
   function ensureSigninModal() {
     if (document.getElementById('signinModal')) return;
     var host = document.querySelector('.app') || document.body;
@@ -3069,31 +3092,186 @@
       '<div class="signin-modal-backdrop" data-action="signin-close"></div>' +
       '<div class="signin-modal-card" role="dialog" aria-modal="true" aria-label="Đăng nhập / Đăng ký">' +
         '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
-        '<h3 class="signin-modal-title">Đăng nhập / Đăng ký</h3>' +
-        '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
-          GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
-        '<div class="signin-modal-divider"><span>hoặc</span></div>' +
-        '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on">' +
-          '<div class="auth-tabs">' +
+        '<div class="signin-hero">' +
+          '<img class="signin-logo" src="assets/logo_v2.svg" alt="" />' +
+          '<h3 class="signin-modal-title" id="signinTitle">Chào mừng trở lại</h3>' +
+          '<p class="signin-sub" id="signinSub">Đăng nhập để bình luận, nhắn tin và lưu những đoạn bạn tâm đắc.</p>' +
+        '</div>' +
+        '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on" novalidate>' +
+          '<div class="auth-tabs" role="tablist">' +
             '<button type="button" class="auth-tab is-active" data-action="signin-tab" data-mode="signin">Đăng nhập</button>' +
             '<button type="button" class="auth-tab" data-action="signin-tab" data-mode="signup">Đăng ký</button>' +
           '</div>' +
+          '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
+            GOOGLE_G_SVG + '<span>Tiếp tục với Google</span></button>' +
+          '<div class="signin-modal-divider"><span>hoặc dùng</span></div>' +
           '<div class="auth-idtype">' +
             '<button type="button" class="auth-idbtn is-active" data-action="signin-idtype" data-type="email">Email</button>' +
             '<button type="button" class="auth-idbtn" data-action="signin-idtype" data-type="phone">Số điện thoại</button>' +
           '</div>' +
-          '<input type="text" id="signinName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" hidden />' +
-          '<input type="email" id="signinIdentity" class="auth-input" placeholder="Email" required autocomplete="email" inputmode="email" />' +
-          '<input type="password" id="signinPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required minlength="6" autocomplete="current-password" />' +
-          '<div class="auth-email-row">' +
-            '<span class="auth-msg" id="signinMsg" role="status"></span>' +
-            '<button type="submit" class="auth-btn" id="signinSubmit">Đăng nhập</button>' +
+          '<label class="auth-field" id="signinNameField" hidden>' + ICON_USER +
+            '<input type="text" id="signinName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" autocomplete="nickname" /></label>' +
+          '<label class="auth-field" id="signinEmailField">' + ICON_MAIL +
+            '<input type="email" id="signinIdentity" class="auth-input" placeholder="Email" autocomplete="email" inputmode="email" /></label>' +
+          // phone: country-code picker + national number, side by side
+          '<div class="phone-row" id="signinPhoneRow" hidden>' +
+            '<button type="button" class="phone-cc" id="phoneCcBtn" data-action="phone-cc-toggle" ' +
+              'aria-haspopup="listbox" aria-expanded="false" aria-label="Mã quốc gia"></button>' +
+            '<input type="tel" id="signinPhone" class="auth-input phone-num" placeholder="912 345 678" ' +
+              'inputmode="tel" autocomplete="tel-national" />' +
+            '<div class="phone-cc-pop" id="phoneCcPop" hidden>' +
+              '<input type="search" id="phoneCcSearch" class="phone-cc-search" placeholder="Tìm quốc gia hoặc mã, vd: Úc, +61" autocomplete="off" />' +
+              '<ul class="phone-cc-list" id="phoneCcList" role="listbox" aria-label="Quốc gia"></ul>' +
+            '</div>' +
           '</div>' +
+          '<label class="auth-field auth-field-pass">' + ICON_LOCK +
+            '<input type="password" id="signinPassword" class="auth-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)" minlength="6" autocomplete="current-password" />' +
+            '<button type="button" class="auth-eye" data-action="signin-eye" aria-label="Hiện mật khẩu" aria-pressed="false">' + ICON_EYE + '</button>' +
+          '</label>' +
+          '<span class="auth-msg" id="signinMsg" role="status"></span>' +
+          '<button type="submit" class="auth-btn auth-submit" id="signinSubmit">Đăng nhập</button>' +
         '</form>' +
+        '<p class="signin-legal">Khi tiếp tục, bạn đồng ý với <a href="/terms.html">Điều khoản</a> và ' +
+          '<a href="/privacy.html">Chính sách quyền riêng tư</a>.</p>' +
       '</div>';
     host.appendChild(m);
     defeatAutofillFont(m);
+    setPhoneCountry(_phoneIso);
+    var search = m.querySelector('#phoneCcSearch');
+    search.addEventListener('input', renderPhoneCcList);
+    search.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') { ev.stopPropagation(); closePhoneCcPop(true); }
+      else if (ev.key === 'Enter') {
+        ev.preventDefault();
+        var first = m.querySelector('.phone-cc-opt');
+        if (first) { setPhoneCountry(first.getAttribute('data-iso')); closePhoneCcPop(true); }
+      } else if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        var f = m.querySelector('.phone-cc-opt');
+        if (f) f.focus();
+      }
+    });
+    m.querySelector('#phoneCcList').addEventListener('keydown', function (ev) {
+      var o = ev.target.closest && ev.target.closest('.phone-cc-opt');
+      if (!o) return;
+      if (ev.key === 'ArrowDown' && o.nextElementSibling) { ev.preventDefault(); o.nextElementSibling.focus(); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); (o.previousElementSibling || search).focus(); }
+      else if (ev.key === 'Escape') { ev.stopPropagation(); closePhoneCcPop(true); }
+    });
+    // A full number pasted or typed with "+" picks the country from its code.
+    m.querySelector('#signinPhone').addEventListener('input', function (ev) {
+      var v = ev.target.value;
+      if (v.charAt(0) !== '+') return;
+      var d = v.replace(/\D/g, '');
+      for (var n = 3; n >= 1; n--) {
+        var iso = CALLING_CODES[d.slice(0, n)];
+        if (iso && d.length > n) {
+          setPhoneCountry(iso);
+          ev.target.value = d.slice(n);
+          return;
+        }
+      }
+    });
   }
+
+  // ---- phone country-code picker (sign-in modal) ---------------------------
+  var _phoneIso = 'VN';            // default: Việt Nam (+84)
+  function phoneCodeOf(iso) {
+    for (var i = 0; i < PHONE_COUNTRIES.length; i++) if (PHONE_COUNTRIES[i].iso === iso) return PHONE_COUNTRIES[i].code;
+    return '84';
+  }
+  function setPhoneCountry(iso) {
+    _phoneIso = iso;
+    var btn = document.getElementById('phoneCcBtn');
+    if (btn) {
+      btn.innerHTML = flagHtml(iso, 'phone-cc-flag') + '<span class="phone-cc-code">+' + phoneCodeOf(iso) + '</span>' + ICON_CARET;
+      btn.title = countryName(iso);
+    }
+  }
+  function foldVi(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+  }
+  var _enNames = null;
+  function countryNameEn(iso) {
+    try { if (!_enNames) _enNames = new Intl.DisplayNames(['en'], { type: 'region' }); return _enNames.of(iso) || ''; }
+    catch (e) { return ''; }
+  }
+  // Everyday Vietnamese names that differ from Intl's (search only).
+  var CC_ALIASES = { AU: 'úc', US: 'mỹ hoa kỳ', GB: 'anh', KR: 'hàn quốc', JP: 'nhật bản', CN: 'trung quốc',
+    TW: 'đài loan', RU: 'nga', FR: 'pháp', DE: 'đức', NZ: 'new zealand tân tây lan', KH: 'campuchia cam bốt' };
+  function ccRank(c, q) {
+    if (/^\d+$/.test(q)) return c.code === q ? 0 : 1;
+    var hay = [foldVi(c.name), foldVi(countryNameEn(c.iso)), foldVi(CC_ALIASES[c.iso] || '')];
+    if (c.iso.toLowerCase() === q) return 0;
+    for (var i = 0; i < hay.length; i++) if (hay[i].indexOf(q) === 0) return 1;
+    for (i = 0; i < hay.length; i++) if ((' ' + hay[i]).indexOf(' ' + q) !== -1) return 2;
+    for (i = 0; i < hay.length; i++) if (hay[i].indexOf(q) !== -1) return 3;
+    return -1;
+  }
+  function renderPhoneCcList() {
+    var list = document.getElementById('phoneCcList');
+    if (!list) return;
+    var raw = (document.getElementById('phoneCcSearch') || {}).value || '';
+    var q = foldVi(raw.trim()).replace(/^\+/, '');
+    var rows = PHONE_COUNTRIES.map(function (c) {
+      return { iso: c.iso, code: c.code, name: countryName(c.iso) };
+    }).filter(function (c) {
+      if (!q) return true;
+      if (/^\d+$/.test(q)) return c.code.indexOf(q) === 0;
+      c._r = ccRank(c, q);
+      return c._r !== -1;
+    });
+    if (/^\d+$/.test(q)) rows.forEach(function (c) { c._r = ccRank(c, q); });
+    rows.sort(function (a, b) {
+      // no search: the selected one first; searching: best match first; then by name
+      if (!q) {
+        if (a.iso === _phoneIso) return -1;
+        if (b.iso === _phoneIso) return 1;
+      } else if (a._r !== b._r) return a._r - b._r;
+      // within one code, keep the main country (+1 → US) above the others
+      if (/^\d+$/.test(q) && a.code === b.code) {
+        if (CALLING_CODES[a.code] === a.iso) return -1;
+        if (CALLING_CODES[b.code] === b.iso) return 1;
+      }
+      return a.name.localeCompare(b.name, 'vi');
+    });
+    list.innerHTML = rows.length ? rows.map(function (c) {
+      return '<li class="phone-cc-opt' + (c.iso === _phoneIso ? ' is-active' : '') + '" role="option" tabindex="-1" ' +
+        'aria-selected="' + (c.iso === _phoneIso) + '" data-action="phone-cc-pick" data-iso="' + c.iso + '">' +
+        flagHtml(c.iso, 'phone-cc-flag') + '<span class="phone-cc-name">' + escapeHtml(c.name) + '</span>' +
+        '<span class="phone-cc-dial">+' + c.code + '</span></li>';
+    }).join('') : '<li class="phone-cc-empty">Không tìm thấy quốc gia.</li>';
+  }
+  function openPhoneCcPop() {
+    var pop = document.getElementById('phoneCcPop');
+    if (!pop) return;
+    var search = document.getElementById('phoneCcSearch');
+    search.value = '';
+    renderPhoneCcList();
+    pop.hidden = false;
+    document.getElementById('phoneCcBtn').setAttribute('aria-expanded', 'true');
+    search.focus();
+  }
+  function closePhoneCcPop(refocus) {
+    var pop = document.getElementById('phoneCcPop');
+    if (!pop || pop.hidden) return;
+    pop.hidden = true;
+    var btn = document.getElementById('phoneCcBtn');
+    btn.setAttribute('aria-expanded', 'false');
+    if (refocus) { var n = document.getElementById('signinPhone'); if (n) n.focus(); }
+  }
+  function togglePhoneCcPop() {
+    var pop = document.getElementById('phoneCcPop');
+    if (pop && pop.hidden) openPhoneCcPop(); else closePhoneCcPop(false);
+  }
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var o = ev.target && ev.target.closest && ev.target.closest('.phone-cc-opt');
+    if (!o) return;
+    ev.preventDefault();
+    setPhoneCountry(o.getAttribute('data-iso'));
+    closePhoneCcPop(true);
+  });
 
   function openSigninModal() {
     if (authUser) return;
@@ -3106,6 +3284,7 @@
   function closeSigninModal() {
     var m = document.getElementById('signinModal');
     if (m) m.hidden = true;
+    closePhoneCcPop(false);
   }
 
   function switchSigninTab(mode) {
@@ -3115,12 +3294,20 @@
     Array.prototype.forEach.call(form.querySelectorAll('.auth-tab'), function (t) {
       t.classList.toggle('is-active', t.getAttribute('data-mode') === mode);
     });
-    var nameField = form.querySelector('#signinName');
+    var nameField = form.querySelector('#signinNameField');
     if (nameField) nameField.hidden = (mode !== 'signup');
+    var title = document.getElementById('signinTitle');
+    if (title) title.textContent = (mode === 'signup') ? 'Tạo tài khoản' : 'Chào mừng trở lại';
+    var sub = document.getElementById('signinSub');
+    if (sub) sub.textContent = (mode === 'signup')
+      ? 'Miễn phí, chỉ mất vài giây. Bạn vẫn đọc được toàn bộ nhật ký mà không cần tài khoản.'
+      : 'Đăng nhập để bình luận, nhắn tin và lưu những đoạn bạn tâm đắc.';
     var pass = form.querySelector('#signinPassword');
     if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
     var submit = form.querySelector('#signinSubmit');
     if (submit) submit.textContent = (mode === 'signup') ? 'Đăng ký' : 'Đăng nhập';
+    var msgEl = form.querySelector('#signinMsg');
+    if (msgEl) msgEl.textContent = '';
   }
 
   function switchSigninIdType(type) {
@@ -3131,13 +3318,13 @@
     Array.prototype.forEach.call(form.querySelectorAll('.auth-idbtn'), function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-type') === (phone ? 'phone' : 'email'));
     });
-    var id = form.querySelector('#signinIdentity');
-    if (!id) return;
-    id.type = phone ? 'tel' : 'email';
-    id.placeholder = phone ? '+84 9xx xxx xxx' : 'Email';
-    id.setAttribute('inputmode', phone ? 'tel' : 'email');
-    id.setAttribute('autocomplete', phone ? 'tel' : 'email');
-    id.value = '';
+    var emailField = form.querySelector('#signinEmailField');
+    var phoneRow = form.querySelector('#signinPhoneRow');
+    if (emailField) emailField.hidden = phone;
+    if (phoneRow) phoneRow.hidden = !phone;
+    closePhoneCcPop(false);
+    var focusEl = form.querySelector(phone ? '#signinPhone' : '#signinIdentity');
+    if (focusEl) focusEl.focus();
     var m = form.querySelector('#signinMsg');
     if (m) m.textContent = '';
   }
@@ -3149,18 +3336,21 @@
     var mode = form.getAttribute('data-mode') || 'signin';
     var idtype = form.getAttribute('data-idtype') || 'email';
     var identity = fieldVal(form, '#signinIdentity');
+    var phoneRaw = fieldVal(form, '#signinPhone');
     var pass = fieldVal(form, '#signinPassword');
     var name = fieldVal(form, '#signinName');
     var msg = form.querySelector('#signinMsg');
     var submit = form.querySelector('#signinSubmit');
 
-    var email;
+    var email, altEmail = null;
     if (idtype === 'phone') {
-      email = phoneToEmail(identity);
-      if (!email) {
-        if (msg) msg.textContent = 'Số điện thoại phải kèm mã quốc gia, ví dụ +84…';
+      var ph = phoneEmails(phoneCodeOf(_phoneIso), phoneRaw);
+      if (!ph) {
+        if (msg) msg.textContent = 'Nhập số điện thoại hợp lệ.';
         return;
       }
+      email = ph.email;
+      altEmail = ph.legacy;
     } else {
       email = identity;
       if (!email) { if (msg) msg.textContent = 'Nhập email của bạn.'; return; }
@@ -3177,11 +3367,20 @@
     if (msg) msg.textContent = 'Đang xử lý...';
     var p = (mode === 'signup')
       ? sb.auth.signUp({ email: email, password: pass, options: { data: name ? { full_name: name } : {} } })
-      : sb.auth.signInWithPassword({ email: email, password: pass });
+      : sb.auth.signInWithPassword({ email: email, password: pass }).then(function (res) {
+          // Accounts made before the split code/number boxes may have been
+          // registered with the 0 kept (+84 0912…) — try that form too.
+          if (res.error && altEmail && /invalid login credentials/i.test(res.error.message || '')) {
+            return sb.auth.signInWithPassword({ email: altEmail, password: pass });
+          }
+          return res;
+        });
     p.then(function (res) {
       if (submit) submit.disabled = false;
       if (res.error) {
-        if (msg) msg.textContent = translateAuthError(res.error.message);
+        var t = translateAuthError(res.error.message);
+        if (idtype === 'phone') t = t.replace(/^Email/, 'Số điện thoại').replace('Email này', 'Số điện thoại này');
+        if (msg) msg.textContent = t;
         return;
       }
       if (res.data && !res.data.session) {
@@ -3200,6 +3399,18 @@
     var s = (raw || '').replace(/[^\d+]/g, '');
     if (!/^\+\d{6,15}$/.test(s)) return null;
     return 'p' + s.slice(1) + '@' + PHONE_DOMAIN;
+  }
+
+  // Country code + the number as typed (spaces, dots, a leading 0 all fine:
+  // 0912 345 678 and 912345678 are the same number) → the synthetic email.
+  // `legacy` is the same number with the 0 kept, for older accounts.
+  function phoneEmails(code, raw) {
+    var d = String(raw || '').replace(/\D/g, '');
+    if (d.indexOf('00' + code) === 0) d = d.slice(2 + code.length);   // 0084 912…
+    d = d.replace(/^0+/, '');
+    var email = phoneToEmail('+' + code + d);
+    if (!email) return null;
+    return { email: email, legacy: phoneToEmail('+' + code + '0' + d) };
   }
 
   // Chrome renders :-webkit-autofill fields in its own small font and ignores
@@ -3691,6 +3902,7 @@
       if (_chatOpen && !(ev.target.closest && ev.target.closest('#chatWidget'))) closeChatPanel();
       if (!(ev.target.closest && ev.target.closest('.chat-emoji-wrap'))) closeAllChatEmojiPopovers();
       if (!(ev.target.closest && ev.target.closest('.chat-color-wrap'))) closeChatColorPopover();
+      if (!(ev.target.closest && ev.target.closest('#signinPhoneRow'))) closePhoneCcPop(false);
       if (!a) return;
       var act = a.getAttribute('data-action');
       if (act === 'signout') { closeProfileModal(); doSignOut(); }
@@ -3705,6 +3917,15 @@
       else if (act === 'signin-google') doGoogleSignIn();
       else if (act === 'signin-tab') switchSigninTab(a.getAttribute('data-mode'));
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
+      else if (act === 'phone-cc-toggle') togglePhoneCcPop();
+      else if (act === 'phone-cc-pick') { setPhoneCountry(a.getAttribute('data-iso')); closePhoneCcPop(true); }
+      else if (act === 'signin-eye') {
+        var pw = document.getElementById('signinPassword');
+        var show = pw.type === 'password';
+        pw.type = show ? 'text' : 'password';
+        a.setAttribute('aria-pressed', String(show));
+        a.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+      }
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'admin-users') { renderAdminUsers(); closeDrawer(); }
       else if (act === 'saved-page') { renderSaved(); closeDrawer(); }
