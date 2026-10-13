@@ -44,7 +44,7 @@
   --border: #dce3f0;
 
   /* Sidebar: deep navy → indigo gradient (--sidebar-bg is its top colour,
-     --sidebar-bg-end the bottom one). */
+     --sidebar-bg-end is mixed 50/50 with it for the middle-to-bottom colour). */
   --sidebar-bg: #0b1530;
   --sidebar-bg-end: #1b1d5c;
   --sidebar-bg-elevated: #17264a;
@@ -196,11 +196,12 @@ body {
 .sidebar {
   flex: 0 0 363px;
   width: 363px;
-  /* navy → indigo top to bottom (even across the width), with a cyan glow
-     top-left */
+  /* navy → indigo down to the middle, then that middle colour flat to the
+     bottom (even across the width), with a cyan glow top-left */
   background:
     radial-gradient(110% 40% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
-    linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-end) 100%);
+    linear-gradient(180deg, var(--sidebar-bg) 0%,
+      color-mix(in srgb, var(--sidebar-bg), var(--sidebar-bg-end)) 50%);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
   position: sticky;
@@ -3646,7 +3647,8 @@ body {
      sidebar and offset by app.js (syncSavedTocBg) so the two line up. */
   background:
     radial-gradient(110% 40% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
-    linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-end) 100%);
+    linear-gradient(180deg, var(--sidebar-bg) 0%,
+      color-mix(in srgb, var(--sidebar-bg), var(--sidebar-bg-end)) 50%);
   background-repeat: no-repeat;
   background-size: var(--sb-w, 100%) var(--sb-h, 100vh);
   background-position: var(--sb-x, 0) var(--sb-y, 0);
