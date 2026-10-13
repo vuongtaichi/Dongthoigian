@@ -3094,7 +3094,7 @@
         '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
         '<div class="signin-hero">' +
           '<img class="signin-logo" src="assets/logo_v2.svg" alt="" />' +
-          '<h3 class="signin-modal-title" id="signinTitle">Chào mừng trở lại</h3>' +
+          '<h3 class="signin-modal-title" id="signinTitle">Xin chào</h3>' +
           '<p class="signin-sub" id="signinSub">Đăng nhập để bình luận, nhắn tin và lưu những đoạn bạn tâm đắc.</p>' +
         '</div>' +
         '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on" novalidate>' +
@@ -3297,7 +3297,7 @@
     var nameField = form.querySelector('#signinNameField');
     if (nameField) nameField.hidden = (mode !== 'signup');
     var title = document.getElementById('signinTitle');
-    if (title) title.textContent = (mode === 'signup') ? 'Tạo tài khoản' : 'Chào mừng trở lại';
+    if (title) title.textContent = (mode === 'signup') ? 'Tạo tài khoản' : 'Xin chào';
     var sub = document.getElementById('signinSub');
     if (sub) sub.textContent = (mode === 'signup')
       ? 'Miễn phí, chỉ mất vài giây. Bạn vẫn đọc được toàn bộ nhật ký mà không cần tài khoản.'
