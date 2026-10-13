@@ -380,7 +380,7 @@
       btn.classList.toggle('active', btn.getAttribute('data-id') === ch.id);
     });
 
-    if (!silent) saveLastChapter(ch.id);
+    if (!silent) { saveLastChapter(ch.id); _lastReadChapterId = ch.id; }
 
     // A dragged chat button only lasts as long as you stay on one page —
     // reading a different chapter (or a reload) puts it back in its default
@@ -2468,6 +2468,7 @@
   var QUOTE_MAX = 2000;
   var _savedItems = [];     // newest first: { id, kind, chapter_id, quote, created_at }
   var _savedKey = null;     // user id the list was loaded for
+  var _lastReadChapterId = null;   // chapter shown before "Đã lưu" (its back tab returns here)
 
   function chapterIndexById(id) {
     return chapters.findIndex(function (c) { return c.id === id; });
@@ -2714,6 +2715,13 @@
         '<h2 class="chapter-title">Đã lưu</h2>' +
         '<hr class="chapter-lead-rule">' +
         '<div id="savedList"></div>' +
+        // mobile only (styles.css): "‹" glass tab, middle of the right edge, back to
+        // the chapter that was open before this page
+        '<button type="button" class="saved-back" data-action="saved-back" ' +
+          'aria-label="Quay lại chương đang đọc" title="Quay lại chương đang đọc">' +
+          '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" ' +
+          'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>' +
+        '</button>' +
       '</article>';
     renderSavedList();
     scrollReaderToTop();
@@ -3522,6 +3530,7 @@
       else if (act === 'save-chapter') onSaveChapterToggle(a);
       else if (act === 'saved-open') onSavedOpen(a);
       else if (act === 'saved-del') onSavedDelete(a);
+      else if (act === 'saved-back') renderChapter(_lastReadChapterId || chapters[0].id, { push: true });
     });
 
     readerEl.addEventListener('submit', function (ev) {

@@ -3309,3 +3309,45 @@ body:has(#signinReminder:not([hidden])) .chat-widget { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .reminder-card, .reminder-backdrop { animation: none; }
 }
+
+/* "Đã lưu" page, mobile only: "‹" glass tab at the middle of the right
+   edge (same look and spot as the drawer's "›" .sidebar-close tab) that
+   goes back to the chapter. */
+.saved-back { display: none; }
+
+@media (max-width: 860px) {
+  .saved-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 30;
+    width: 2.25rem;
+    height: 4.75rem;
+    padding: 0 0 0 .2rem;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-right: none;
+    border-radius: 18px 0 0 18px;
+    background: linear-gradient(180deg, rgba(17, 132, 207, .55), rgba(67, 75, 215, .55));
+    color: var(--fab-fg);
+    box-shadow: -4px 0 18px rgba(0, 0, 0, .2), inset 1px 1px 0 rgba(255, 255, 255, .18);
+    cursor: pointer;
+    transition: background .2s ease, width .2s ease;
+  }
+  .saved-back:hover,
+  .saved-back:focus-visible {
+    width: 2.5rem;
+    background: linear-gradient(180deg, #1184CF, #434BD7);
+  }
+  .saved-back:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+  .saved-back svg { width: 1.45em; height: 1.45em; transition: transform .2s ease; }
+  .saved-back:hover svg,
+  .saved-back:focus-visible svg { transform: translateX(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saved-back, .saved-back svg { transition: none; }
+}
