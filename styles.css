@@ -1806,10 +1806,11 @@ body {
   height: 3.4rem;
   border-radius: 50%;
   border: none;
-  padding: 0;
-  /* No fill/shadow: the logo badge is the whole button. A ring only
-     appears on hover / keyboard focus. */
-  background: transparent;
+  /* Always-on modern border: a white inner gap (padding on --card), the
+     gradient ring (::before) and a soft blue glow that deepens on hover. */
+  padding: 3px;
+  background: var(--card);
+  box-shadow: 0 6px 18px rgba(17, 132, 207, .35), 0 1px 3px rgba(15, 27, 51, .2);
   color: var(--fab-fg);
   display: flex;
   align-items: center;
@@ -1821,7 +1822,7 @@ body {
   isolation: isolate;
 }
 
-/* Hover/focus ring: the sign-in .auth-btn blue gradient, drawn as a 3px
+/* Ring: the sign-in .auth-btn blue gradient, drawn as a 3px
    ring just outside the logo (box-shadow can't take a gradient, so it's a
    masked pseudo-element). */
 .chat-fab::before {
@@ -1832,8 +1833,6 @@ body {
   background: linear-gradient(1deg, #434BD7, #1184CF 99%);
   -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
           mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-  opacity: 0;
-  transition: opacity .15s ease;
   pointer-events: none;
   z-index: -1;
 }
@@ -1841,10 +1840,8 @@ body {
 .chat-fab:hover,
 .chat-fab:focus-visible {
   outline: none;
-  box-shadow: var(--fab-shadow);
+  box-shadow: 0 8px 22px rgba(17, 132, 207, .5), 0 1px 3px rgba(15, 27, 51, .2);
 }
-.chat-fab:hover::before,
-.chat-fab:focus-visible::before { opacity: 1; }
 
 /* Site logo badge filling the round chat button. */
 .chat-fab-logo {
@@ -2078,9 +2075,7 @@ body {
   border-radius: 18px 18px 6px 18px;
   padding: .55rem .9rem;
   box-shadow: 0 2px 8px rgba(17, 132, 207, .22);
-  /* message text is body text: same serif as the diary and comments */
-  font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: .95rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -2143,8 +2138,8 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   resize: none;
-  min-height: 2.8rem;
-  height: 2.8rem;   /* one line until autoGrowTextarea() sizes it */
+  min-height: 2.65rem;
+  height: 2.65rem;   /* one line until autoGrowTextarea() sizes it */
   /* Grows with typed content (autoGrowTextarea in app.js) rather than
      staying this fixed height with an inner scrollbar. This cap is just a
      sanity ceiling for a huge paste — overflow-y:auto is the fallback past
@@ -2158,8 +2153,8 @@ body {
   /* Noto Color Emoji is a subset (index.html) covering only the site's own
      emojis, so listing it first only changes those — matching the Noto
      images in the picker and message bubbles. */
-  font-family: 'Noto Color Emoji', var(--font-body);
-  font-size: 1.05rem;
+  font-family: 'Noto Color Emoji', var(--font-ui);
+  font-size: .95rem;
   line-height: 1.5;
   color: var(--ink);
   background: var(--paper);
@@ -2180,7 +2175,7 @@ body {
   align-items: center;
   gap: .25rem;
   flex: 0 0 auto;
-  min-height: 2.8rem;
+  min-height: 2.65rem;
 }
 
 .chat-compose-icons {
@@ -2779,18 +2774,7 @@ body {
   }
   body:has(.sidebar.open) .chat-widget { visibility: hidden; }
 
-  /* Always-on modern border: a white inner gap, then the blue gradient
-     ring, then a soft blue glow. */
-  .chat-fab {
-    width: 3.2rem;
-    height: 3.2rem;
-    padding: 3px;
-    background: var(--card);
-    box-shadow: 0 6px 18px rgba(17, 132, 207, .35), 0 1px 3px rgba(15, 27, 51, .2);
-  }
-  .chat-fab::before { opacity: 1; }
-  .chat-fab:hover,
-  .chat-fab:focus-visible { box-shadow: 0 8px 22px rgba(17, 132, 207, .5), 0 1px 3px rgba(15, 27, 51, .2); }
+  .chat-fab { width: 3.2rem; height: 3.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2889,14 +2873,14 @@ body {
     width: 2.25rem;
     height: 4.75rem;
     padding: 0 0 0 .2rem;
-    /* glass tab: the .auth-btn blue gradient at ~60% over a light blur, so
+    /* glass tab: the .auth-btn blue gradient at ~75% over a light blur, so
        the rows behind it stay partly readable; a hairline light edge and an
        inner highlight. Hover/focus turns the gradient solid and nudges the
        chevron. */
     border: 1px solid rgba(255, 255, 255, .22);
     border-right: none;
     border-radius: 18px 0 0 18px;
-    background: linear-gradient(180deg, rgba(17, 132, 207, .6), rgba(67, 75, 215, .6));
+    background: linear-gradient(180deg, rgba(17, 132, 207, .75), rgba(67, 75, 215, .75));
     -webkit-backdrop-filter: blur(1.5px);
             backdrop-filter: blur(1.5px);
     color: var(--fab-fg);
