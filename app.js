@@ -401,29 +401,35 @@
     if (idx === -1) idx = 0;
     var ch = chapters[idx];
 
-    var html = '<article class="chapter">';
+    // Dark gradient header card (number, title, tools), then each entry in
+    // its own white card — same look as the Terms / Privacy pages.
+    var html = '<article class="chapter chapter-read">';
+    html += '<header class="chapter-hero">';
     html += '<p class="chapter-kicker">Chương ' + String(idx + 1).padStart(2, '0') + '</p>';
     html += '<h2 class="chapter-title">' + escapeHtml(ch.title) + '</h2>';
     html += '<div class="chapter-lead"><hr class="chapter-lead-rule">' +
       '<div class="chapter-tools">' + (sb ? saveChapterBtnHtml() : '') + textSizeControlHtml() + '</div></div>';
+    html += '</header>';
 
-    // Simple chapters: a flat "intro" array of paragraphs.
+    // Simple chapters: a flat "intro" array of paragraphs, in one card.
     if (ch.intro) {
+      html += '<section class="entry-card">';
       html += '<div class="entry-body">' + paragraphsHtml(ch.intro) + '</div>';
       if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
       html += noteHtml(ch);
+      html += '</section>';
     }
 
-    // Composite chapters: several dated sub-entries, separated by a divider.
+    // Composite chapters: several dated sub-entries, one numbered card each.
     if (ch.subentries) {
       ch.subentries.forEach(function (se, i) {
-        if (i > 0) html += '<div class="divider">&middot; &middot; &middot;</div>';
-        html += '<div class="subentry">';
-        html += '<h3 class="subentry-heading">' + (se.tag ? '<span class="tag">' + escapeHtml(se.tag) + '</span>' : '') + escapeHtml(se.heading) + '</h3>';
+        html += '<section class="entry-card subentry">';
+        html += '<h3 class="subentry-heading"><span class="entry-num" aria-hidden="true">' + (i + 1) + '</span>' +
+          (se.tag ? '<span class="tag">' + escapeHtml(se.tag) + '</span>' : '') + escapeHtml(se.heading) + '</h3>';
         html += '<div class="entry-body">' + paragraphsHtml(se.paragraphs) + '</div>';
         if (se.signature) html += '<p class="signature">' + escapeHtml(se.signature) + '</p>';
         if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps) + '</div>';
-        html += '</div>';
+        html += '</section>';
       });
     }
 

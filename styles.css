@@ -926,6 +926,66 @@ body {
 .note dl dt { font-weight: 700; flex: 0 0 auto; }
 .note dl dd { margin: 0; }
 
+/* ---- Chapter page: header card + entry cards (same look as legal.css) ---- */
+.chapter.chapter-read { max-width: 720px; }
+
+/* dark gradient header: kicker, title, then the rule + save / text-size tools */
+.chapter-hero {
+  margin: 0 0 1.25rem;
+  padding: 2.2rem 2.2rem 1.7rem;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(17, 132, 207, .35), transparent 60%),
+    linear-gradient(135deg, #0f1b33, #17264a);
+  box-shadow: 0 12px 32px rgba(15, 27, 51, .18);
+}
+.chapter-hero .chapter-kicker { color: #8ab4ff; }
+.chapter-hero .chapter-title { color: #fff; }
+.chapter-hero .chapter-lead { margin: 1.5rem 0 0; }
+.chapter-hero .chapter-lead-rule { background: linear-gradient(90deg, #8ab4ff, #434BD7); }
+
+/* each entry (or the whole text of a simple chapter) in its own card */
+.entry-card {
+  background: var(--card);
+  border: 1px solid var(--note-border);
+  border-radius: 18px;
+  box-shadow: var(--note-shadow);
+  padding: 1.9rem 2.1rem 2.1rem;
+}
+.entry-card.subentry { margin-top: 0; }
+.entry-card + .entry-card { margin-top: 1.25rem; }
+.entry-card .subentry-heading { align-items: center; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.entry-card .signature { margin-top: 1.8rem; }
+.entry-card .note { margin-top: 1.8rem; }
+
+/* gradient number badge in front of each entry heading (legal.css .num) */
+.entry-num {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .chapter-hero { padding: 1.6rem 1.3rem 1.3rem; border-radius: 18px; }
+  .entry-card { padding: 1.35rem 1.2rem 1.5rem; border-radius: 16px; }
+  .entry-card + .entry-card { margin-top: 1rem; }
+}
+@media (max-width: 560px) {
+  /* narrower page gutter so the cards keep a comfortable text width */
+  .chapter.chapter-read { padding-left: .75rem; padding-right: .75rem; }
+  .entry-card { padding: 1.2rem 1.05rem 1.35rem; }
+}
+
 .chapter-nav {
   margin-top: 4.5rem;
   padding-top: 2rem;
