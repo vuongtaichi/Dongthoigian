@@ -2326,9 +2326,9 @@ body {
     border: none;
     border-radius: 999px 0 0 999px;
     /* a brighter blue than the other floating buttons (owner's ask) so it
-       stands out against the dark drawer, at 75% opacity so the drawer shows
+       stands out against the dark drawer, at 85% opacity so the drawer shows
        through a little; the white chevron itself stays fully opaque */
-    background: rgba(61, 114, 219, .75);
+    background: rgba(61, 114, 219, .85);
     color: var(--fab-fg);
     box-shadow: var(--fab-shadow);
     cursor: pointer;

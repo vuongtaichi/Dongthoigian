@@ -1,4 +1,4 @@
-/* build: 2027-close-tab-alpha
+/* build: 2027-close-tab-85
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
