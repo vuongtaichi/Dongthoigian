@@ -3161,8 +3161,14 @@ body {
   .toast, .quote-flash { transition: none; }
 }
 
-/* sidebar entry: own divider under it, like the admin group */
+/* sidebar entry: own divider under it, like the admin group. Sticky, so
+   it stays pinned at the top of the chapter list while the list scrolls
+   (opaque background so chapters slide underneath it). */
 #tocSavedItem {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--sidebar-bg);
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
@@ -3255,6 +3261,10 @@ body {
   font-size: calc(1.15rem * var(--text-scale, 1));
   line-height: 1.65;
   color: var(--ink);
+}
+/* mobile: saved quotes a step smaller (still scaled by A− / A+) */
+@media (max-width: 860px) {
+  .saved-quote-text { font-size: calc(1.05rem * var(--text-scale, 1)); }
 }
 .saved-quote-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; }
 .saved-quote-src {

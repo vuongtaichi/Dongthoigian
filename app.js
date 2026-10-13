@@ -2740,7 +2740,10 @@
       '<article class="chapter saved-page">' +
         '<p class="chapter-kicker">Của bạn</p>' +
         '<h2 class="chapter-title">Đã lưu</h2>' +
-        '<hr class="chapter-lead-rule">' +
+        // same A− 100% A+ control as a chapter: it shares --text-scale, so it
+        // resizes the saved quotes here and the diary text in chapters alike
+        '<div class="chapter-lead"><hr class="chapter-lead-rule">' +
+          '<div class="chapter-tools">' + textSizeControlHtml() + '</div></div>' +
         '<div id="savedList"></div>' +
         // mobile only (styles.css): "‹" glass tab, middle of the right edge, back to
         // the chapter that was open before this page
@@ -2751,6 +2754,7 @@
         '</button>' +
       '</article>';
     renderSavedList();
+    applyTextScale();   // fill in the new control's % and disabled states
     scrollReaderToTop();
     updateProgress();
     Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
