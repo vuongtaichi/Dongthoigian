@@ -401,8 +401,8 @@
     if (idx === -1) idx = 0;
     var ch = chapters[idx];
 
-    // Dark gradient header card (number, title, tools), then each entry in
-    // its own white card — same look as the Terms / Privacy pages.
+    // Header box (number, title, tools), then each entry in its own white
+    // card and each note in its own box below it.
     var html = '<article class="chapter chapter-read">';
     html += '<header class="chapter-hero">';
     html += '<p class="chapter-kicker">Chương ' + String(idx + 1).padStart(2, '0') + '</p>';
@@ -416,8 +416,8 @@
       html += '<section class="entry-card">';
       html += '<div class="entry-body">' + paragraphsHtml(ch.intro) + '</div>';
       if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
-      html += noteHtml(ch);
       html += '</section>';
+      html += noteHtml(ch);   // the note gets its own box below the text card
     }
 
     // Composite chapters: several dated sub-entries, one numbered card each.
@@ -428,8 +428,8 @@
           (se.tag ? '<span class="tag">' + escapeHtml(se.tag) + '</span>' : '') + escapeHtml(se.heading) + '</h3>';
         html += '<div class="entry-body">' + paragraphsHtml(se.paragraphs) + '</div>';
         if (se.signature) html += '<p class="signature">' + escapeHtml(se.signature) + '</p>';
-        if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps) + '</div>';
         html += '</section>';
+        if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps) + '</div>';
       });
     }
 

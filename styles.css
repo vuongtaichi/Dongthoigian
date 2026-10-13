@@ -929,21 +929,16 @@ body {
 /* ---- Chapter page: header card + entry cards (same look as legal.css) ---- */
 .chapter.chapter-read { max-width: 720px; }
 
-/* dark gradient header: kicker, title, then the rule + save / text-size tools */
+/* header box in the page's own colour, outlined: kicker, title, then the
+   rule + save / text-size tools */
 .chapter-hero {
   margin: 0 0 1.25rem;
   padding: 2.2rem 2.2rem 1.7rem;
   border-radius: 22px;
-  color: #fff;
-  background:
-    radial-gradient(90% 120% at 0% 0%, rgba(17, 132, 207, .35), transparent 60%),
-    linear-gradient(135deg, #0f1b33, #17264a);
-  box-shadow: 0 12px 32px rgba(15, 27, 51, .18);
+  background: var(--paper);
+  border: 1px solid var(--note-border);
 }
-.chapter-hero .chapter-kicker { color: #8ab4ff; }
-.chapter-hero .chapter-title { color: #fff; }
 .chapter-hero .chapter-lead { margin: 1.5rem 0 0; }
-.chapter-hero .chapter-lead-rule { background: linear-gradient(90deg, #8ab4ff, #434BD7); }
 
 /* each entry (or the whole text of a simple chapter) in its own card */
 .entry-card {
@@ -957,7 +952,9 @@ body {
 .entry-card + .entry-card { margin-top: 1.25rem; }
 .entry-card .subentry-heading { align-items: center; flex-wrap: wrap; margin-bottom: 1.1rem; }
 .entry-card .signature { margin-top: 1.8rem; }
-.entry-card .note { margin-top: 1.8rem; }
+/* notes ("Ghi chú") sit in their own box below the text card */
+.chapter-read .note { margin-top: 1.25rem; border-radius: 18px; padding: 1.5rem 1.8rem 1.6rem 2.1rem; }
+.chapter-read .note + .entry-card { margin-top: 1.25rem; }
 
 /* gradient number badge in front of each entry heading (legal.css .num) */
 .entry-num {
@@ -978,7 +975,10 @@ body {
 @media (max-width: 860px) {
   .chapter-hero { padding: 1.6rem 1.3rem 1.3rem; border-radius: 18px; }
   .entry-card { padding: 1.35rem 1.2rem 1.5rem; border-radius: 16px; }
-  .entry-card + .entry-card { margin-top: 1rem; }
+  .entry-card + .entry-card,
+  .chapter-read .note,
+  .chapter-read .note + .entry-card { margin-top: 1rem; }
+  .chapter-read .note { padding: 1.2rem 1.15rem 1.3rem 1.45rem; border-radius: 16px; }
 }
 @media (max-width: 560px) {
   /* narrower page gutter so the cards keep a comfortable text width */
