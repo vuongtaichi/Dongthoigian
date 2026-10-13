@@ -204,3 +204,12 @@ code { font-family: inherit; font-size: .9em; padding: .05rem .35rem; border-rad
 @media (prefers-reduced-motion: reduce) {
   .back-tab, .back-tab svg, .back-tab span { transition: none; animation: none; }
 }
+
+/* Body text justified (headings, contents list and buttons stay as they are). */
+.intro p,
+.section p,
+.list li,
+.rules li {
+  text-align: justify;
+  text-justify: inter-word;
+}
