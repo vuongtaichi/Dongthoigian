@@ -1955,10 +1955,11 @@ body {
   height: 3.4rem;
   border-radius: 50%;
   border: none;
-  /* Always-on modern border: a white inner gap (padding on --card), the
-     gradient ring (::before) and a soft blue glow that deepens on hover. */
-  padding: 3px;
-  background: var(--card);
+  /* No border by default — just the logo and a soft shadow. The white
+     inner gap + gradient ring (::before) appear only while the chat panel
+     is open (aria-expanded="true", i.e. after the reader clicks it). */
+  padding: 0;
+  background: transparent;
   box-shadow: 0 6px 18px rgba(17, 132, 207, .35), 0 1px 3px rgba(15, 27, 51, .2);
   color: var(--fab-fg);
   display: flex;
@@ -1984,7 +1985,11 @@ body {
           mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
   pointer-events: none;
   z-index: -1;
+  display: none;
 }
+
+.chat-fab[aria-expanded="true"] { padding: 3px; background: var(--card); }
+.chat-fab[aria-expanded="true"]::before { display: block; }
 
 .chat-fab:hover,
 .chat-fab:focus-visible {
