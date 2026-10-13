@@ -22,11 +22,11 @@
   --accent: #2951a3;
   --accent-strong: #1c3b7a;
   --accent-soft-bg: #e8edf9;
-  /* "Ghi chú" note box at the end of a chapter: a near-white card with a
-     faint indigo tint, thin border and soft shadow (see .note) */
-  --note-bg: linear-gradient(135deg, #ffffff 0%, #f3f5ff 100%);
+  /* "Ghi chú" note box at the end of a chapter: a flat pale-indigo card,
+     thin border and an even all-round soft shadow (see .note) */
+  --note-bg: #f3f5ff;
   --note-border: #dde3f7;
-  --note-shadow: 0 6px 20px rgba(41, 81, 163, .10);
+  --note-shadow: 0 0 20px rgba(41, 81, 163, .12);
   --note-label-grad: linear-gradient(90deg, #1184CF, #434BD7);
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
@@ -68,9 +68,9 @@
     --accent: #8ab4ff;
     --accent-strong: #a9c6ff;
     --accent-soft-bg: #16223c;
-    --note-bg: linear-gradient(135deg, #131f38 0%, #17203f 100%);
+    --note-bg: #17203f;
     --note-border: #26345a;
-    --note-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+    --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
     --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
     --border: #223151;
 
@@ -98,9 +98,9 @@
   --accent: #8ab4ff;
   --accent-strong: #a9c6ff;
   --accent-soft-bg: #16223c;
-  --note-bg: linear-gradient(135deg, #131f38 0%, #17203f 100%);
+  --note-bg: #17203f;
   --note-border: #26345a;
-  --note-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
   --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
   --border: #223151;
 
