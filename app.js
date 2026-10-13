@@ -1,4 +1,4 @@
-/* build: 2027-new-user-badge
+/* build: 2027-float-nav
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -173,6 +173,54 @@
     }
   }
 
+  // ---- floating prev/next: always on screen at the bottom of the reader ----
+  //
+  // Two round blue buttons with a white triangle, fixed at the bottom centre
+  // of the reading area (centred so they never sit under the chat button in
+  // the bottom-right corner). One persistent element, re-pointed by every
+  // renderChapter; hidden on the admin pages. Created from JS, so the
+  // Artifact build gets it without any change to build-artifact.ps1's template.
+  var _floatNavIdx = -1;
+
+  function ensureFloatNav() {
+    var nav = document.getElementById('floatNav');
+    if (nav) return nav;
+    var tri = function (pts) {
+      return '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" aria-hidden="true">' +
+        '<polygon points="' + pts + '" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+    };
+    nav = document.createElement('nav');
+    nav.id = 'floatNav';
+    nav.className = 'float-nav';
+    nav.setAttribute('aria-label', 'Chuyển chương');
+    nav.innerHTML =
+      '<button type="button" class="float-nav-btn prev" data-dir="-1" aria-label="Chương trước">' + tri('16,5 16,19 6,12') + '</button>' +
+      '<button type="button" class="float-nav-btn next" data-dir="1" aria-label="Chương tiếp">' + tri('8,5 8,19 18,12') + '</button>';
+    nav.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.float-nav-btn');
+      if (!btn || btn.disabled || _floatNavIdx < 0) return;
+      var target = chapters[_floatNavIdx + Number(btn.getAttribute('data-dir'))];
+      if (target) renderChapter(target.id, { push: true });
+    });
+    (document.querySelector('.app') || document.body).appendChild(nav);
+    return nav;
+  }
+
+  function updateFloatNav(idx) {
+    var nav = ensureFloatNav();
+    _floatNavIdx = idx;
+    nav.hidden = idx < 0;
+    if (idx < 0) return;
+    var prev = chapters[idx - 1];
+    var next = chapters[idx + 1];
+    var pb = nav.querySelector('.prev');
+    var nb = nav.querySelector('.next');
+    pb.disabled = !prev;
+    nb.disabled = !next;
+    pb.title = prev ? 'Chương ' + String(idx).padStart(2, '0') + ': ' + prev.title : '';
+    nb.title = next ? 'Chương ' + String(idx + 2).padStart(2, '0') + ': ' + next.title : '';
+  }
+
   function renderChapter(id, opts) {
     var push = !!(opts && opts.push);
     // A throwaway placeholder render (chapter 1 shown while the restored
@@ -227,6 +275,7 @@
 
     readerEl.innerHTML = html;
     readerEl.setAttribute('data-chapter-id', ch.id);
+    updateFloatNav(idx);
     scrollReaderToTop();
     updateProgress();
 
@@ -1176,14 +1225,32 @@
     return { w: (r && r.width) || 54, h: (r && r.height) || 54 };
   }
 
+  // If the chat button (box at x,y) would cover one of the floating
+  // prev/next circles, lift it to sit just above that circle instead.
+  function chatFabAvoidFloatNav(x, y, b) {
+    var nav = document.getElementById('floatNav');
+    if (!nav || nav.hidden) return y;
+    var gap = 12;
+    Array.prototype.forEach.call(nav.querySelectorAll('.float-nav-btn'), function (btn) {
+      var r = btn.getBoundingClientRect();
+      var overlaps = x < r.right + gap && x + b.w > r.left - gap &&
+                     y < r.bottom + gap && y + b.h > r.top - gap;
+      if (overlaps) y = r.top - gap - b.h;
+    });
+    return y;
+  }
+
   // x,y = the widget's desired top-left in viewport px. Clamps inside the
   // viewport (8px margin), applies as inline left/top, records the quadrant.
-  function applyChatFabPos(x, y) {
+  // avoidNav (on drop / resize, not mid-drag) also keeps it off the
+  // floating prev/next buttons.
+  function applyChatFabPos(x, y, avoidNav) {
     var w = document.getElementById('chatWidget');
     if (!w) return;
     var b = chatFabBox(), m = 8;
     x = Math.max(m, Math.min(x, window.innerWidth - b.w - m));
     y = Math.max(m, Math.min(y, window.innerHeight - b.h - m));
+    if (avoidNav) y = Math.max(m, chatFabAvoidFloatNav(x, y, b));
     w.style.left = x + 'px';
     w.style.top = y + 'px';
     w.style.right = 'auto';
@@ -1208,7 +1275,7 @@
     var w = document.getElementById('chatWidget');
     if (w && w.style.left) {
       var r = w.getBoundingClientRect();
-      applyChatFabPos(r.left, r.top);
+      applyChatFabPos(r.left, r.top, true);
     }
     fitChatPanelInViewport();
   }
@@ -1267,7 +1334,7 @@
       if (!dragging) return;
       dragging = false;
       var r = document.getElementById('chatWidget').getBoundingClientRect();
-      applyChatFabPos(r.left, r.top);
+      applyChatFabPos(r.left, r.top, true);
       // the pointerup now synthesises a click on the fab — swallow just that one
       _suppressFabClick = true;
       setTimeout(function () { _suppressFabClick = false; }, 0);
@@ -2045,6 +2112,7 @@
   function renderAdminInbox() {
     if (!authUser || !authUser.isAdmin) return;
     readerEl.removeAttribute('data-chapter-id');
+    updateFloatNav(-1);
     readerEl.innerHTML =
       '<article class="chapter admin-inbox">' +
         '<p class="chapter-kicker">Quản trị</p>' +
@@ -2185,6 +2253,7 @@
     if (!authUser || !authUser.isAdmin) return;
     _adminUsers = [];
     readerEl.removeAttribute('data-chapter-id');
+    updateFloatNav(-1);
     readerEl.innerHTML =
       '<article class="chapter admin-users">' +
         '<p class="chapter-kicker">Quản trị</p>' +

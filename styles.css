@@ -22,6 +22,11 @@
   --accent: #2951a3;
   --accent-strong: #1c3b7a;
   --accent-soft-bg: #e8edf9;
+  /* floating round buttons (chat icon + prev/next): one look in both themes */
+  --fab-bg: #2951a3;
+  --fab-bg-hover: #1c3b7a;
+  --fab-fg: #ffffff;
+  --fab-shadow: 0 4px 14px rgba(15, 27, 51, .28);
   --border: #dce3f0;
 
   --sidebar-bg: #0f1b33;
@@ -1375,9 +1380,9 @@ body {
   height: 3.4rem;
   border-radius: 50%;
   border: none;
-  background: var(--accent);
-  color: var(--paper);
-  box-shadow: var(--shadow);
+  background: var(--fab-bg);
+  color: var(--fab-fg);
+  box-shadow: var(--fab-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1386,7 +1391,7 @@ body {
   touch-action: none;
 }
 
-.chat-fab:hover { background: var(--accent-strong); }
+.chat-fab:hover { background: var(--fab-bg-hover); }
 
 /* Panel opens toward the screen centre once the button has been dragged
    (JS sets data-hpos / data-vpos from the button's quadrant). Undragged,
@@ -2152,3 +2157,73 @@ body {
   .admin-user-dates { flex-basis: 100%; flex-direction: row; justify-content: space-between; padding-left: 3.25rem; }
 }
 .admin-user-tag-new { background: #e5484d; color: #fff; }
+
+/* ---- Floating prev/next chapter buttons (always visible) ----
+   Fixed to the bottom-left / bottom-right corners of the reader (right of
+   the 363px sidebar on desktop, full width on mobile). The chat button's
+   default spot is raised above the "next" circle (see .chat-widget below).
+   The bar itself ignores clicks; only the two circles take them. */
+.float-nav {
+  position: fixed;
+  left: 363px;
+  right: 0;
+  bottom: 1.25rem;
+  z-index: 25;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  pointer-events: none;
+}
+.float-nav[hidden] { display: none; }
+
+/* Chat button sits above the "next" circle by default (it shares the
+   bottom-right corner); once dragged, its inline position wins. On the
+   admin pages there's no float nav, so it drops back to the corner. */
+.chat-widget { bottom: 5.25rem; }
+.app:has(> .float-nav[hidden]) .chat-widget { bottom: 1.25rem; }
+
+.float-nav-btn {
+  pointer-events: auto;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--fab-bg);
+  color: var(--fab-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--fab-shadow);
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease, opacity .15s ease;
+}
+.float-nav-btn:hover:not(:disabled) { background: var(--fab-bg-hover); transform: scale(1.06); }
+.float-nav-btn:focus-visible { outline: 3px solid #8ab4ff; outline-offset: 2px; }
+.float-nav-btn:disabled { opacity: .35; cursor: default; box-shadow: none; }
+
+/* leave room so the buttons never cover the last lines of a chapter */
+.chapter:not(.admin-inbox):not(.admin-users) { padding-bottom: 8.5rem; }
+
+/* Large screens: the circles hug the text column instead of the corners
+   (text = .chapter's 660px minus 2×2rem padding = 596px, plus a 1rem gap
+   each side), vertically centred on the same row as the chat button
+   (3.4rem vs 3rem → +.2rem), which drops back to its plain corner. Below
+   1280px the next circle would run into the chat button, so the corner
+   layout above is used instead. */
+@media (min-width: 1280px) {
+  .float-nav {
+    justify-content: center;
+    gap: calc(596px + 2rem);
+    padding: 0;
+    bottom: 1.45rem;
+  }
+  .chat-widget { bottom: 1.25rem; }
+}
+
+@media (max-width: 860px) {
+  .float-nav { left: 0; bottom: max(1rem, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-nav-btn { transition: none; }
+}
