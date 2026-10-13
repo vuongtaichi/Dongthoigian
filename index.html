@@ -12,7 +12,13 @@
        (Times New Roman) for the reading body and the system UI sans
        (Segoe UI) for the interface — see the font notes in styles.css.
        This keeps the hosted site rendering identically to the published
-       Claude Artifact, which can't load web fonts at all. -->
+       Claude Artifact, which can't load web fonts at all.
+       One exception: a tiny Noto Color Emoji subset (only the emojis the
+       site offers — REACTIONS + CHAT_EMOJIS + 🙂📎 in app.js; keep this
+       `text=` list in sync) so an emoji typed into the chat box matches the
+       Noto images in the picker and in sent messages. Chat is Vercel-only. -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap&text=%F0%9F%91%8D%E2%9D%A4%EF%B8%8F%F0%9F%98%82%F0%9F%98%AE%F0%9F%98%A2%F0%9F%98%80%F0%9F%98%8D%F0%9F%A5%B3%F0%9F%8E%89%F0%9F%99%8F%F0%9F%98%85%F0%9F%98%8E%F0%9F%A4%94%F0%9F%98%AD%F0%9F%94%A5%F0%9F%91%8F%F0%9F%A5%B0%F0%9F%98%B4%F0%9F%99%8C%F0%9F%92%AF%E2%9C%A8%F0%9F%99%82%F0%9F%93%8E" />
 
   <link rel="stylesheet" href="styles.css" />
 </head>

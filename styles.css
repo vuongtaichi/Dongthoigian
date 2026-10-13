@@ -1758,6 +1758,10 @@ body {
   border-radius: 8px;
   padding: .5rem .6rem;
   font: inherit;
+  /* Noto Color Emoji is a subset (index.html) covering only the site's own
+     emojis, so listing it first only changes those — matching the Noto
+     images in the picker and message bubbles. */
+  font-family: 'Noto Color Emoji', var(--font-ui);
   font-size: .95rem;
   color: var(--ink);
   background: var(--paper);
