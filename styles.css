@@ -1686,8 +1686,9 @@ body {
 
 .chat-msg-bubble {
   max-width: 85%;
-  background: var(--accent);
-  color: var(--paper);
+  /* default (no colour picked): the sign-in .auth-btn blue gradient */
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
   border-radius: 12px 12px 2px 12px;
   padding: .55rem .75rem;
   font-size: .95rem;
@@ -1876,8 +1877,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-soft-bg);
-  color: var(--ink-soft);
+  /* previews the default bubble colour (see .chat-msg-bubble) */
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
   font-size: 1rem;
 }
 
