@@ -1065,8 +1065,8 @@ body {
   margin-top: 3.5rem;
   padding-top: 2.5rem;
   border-top: 1px solid var(--border);
-  font-family: var(--font-body);
-  font-size: 1.2rem;
+  font-family: var(--font-ui);   /* comment area uses the sidebar font */
+  font-size: 1.05rem;
   line-height: 1.75;
 }
 
@@ -1470,7 +1470,7 @@ body {
   border-radius: 8px;
   padding: .7rem .8rem;
   font: inherit;
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   background: var(--card);
   color: var(--ink);
   resize: vertical;
@@ -1482,8 +1482,11 @@ body {
    focus. Reply/edit forms further down keep the plain style above. */
 #commentForm {
   gap: .4rem;
-  padding: .6rem .7rem .7rem;
-  background: var(--comment-box-bg);
+  padding: .75rem .7rem .7rem;
+  /* the chat panel header's blue gradient strip along the top edge */
+  background:
+    linear-gradient(90deg, #1184CF, #434BD7) top / 100% 4px no-repeat,
+    var(--comment-box-bg);
   border: 1px solid var(--note-border);
   border-radius: 14px;
   box-shadow: var(--note-shadow);
@@ -1644,8 +1647,8 @@ body {
   min-width: 0;
   min-height: 2.5rem;
   height: 2.5rem;   /* one line until autoGrowTextarea() sizes it */
-  font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-family: var(--font-ui);
+  font-size: 1rem;
   max-height: 10rem;
   padding: .45rem 0;
   border: none;
@@ -1859,7 +1862,7 @@ body {
 }
 
 @media (max-width: 860px) {
-  .engagement,
+  .engagement { font-size: 1rem; }
   .profile-modal-card { font-size: 1.1rem; }
   .auth-email-row,
   .comment-form-row { flex-wrap: wrap; }
@@ -2986,4 +2989,229 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar-close, .sidebar-close svg { transition: none; }
+}
+
+/* ---------- Saved chapters + quotes ("Đã lưu") ---------- */
+
+/* save-chapter button + text-size control, right of the rule under the title */
+.chapter-tools { display: inline-flex; align-items: center; gap: .5rem; }
+
+.save-chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  height: 2.55rem;
+  padding: 0 .95rem 0 .8rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 999px;
+  box-shadow: var(--note-shadow);
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.save-chapter-btn:hover { color: #1184CF; border-color: #9fb6f0; }
+.save-chapter-btn:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.save-chapter-btn:disabled { opacity: .6; cursor: default; }
+.save-chapter-btn.is-saved { color: #fff; border-color: transparent; background: linear-gradient(1deg, #434BD7, #1184CF 99%); }
+.save-chapter-btn.is-saved svg { fill: currentColor; }
+
+@media (max-width: 560px) {
+  /* icon only on narrow phones */
+  .save-chapter-btn { width: 2.55rem; padding: 0; justify-content: center; }
+  .save-chapter-label { display: none; }
+}
+
+/* floating "Lưu trích dẫn" button over a text selection */
+.quote-pop {
+  position: fixed;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem .95rem .5rem .8rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(17, 132, 207, .4), 0 1px 3px rgba(15, 27, 51, .25);
+  cursor: pointer;
+  animation: quote-pop-in .15s ease-out;
+}
+.quote-pop:disabled { opacity: .7; }
+@keyframes quote-pop-in {
+  from { opacity: 0; scale: .9; }
+  to   { opacity: 1; scale: 1; }
+}
+
+/* short confirmation at the bottom of the screen */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 6rem;
+  z-index: 120;
+  translate: -50% 12px;
+  padding: .6rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(15, 27, 51, .92);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: .9rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, translate .2s ease;
+}
+.toast.show { opacity: 1; translate: -50% 0; }
+
+/* a saved quote's paragraph, briefly highlighted when opened from "Đã lưu" */
+.quote-flash {
+  background: rgba(17, 132, 207, .14);
+  border-radius: 6px;
+  box-shadow: 0 0 0 6px rgba(17, 132, 207, .14);
+  transition: background .6s ease, box-shadow .6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-pop { animation: none; }
+  .toast, .quote-flash { transition: none; }
+}
+
+/* sidebar entry: own divider under it, like the admin group */
+#tocSavedItem {
+  border-bottom: 1px solid var(--sidebar-border);
+  padding-bottom: .35rem;
+  margin-bottom: .35rem;
+}
+
+/* the "Đã lưu" page */
+.saved-page { font-family: var(--font-ui); }
+.saved-section + .saved-section { margin-top: 2.6rem; }
+.saved-heading {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.saved-heading svg { color: #1184CF; }
+.saved-count {
+  min-width: 1.6rem;
+  padding: 0 .45rem;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font-size: .78rem;
+  line-height: 1.6rem;
+  text-align: center;
+}
+.saved-empty { margin: 0; color: var(--ink-faint); line-height: 1.6; }
+
+.saved-chapters,
+.saved-quotes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
+.saved-card {
+  position: relative;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--note-shadow);
+}
+
+.saved-open {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .85rem 3rem .85rem 1rem;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 14px;
+}
+.saved-open:hover .saved-ch-title { color: #1184CF; }
+.saved-ch-num {
+  flex: 0 0 auto;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.saved-ch-title { flex: 1 1 auto; min-width: 0; font-weight: 600; }
+.saved-time { flex: 0 0 auto; font-size: .78rem; color: var(--ink-faint); }
+
+.saved-quote { padding: 1rem 3rem 1rem 1.3rem; }
+.saved-quote::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(180deg, #1184CF, #434BD7);
+}
+.saved-quote-text {
+  margin: 0 0 .7rem;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: calc(1.15rem * var(--text-scale, 1));
+  line-height: 1.65;
+  color: var(--ink);
+}
+.saved-quote-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; }
+.saved-quote-src {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+.saved-quote-src:hover { text-decoration: underline; }
+
+.saved-del {
+  position: absolute;
+  top: .55rem;
+  right: .55rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0 0 .1rem;
+  cursor: pointer;
+}
+.saved-del:hover { background: rgba(229, 72, 77, .12); color: #e5484d; }
+.saved-del:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
+.saved-chapter .saved-del { top: 50%; translate: 0 -50%; }
+
+@media (max-width: 560px) {
+  .saved-open { flex-wrap: wrap; gap: .2rem .7rem; }
+  .saved-time { flex-basis: 100%; }
 }

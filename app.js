@@ -319,7 +319,8 @@
     var html = '<article class="chapter">';
     html += '<p class="chapter-kicker">Chương ' + String(idx + 1).padStart(2, '0') + '</p>';
     html += '<h2 class="chapter-title">' + escapeHtml(ch.title) + '</h2>';
-    html += '<div class="chapter-lead"><hr class="chapter-lead-rule">' + textSizeControlHtml() + '</div>';
+    html += '<div class="chapter-lead"><hr class="chapter-lead-rule">' +
+      '<div class="chapter-tools">' + (sb ? saveChapterBtnHtml() : '') + textSizeControlHtml() + '</div></div>';
 
     // Simple chapters: a flat "intro" array of paragraphs.
     if (ch.intro) {
@@ -363,6 +364,8 @@
     readerEl.innerHTML = html;
     readerEl.setAttribute('data-chapter-id', ch.id);
     applyTextScale();   // fill in the new control's % and disabled states
+    syncSaveChapterBtn();
+    hideQuotePop();
     updateFloatNav(idx);
     setChapterBar(idx);
     scrollReaderToTop();
@@ -888,6 +891,16 @@
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' +
     '<path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+
+  // Bookmark (save chapter, "Đã lưu" sidebar entry) — CSS fills it once saved.
+  var BOOKMARK_SVG =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+  // Quote marks (save a selected quote).
+  var QUOTE_SVG =
+    '<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="currentColor" aria-hidden="true">' +
+    '<path d="M7.2 6C4.9 7.3 3.5 9.6 3.5 12.6V18h6v-6H6.6c.1-1.9 1-3.3 2.6-4.2L7.2 6zm10 0c-2.3 1.3-3.7 3.6-3.7 6.6V18h6v-6h-2.9c.1-1.9 1-3.3 2.6-4.2L17.2 6z"/></svg>';
 
   // Colour-wheel ring for the chat bubble colour button (styled in CSS as a
   // conic-gradient donut, like a modern OS colour well).
@@ -2442,6 +2455,314 @@
     history.replaceState({ chapterId: ADMIN_USERS_ROUTE }, '', '#' + ADMIN_USERS_ROUTE);
   }
 
+  // ---- saved chapters + quotes ("Đã lưu") ---------------------------------
+  //
+  // A signed-in reader can save a whole chapter (bookmark button under the
+  // title) or a quote (select text in a chapter → a floating "Lưu trích dẫn"
+  // button). Rows live in public.saved_items (comments-setup.sql), private
+  // to each reader by RLS. They're listed on the "Đã lưu" page (route
+  // #saved, sidebar entry above chapter 1). Signed-out readers who press
+  // either button get the sign-in modal.
+
+  var SAVED_ROUTE = 'saved';
+  var QUOTE_MAX = 2000;
+  var _savedItems = [];     // newest first: { id, kind, chapter_id, quote, created_at }
+  var _savedKey = null;     // user id the list was loaded for
+
+  function chapterIndexById(id) {
+    return chapters.findIndex(function (c) { return c.id === id; });
+  }
+  function chapterLabel(id) {
+    var i = chapterIndexById(id);
+    return i === -1 ? '' : 'Chương ' + String(i + 1).padStart(2, '0') + ' · ' + chapters[i].title;
+  }
+  function savedChapterRow(chapterId) {
+    for (var i = 0; i < _savedItems.length; i++) {
+      if (_savedItems[i].kind === 'chapter' && _savedItems[i].chapter_id === chapterId) return _savedItems[i];
+    }
+    return null;
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('nklttToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'nklttToast';
+      t.className = 'toast';
+      t.setAttribute('role', 'status');
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  function loadSaved() {
+    if (!sb || !authUser) return;
+    var forId = authUser.id;
+    sb.from('saved_items').select('id, kind, chapter_id, quote, created_at')
+      .order('created_at', { ascending: false })
+      .then(function (res) {
+        if (!authUser || authUser.id !== forId) return;
+        _savedItems = (res && !res.error && res.data) || [];
+        syncSaveChapterBtn();
+        if (readerEl.querySelector('.saved-page')) renderSavedList();
+      });
+  }
+
+  // Called from refresh(): reload only when who's signed in changes.
+  function onSavedAuthChange() {
+    var key = authUser ? authUser.id : null;
+    updateSavedTocItem();
+    if (key === _savedKey) return;
+    _savedKey = key;
+    _savedItems = [];
+    syncSaveChapterBtn();
+    if (key) loadSaved();
+  }
+
+  // -- chapter bookmark --
+
+  function saveChapterBtnHtml() {
+    return '<button type="button" class="save-chapter-btn" id="saveChapterBtn" data-action="save-chapter" ' +
+      'aria-pressed="false" title="Lưu chương">' + BOOKMARK_SVG +
+      '<span class="save-chapter-label">Lưu chương</span></button>';
+  }
+
+  function syncSaveChapterBtn() {
+    var btn = document.getElementById('saveChapterBtn');
+    if (!btn) return;
+    var saved = !!(authUser && savedChapterRow(readerEl.getAttribute('data-chapter-id')));
+    btn.classList.toggle('is-saved', saved);
+    btn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+    btn.title = saved ? 'Bỏ lưu chương' : 'Lưu chương';
+    btn.querySelector('.save-chapter-label').textContent = saved ? 'Đã lưu' : 'Lưu chương';
+  }
+
+  function onSaveChapterToggle(btn) {
+    if (!authUser) { openSigninModal(); return; }
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    if (!chapterId || btn.disabled) return;
+    var row = savedChapterRow(chapterId);
+    btn.disabled = true;
+    if (row) {
+      sb.from('saved_items').delete().eq('id', row.id).then(function (res) {
+        btn.disabled = false;
+        if (res.error) { showToast('Không bỏ lưu được, thử lại nhé.'); return; }
+        _savedItems = _savedItems.filter(function (r) { return r.id !== row.id; });
+        syncSaveChapterBtn();
+        showToast('Đã bỏ lưu chương');
+      });
+    } else {
+      sb.from('saved_items').insert({ kind: 'chapter', chapter_id: chapterId })
+        .select('id, kind, chapter_id, quote, created_at').single()
+        .then(function (res) {
+          btn.disabled = false;
+          if (res.error || !res.data) { showToast('Không lưu được, thử lại nhé.'); return; }
+          _savedItems.unshift(res.data);
+          syncSaveChapterBtn();
+          showToast('Đã lưu chương');
+        });
+    }
+  }
+
+  // -- quote from a text selection --
+  // The button floats above the selection (below it on touch screens, where
+  // the phone's own copy/share menu sits above). mousedown is cancelled so
+  // pressing it doesn't clear the selection first.
+
+  function ensureQuotePop() {
+    var pop = document.getElementById('quotePop');
+    if (pop) return pop;
+    pop = document.createElement('button');
+    pop.type = 'button';
+    pop.id = 'quotePop';
+    pop.className = 'quote-pop';
+    pop.hidden = true;
+    pop.innerHTML = QUOTE_SVG + '<span>Lưu trích dẫn</span>';
+    pop.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    pop.addEventListener('click', onQuoteSave);
+    document.body.appendChild(pop);
+    return pop;
+  }
+
+  function hideQuotePop() {
+    var pop = document.getElementById('quotePop');
+    if (pop) pop.hidden = true;
+  }
+
+  // The current selection, if it's diary text (body, note, signature) of
+  // the chapter on screen — not comments, buttons or inputs.
+  function currentQuote() {
+    var chapterId = readerEl.getAttribute('data-chapter-id');
+    var sel = window.getSelection && window.getSelection();
+    if (!chapterId || !sel || sel.isCollapsed || !sel.rangeCount) return null;
+    var range = sel.getRangeAt(0);
+    var node = range.commonAncestorContainer;
+    var el = node.nodeType === 1 ? node : node.parentElement;
+    if (!el || !readerEl.contains(el) || !el.closest('.chapter')) return null;
+    if (el.closest('.engagement, .chapter-nav, .chapter-lead, .chapter-kicker, .chapter-title, textarea, input, button')) return null;
+    var text = sel.toString().replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+    if (text.length < 3) return null;
+    return { text: text, rect: range.getBoundingClientRect(), chapterId: chapterId };
+  }
+
+  function updateQuotePop() {
+    var q = currentQuote();
+    if (!q || (!q.rect.width && !q.rect.height)) { hideQuotePop(); return; }
+    var pop = ensureQuotePop();
+    pop.hidden = false;
+    var w = pop.offsetWidth, h = pop.offsetHeight, m = 8;
+    var touch = window.matchMedia('(pointer: coarse)').matches;
+    var top = touch ? q.rect.bottom + 14 : q.rect.top - h - 10;
+    if (top < m) top = q.rect.bottom + 10;
+    top = Math.min(top, window.innerHeight - h - m);
+    var left = q.rect.left + q.rect.width / 2 - w / 2;
+    left = Math.max(m, Math.min(left, window.innerWidth - w - m));
+    pop.style.top = Math.round(top) + 'px';
+    pop.style.left = Math.round(left) + 'px';
+  }
+
+  function onQuoteSave() {
+    var q = currentQuote();
+    if (!q) { hideQuotePop(); return; }
+    if (!authUser) { hideQuotePop(); openSigninModal(); return; }
+    if (q.text.length > QUOTE_MAX) { showToast('Đoạn chọn quá dài (tối đa ' + QUOTE_MAX + ' ký tự).'); return; }
+    var dup = _savedItems.some(function (r) {
+      return r.kind === 'quote' && r.chapter_id === q.chapterId && r.quote === q.text;
+    });
+    if (dup) { showToast('Trích dẫn này đã được lưu'); hideQuotePop(); return; }
+    var pop = ensureQuotePop();
+    pop.disabled = true;
+    sb.from('saved_items').insert({ kind: 'quote', chapter_id: q.chapterId, quote: q.text })
+      .select('id, kind, chapter_id, quote, created_at').single()
+      .then(function (res) {
+        pop.disabled = false;
+        if (res.error || !res.data) { showToast('Không lưu được, thử lại nhé.'); return; }
+        _savedItems.unshift(res.data);
+        var sel = window.getSelection && window.getSelection();
+        if (sel) sel.removeAllRanges();
+        hideQuotePop();
+        showToast('Đã lưu trích dẫn');
+      });
+  }
+
+  // -- "Đã lưu" sidebar entry + page --
+
+  function updateSavedTocItem() {
+    var toc = document.getElementById('toc');
+    if (!toc) return;
+    var existing = document.getElementById('tocSavedItem');
+    if (!authUser) { if (existing) existing.remove(); return; }
+    if (existing) return;
+    var li = document.createElement('li');
+    li.id = 'tocSavedItem';
+    li.innerHTML =
+      '<button type="button" class="toc-item toc-admin-item" data-action="saved-page" aria-label="Đã lưu">' +
+        '<span class="toc-num toc-num-icon" aria-hidden="true">' + BOOKMARK_SVG + '</span>' +
+        '<span class="toc-text"><span class="toc-title">Đã lưu</span></span>' +
+      '</button>';
+    // just above chapter 1, below the admin entries if any
+    var first = toc.querySelector('.toc-item[data-index]');
+    toc.insertBefore(li, first ? first.closest('li') : toc.firstChild);
+  }
+
+  function renderSaved() {
+    if (!authUser) return;
+    readerEl.removeAttribute('data-chapter-id');
+    updateFloatNav(-1);
+    setChapterBar(-1);
+    hideQuotePop();
+    readerEl.innerHTML =
+      '<article class="chapter saved-page">' +
+        '<p class="chapter-kicker">Của bạn</p>' +
+        '<h2 class="chapter-title">Đã lưu</h2>' +
+        '<hr class="chapter-lead-rule">' +
+        '<div id="savedList"></div>' +
+      '</article>';
+    renderSavedList();
+    scrollReaderToTop();
+    updateProgress();
+    Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-action') === 'saved-page');
+    });
+    resetChatFabPos();
+    loadSaved();
+    saveLastChapter(SAVED_ROUTE);
+    history.replaceState({ chapterId: SAVED_ROUTE }, '', '#' + SAVED_ROUTE);
+  }
+
+  function renderSavedList() {
+    var box = document.getElementById('savedList');
+    if (!box) return;
+    var chs = _savedItems.filter(function (r) { return r.kind === 'chapter' && chapterIndexById(r.chapter_id) !== -1; });
+    var qs = _savedItems.filter(function (r) { return r.kind === 'quote' && chapterIndexById(r.chapter_id) !== -1; });
+    var delBtn = function (r) {
+      return '<button type="button" class="saved-del" data-action="saved-del" data-id="' + escapeAttr(r.id) +
+        '" aria-label="Bỏ lưu" title="Bỏ lưu">&times;</button>';
+    };
+    var html = '<section class="saved-section"><h3 class="saved-heading">' + BOOKMARK_SVG +
+      'Chương đã lưu <span class="saved-count">' + chs.length + '</span></h3>';
+    html += chs.length ? '<ul class="saved-chapters">' + chs.map(function (r) {
+      var i = chapterIndexById(r.chapter_id);
+      return '<li class="saved-card saved-chapter">' +
+          '<button type="button" class="saved-open" data-action="saved-open" data-chapter="' + escapeAttr(r.chapter_id) + '">' +
+            '<span class="saved-ch-num">' + String(i + 1).padStart(2, '0') + '</span>' +
+            '<span class="saved-ch-title">' + escapeHtml(chapters[i].title) + '</span>' +
+            '<span class="saved-time">' + escapeHtml(relTime(r.created_at)) + '</span>' +
+          '</button>' + delBtn(r) +
+        '</li>';
+    }).join('') + '</ul>'
+      : '<p class="saved-empty">Chưa có chương nào. Bấm <strong>Lưu chương</strong> dưới tiêu đề một chương để lưu.</p>';
+    html += '</section>';
+
+    html += '<section class="saved-section"><h3 class="saved-heading">' + QUOTE_SVG +
+      'Trích dẫn đã lưu <span class="saved-count">' + qs.length + '</span></h3>';
+    html += qs.length ? '<ul class="saved-quotes">' + qs.map(function (r) {
+      return '<li class="saved-card saved-quote">' +
+          '<blockquote class="saved-quote-text">' + escapeHtml(r.quote).replace(/\n/g, '<br>') + '</blockquote>' +
+          '<div class="saved-quote-foot">' +
+            '<button type="button" class="saved-quote-src" data-action="saved-open" data-chapter="' + escapeAttr(r.chapter_id) +
+              '" data-quote="' + escapeAttr(r.quote.slice(0, 60)) + '">' + escapeHtml(chapterLabel(r.chapter_id)) + '</button>' +
+            '<span class="saved-time">' + escapeHtml(relTime(r.created_at)) + '</span>' +
+          '</div>' + delBtn(r) +
+        '</li>';
+    }).join('') + '</ul>'
+      : '<p class="saved-empty">Chưa có trích dẫn nào. Bôi đen một đoạn trong chương rồi bấm <strong>Lưu trích dẫn</strong>.</p>';
+    html += '</section>';
+    box.innerHTML = html;
+  }
+
+  // Opens the chapter; for a quote, scrolls to the paragraph containing it
+  // and briefly highlights that paragraph.
+  function onSavedOpen(a) {
+    var id = a.getAttribute('data-chapter');
+    renderChapter(id, { push: true });
+    var snippet = (a.getAttribute('data-quote') || '').split('\n')[0].trim();
+    if (!snippet) return;
+    var ps = readerEl.querySelectorAll('.entry-body p, .note p, .signature');
+    for (var i = 0; i < ps.length; i++) {
+      if (ps[i].textContent.indexOf(snippet) !== -1) {
+        var p = ps[i];
+        p.scrollIntoView({ block: 'center' });
+        p.classList.add('quote-flash');
+        setTimeout(function () { p.classList.remove('quote-flash'); }, 2600);
+        break;
+      }
+    }
+  }
+
+  function onSavedDelete(a) {
+    var id = a.getAttribute('data-id');
+    a.disabled = true;
+    sb.from('saved_items').delete().eq('id', id).then(function (res) {
+      if (res.error) { a.disabled = false; showToast('Không bỏ lưu được, thử lại nhé.'); return; }
+      _savedItems = _savedItems.filter(function (r) { return r.id !== id; });
+      renderSavedList();
+    });
+  }
+
   // ---- sign-in modal: Google + email/phone, both usable right away --------
   //
   // A centered popup with both sign-in paths shown at once, opened from the
@@ -3098,6 +3419,7 @@
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'admin-users') { renderAdminUsers(); closeDrawer(); }
+      else if (act === 'saved-page') { renderSaved(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
       else if (act === 'inbox-back') backToInboxList();
       else if (act === 'chat-msg-delete') onChatMessageDelete(a);
@@ -3123,6 +3445,7 @@
       if (ev.key === 'Escape') {
         closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers();
         closeChatPanel(); closeSigninModal(); closeAllChatEmojiPopovers();
+        hideQuotePop();
       }
     });
     document.addEventListener('change', function (ev) {
@@ -3160,6 +3483,9 @@
       else if (act === 'creact-pick') onCommentReact(a);
       else if (act === 'creact-add') onCommentReactAdd(a);
       else if (act === 'creact-who') onCommentReactWho(a);
+      else if (act === 'save-chapter') onSaveChapterToggle(a);
+      else if (act === 'saved-open') onSavedOpen(a);
+      else if (act === 'saved-del') onSavedDelete(a);
     });
 
     readerEl.addEventListener('submit', function (ev) {
@@ -3173,6 +3499,7 @@
     function refresh() {
       renderMastheadAuth();
       updateAdminTocItem();
+      onSavedAuthChange();
       if (authUser) {
         refreshChatUnreadBadge();
         if (authUser.isAdmin) { loadInboxThreads(); loadAdminNewUsers(); }
@@ -3188,7 +3515,9 @@
       if (_pendingAdminInboxRoute && _authSettled) {
         var pendingRoute = _pendingAdminInboxRoute;
         _pendingAdminInboxRoute = false;
-        if (authUser && authUser.isAdmin) {
+        if (pendingRoute === SAVED_ROUTE) {
+          if (authUser) { renderSaved(); return; }
+        } else if (authUser && authUser.isAdmin) {
           if (pendingRoute === ADMIN_USERS_ROUTE) renderAdminUsers(); else renderAdminInbox();
           return;
         }
@@ -3200,6 +3529,10 @@
       // check above — authUser.isAdmin is unreliable mid-fetch.
       if (_authSettled && readerEl.querySelector('.admin-inbox, .admin-users') && !(authUser && authUser.isAdmin)) {
         renderChapter(loadLastChapter() || chapters[0].id, { push: false });
+      }
+      // Same for the "Đã lưu" page once nobody's signed in.
+      if (_authSettled && !authUser && readerEl.querySelector('.saved-page')) {
+        renderChapter(chapters[0].id, { push: false });
       }
       // Only rebuild the chat panel body when who's signed in actually
       // changed — a token-refresh auth event re-fires this with the same
@@ -3223,6 +3556,15 @@
 
     recordVisit();
     loadTocViewCounts();
+
+    // Floating "Lưu trích dẫn" button: follows the text selection.
+    var _quoteTimer = null;
+    document.addEventListener('selectionchange', function () {
+      clearTimeout(_quoteTimer);
+      _quoteTimer = setTimeout(updateQuotePop, 120);
+    });
+    readerEl.addEventListener('scroll', function () { if (document.getElementById('quotePop')) updateQuotePop(); });
+    window.addEventListener('scroll', function () { if (document.getElementById('quotePop')) updateQuotePop(); }, { passive: true });
 
     // No realtime — just re-check unread counts every minute while someone's
     // signed in, same "poll rather than push" approach as the rest of this
@@ -3289,6 +3631,7 @@
     var id = routeHash() || loadLastChapter() || chapters[0].id;
     if (id === ADMIN_INBOX_ROUTE && authUser && authUser.isAdmin) { renderAdminInbox(); return; }
     if (id === ADMIN_USERS_ROUTE && authUser && authUser.isAdmin) { renderAdminUsers(); return; }
+    if (id === SAVED_ROUTE && authUser) { renderSaved(); return; }
     renderChapter(id, { push: false });
   });
   searchEl.addEventListener('input', applySearch);
@@ -3318,7 +3661,8 @@
   // check switch into the inbox once getSession() confirms this user
   // actually is the admin.
   // Holds which admin route is pending (inbox or user list), or false.
-  _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE || startId === ADMIN_USERS_ROUTE) ? startId : false;
+  _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE || startId === ADMIN_USERS_ROUTE ||
+                             startId === SAVED_ROUTE) ? startId : false;
   if (sb) initEngagement();
   if (_pendingAdminInboxRoute) {
     renderChapter(chapters[0].id, { silent: true });
