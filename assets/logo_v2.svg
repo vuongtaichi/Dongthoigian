@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Journal and AK</title>
+  <desc id="desc">A simplified diagonal AK-style rifle above an open journal with a coral bookmark.</desc>
+
+  <!-- The circular badge is designed for the site's existing circular crop. -->
+  <circle cx="100" cy="100" r="92" fill="#F8FAFC" stroke="#0F1B33" stroke-width="6"/>
+
+  <!-- A deliberately simplified rifle: one metal silhouette and two blue furniture shapes. -->
+  <g transform="translate(0 -6)">
+    <g transform="translate(100 72) rotate(-18) scale(0.86) translate(-100 -72)">
+    <path d="M31 60 L55 52 H64 L62 68 L36 82 L30 78 Z" fill="#FF8A4C"/>
+    <rect x="56" y="52" width="44" height="18" rx="4" fill="#0F1B33"/>
+    <path d="M62 68 H75 L73 90 H62 Z" fill="#0F1B33"/>
+    <path d="M78 67 C81 81 88 90 98 97 L108 85 C98 78 94 73 93 67 Z" fill="#0F1B33"/>
+    <rect x="98" y="54" width="31" height="13" rx="4" fill="#FF8A4C"/>
+    <rect x="126" y="57" width="39" height="6" rx="3" fill="#0F1B33"/>
+    <path d="M158 53 H164 V57 H168 V64 H158 V61 H153 V57 H158 Z" fill="#0F1B33"/>
+    </g>
+  </g>
+
+  <!-- The journal stays bold and free of page lines for favicon legibility. -->
+  <path
+    d="M34 97 C53 86 77 85 100 97 C123 85 147 86 166 97 V148 C144 138 122 141 100 158 C78 141 56 138 34 148 Z"
+    fill="#0F1B33"
+  />
+  <path
+    d="M43 101 C59 94 77 94 94 103 V143 C76 136 59 135 43 141 Z"
+    fill="#6FA0E8"
+    fill-opacity="0.24"
+  />
+  <path
+    d="M106 103 C123 94 141 94 157 101 V141 C141 135 124 136 106 143 Z"
+    fill="#6FA0E8"
+    fill-opacity="0.24"
+  />
+
+  <!-- The coral accent remains the journal's bookmark and the timeline cue. -->
+  <path d="M94 100 H106 V171 L100 166 L94 171 Z" fill="#6FA0E8"/>
+</svg>
