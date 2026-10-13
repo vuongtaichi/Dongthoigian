@@ -3150,7 +3150,7 @@
           '<h3 class="signin-modal-title" id="signinTitle">Xin chào</h3>' +
           '<p class="signin-sub" id="signinSub">Đăng nhập để bình luận, nhắn tin và lưu những đoạn nội dung bạn tâm đắc.</p>' +
         '</div>' +
-        '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on" novalidate>' +
+        '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="phone" autocomplete="on" novalidate>' +
           '<div class="auth-tabs" role="tablist">' +
             '<button type="button" class="auth-tab is-active" data-action="signin-tab" data-mode="signin">Đăng nhập</button>' +
             '<button type="button" class="auth-tab" data-action="signin-tab" data-mode="signup">Đăng ký</button>' +
@@ -3159,15 +3159,15 @@
             GOOGLE_G_SVG + '<span>Tiếp tục với Google</span></button>' +
           '<div class="signin-modal-divider"><span>hoặc dùng</span></div>' +
           '<div class="auth-idtype">' +
-            '<button type="button" class="auth-idbtn is-active" data-action="signin-idtype" data-type="email">Email</button>' +
-            '<button type="button" class="auth-idbtn" data-action="signin-idtype" data-type="phone">Số điện thoại</button>' +
+            '<button type="button" class="auth-idbtn is-active" data-action="signin-idtype" data-type="phone">Số điện thoại</button>' +
+            '<button type="button" class="auth-idbtn" data-action="signin-idtype" data-type="email">Email</button>' +
           '</div>' +
           '<label class="auth-field" id="signinNameField" hidden>' + ICON_USER +
             '<input type="text" id="signinName" class="auth-input" maxlength="' + NAME_MAX + '" placeholder="Tên hiển thị" autocomplete="nickname" /></label>' +
-          '<label class="auth-field" id="signinEmailField">' + ICON_MAIL +
+          '<label class="auth-field" id="signinEmailField" hidden>' + ICON_MAIL +
             '<input type="email" id="signinIdentity" class="auth-input" placeholder="Email" autocomplete="email" inputmode="email" /></label>' +
           // phone: country-code picker + national number, side by side
-          '<div class="phone-row" id="signinPhoneRow" hidden>' +
+          '<div class="phone-row" id="signinPhoneRow">' +
             '<button type="button" class="phone-cc" id="phoneCcBtn" data-action="phone-cc-toggle" ' +
               'aria-haspopup="listbox" aria-expanded="false" aria-label="Mã quốc gia"></button>' +
             '<input type="tel" id="signinPhone" class="auth-input phone-num" placeholder="912 345 678" ' +
@@ -3387,7 +3387,7 @@
   // repaints the rest of the page).
   function onSigninEmailSubmit(form) {
     var mode = form.getAttribute('data-mode') || 'signin';
-    var idtype = form.getAttribute('data-idtype') || 'email';
+    var idtype = form.getAttribute('data-idtype') || 'phone';
     var identity = fieldVal(form, '#signinIdentity');
     var phoneRaw = fieldVal(form, '#signinPhone');
     var pass = fieldVal(form, '#signinPassword');
