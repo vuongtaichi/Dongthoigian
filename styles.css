@@ -657,9 +657,66 @@ body {
   border-radius: 2px;
 }
 
+/* Under the title: the short gradient rule on the left, the text-size
+   control (A− 100% A+) on the right. */
+.chapter-lead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.4rem 0 2.2rem;
+}
+.chapter-lead .chapter-lead-rule { margin: 0; flex: 0 0 auto; }
+
+.fs-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  padding: .2rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 999px;
+  box-shadow: var(--note-shadow);
+  font-family: var(--font-ui);
+}
+.fs-btn,
+.fs-value {
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+.fs-btn { width: 2.3rem; height: 2.1rem; padding: 0; gap: .05rem; }
+.fs-btn:hover:not(:disabled) { background: var(--accent-soft-bg); color: #1184CF; }
+.fs-btn:disabled { opacity: .35; cursor: default; }
+.fs-a { font-family: var(--font-body); font-weight: 700; line-height: 1; }
+.fs-a-sm { font-size: .9rem; }
+.fs-a-lg { font-size: 1.2rem; }
+.fs-sign { font-size: .8rem; font-weight: 700; line-height: 1; }
+.fs-value {
+  min-width: 3.1rem;
+  height: 2.1rem;
+  padding: 0 .4rem;
+  font-size: .8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+.fs-value:hover { color: var(--ink); }
+.fs-btn:focus-visible,
+.fs-value:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
+
+/* Body text sizes are multiplied by --text-scale (set on <html> by the
+   A−/A+ control; 1 = default). */
 .entry-body p {
   margin: 0 0 1.3em;
-  font-size: 1.3rem;
+  font-size: calc(1.3rem * var(--text-scale, 1));
   line-height: 1.8;
   color: var(--ink);
   text-align: justify;
@@ -708,7 +765,7 @@ body {
   text-align: right;
   font-style: italic;
   color: var(--ink-faint);
-  font-size: 1.18rem;
+  font-size: calc(1.18rem * var(--text-scale, 1));
   margin: 2.2rem 0 0;
 }
 
@@ -752,7 +809,7 @@ body {
 
 .note p {
   margin: 0 0 .85em;
-  font-size: 1.18rem;
+  font-size: calc(1.18rem * var(--text-scale, 1));
   line-height: 1.7;
   font-style: italic;
   color: var(--ink);
@@ -851,7 +908,7 @@ body {
 
 /* mobile: body text at the "Ghi chú" note size (.note p); larger nav card text */
 @media (max-width: 860px) {
-  .entry-body p { font-size: 1.18rem; }
+  .entry-body p { font-size: calc(1.18rem * var(--text-scale, 1)); }
   .nav-btn { padding: 1rem 1.1rem; }
   .nav-btn .nav-dir { font-size: .8rem; }
   .nav-btn .nav-title { font-size: 1.12rem; }

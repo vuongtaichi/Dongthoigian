@@ -32,6 +32,48 @@
     try { return localStorage.getItem(LAST_CHAPTER_KEY); } catch (e) { return null; }
   }
 
+  // Reader text size (A− / A+ under the chapter title). One multiplier,
+  // --text-scale on <html>, scales the diary text, the "Ghi chú" note and
+  // the signature (see styles.css). Remembered per browser.
+  var TEXT_SCALE_KEY = 'nkltt:textScale';
+  var TEXT_SCALES = [0.85, 0.92, 1, 1.1, 1.2, 1.32, 1.45];
+  var _textScaleIdx = 2;
+  (function () {
+    var saved = null;
+    try { saved = parseFloat(localStorage.getItem(TEXT_SCALE_KEY)); } catch (e) {}
+    var i = TEXT_SCALES.indexOf(saved);
+    if (i !== -1) _textScaleIdx = i;
+    applyTextScale();
+  })();
+  function applyTextScale() {
+    document.documentElement.style.setProperty('--text-scale', TEXT_SCALES[_textScaleIdx]);
+    var pct = document.getElementById('fsValue');
+    if (pct) pct.textContent = Math.round(TEXT_SCALES[_textScaleIdx] * 100) + '%';
+    var dec = document.getElementById('fsDec');
+    var inc = document.getElementById('fsInc');
+    if (dec) dec.disabled = _textScaleIdx === 0;
+    if (inc) inc.disabled = _textScaleIdx === TEXT_SCALES.length - 1;
+  }
+  function stepTextScale(d) {
+    if (d === 0) _textScaleIdx = 2;
+    else _textScaleIdx = Math.max(0, Math.min(TEXT_SCALES.length - 1, _textScaleIdx + d));
+    applyTextScale();
+    try { localStorage.setItem(TEXT_SCALE_KEY, String(TEXT_SCALES[_textScaleIdx])); } catch (e) {}
+  }
+  function textSizeControlHtml() {
+    return '<div class="fs-control" role="group" aria-label="Cỡ chữ">' +
+        '<button type="button" class="fs-btn" id="fsDec" data-fs="-1" aria-label="Giảm cỡ chữ" title="Giảm cỡ chữ">' +
+          '<span class="fs-a fs-a-sm">A</span><span class="fs-sign">−</span></button>' +
+        '<button type="button" class="fs-value" id="fsValue" data-fs="0" title="Cỡ chữ mặc định">100%</button>' +
+        '<button type="button" class="fs-btn" id="fsInc" data-fs="1" aria-label="Tăng cỡ chữ" title="Tăng cỡ chữ">' +
+          '<span class="fs-a fs-a-lg">A</span><span class="fs-sign">+</span></button>' +
+      '</div>';
+  }
+  readerEl.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-fs]');
+    if (b && !b.disabled) stepTextScale(parseInt(b.getAttribute('data-fs'), 10));
+  });
+
   // The admin inbox isn't a chapter, but it reuses the same "last place"
   // storage/hash so leaving the site and coming back restores it too,
   // instead of always falling through to chapter 1 (see routing near the
@@ -277,7 +319,7 @@
     var html = '<article class="chapter">';
     html += '<p class="chapter-kicker">Chương ' + String(idx + 1).padStart(2, '0') + '</p>';
     html += '<h2 class="chapter-title">' + escapeHtml(ch.title) + '</h2>';
-    html += '<hr class="chapter-lead-rule">';
+    html += '<div class="chapter-lead"><hr class="chapter-lead-rule">' + textSizeControlHtml() + '</div>';
 
     // Simple chapters: a flat "intro" array of paragraphs.
     if (ch.intro) {
@@ -320,6 +362,7 @@
 
     readerEl.innerHTML = html;
     readerEl.setAttribute('data-chapter-id', ch.id);
+    applyTextScale();   // fill in the new control's % and disabled states
     updateFloatNav(idx);
     setChapterBar(idx);
     scrollReaderToTop();
