@@ -3960,4 +3960,17 @@
   } else {
     renderChapter(startId);
   }
+
+  // /?menu — the "Mục lục" tab on the Terms / Privacy pages links here: open
+  // the chapter list (the drawer on mobile; on desktop the sidebar is always
+  // shown, so just put the cursor in its search box). The flag is then
+  // dropped from the URL so a reload doesn't reopen it.
+  (function () {
+    var q = '';
+    try { q = location.search || ''; } catch (e) {}
+    if (!/[?&]menu\b/.test(q)) return;
+    try { history.replaceState(history.state, '', location.pathname + location.hash); } catch (e) {}
+    if (window.innerWidth <= 860) openDrawer();
+    else if (searchEl) searchEl.focus({ preventScroll: true });
+  })();
 })();
