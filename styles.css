@@ -1058,10 +1058,17 @@ body {
   border: none;
   background: none;
   font: inherit;
+  font-family: var(--font-ui);
   font-size: .9em;
+  line-height: 1.2;
   color: var(--ink-soft);
   cursor: pointer;
-  padding: .28rem .8rem;
+  /* flex-centre the label so it sits in the middle of the pill
+     (it rendered a little low with the inherited line box) */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .32rem .85rem;
   border-radius: 999px;
 }
 .auth-idbtn.is-active {
