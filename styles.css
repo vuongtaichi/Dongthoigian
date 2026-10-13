@@ -929,14 +929,15 @@ body {
 /* ---- Chapter page: header card + entry cards (same look as legal.css) ---- */
 .chapter.chapter-read { max-width: 720px; }
 
-/* header box in the page's own colour, outlined: kicker, title, then the
+/* header box, white like the text and note boxes: kicker, title, then the
    rule + save / text-size tools */
 .chapter-hero {
   margin: 0 0 1.25rem;
   padding: 2.2rem 2.2rem 1.7rem;
   border-radius: 22px;
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--note-border);
+  box-shadow: var(--note-shadow);
 }
 .chapter-hero .chapter-lead { margin: 1.5rem 0 0; }
 
@@ -953,7 +954,7 @@ body {
 .entry-card .subentry-heading { align-items: center; flex-wrap: wrap; margin-bottom: 1.1rem; }
 .entry-card .signature { margin-top: 1.8rem; }
 /* notes ("Ghi chú") sit in their own box below the text card */
-.chapter-read .note { margin-top: 1.25rem; border-radius: 18px; padding: 1.5rem 1.8rem 1.6rem 2.1rem; }
+.chapter-read .note { background: var(--card); margin-top: 1.25rem; border-radius: 18px; padding: 1.5rem 1.8rem 1.6rem 2.1rem; }
 .chapter-read .note + .entry-card { margin-top: 1.25rem; }
 
 /* gradient number badge in front of each entry heading (legal.css .num) */
