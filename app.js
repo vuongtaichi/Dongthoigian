@@ -1397,7 +1397,7 @@
     if (m) m.hidden = true;
   }
 
-  var ADMIN_EMAIL = 'vuongtaichi@gmail.com';
+  var ADMIN_EMAIL = 'dongthoigian2727@gmail.com';
   function nameLooksLikeAdmin(name, email) {
     return /admin|quản trị/i.test(name) && (email || '').toLowerCase() !== ADMIN_EMAIL;
   }
