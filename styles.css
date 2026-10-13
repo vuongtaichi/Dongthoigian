@@ -191,7 +191,10 @@ body {
 .sidebar {
   flex: 0 0 363px;
   width: 363px;
-  background: var(--sidebar-bg);
+  /* a faint blue glow in the top-left corner over the flat navy */
+  background:
+    radial-gradient(120% 45% at 0% 0%, rgba(17, 132, 207, .16), transparent 70%),
+    var(--sidebar-bg);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
   position: sticky;
@@ -207,7 +210,8 @@ body {
 .masthead {
   flex: 0 0 auto;
   padding: 1.25rem 1.75rem 1.5rem;
-  border-bottom: 1px solid var(--sidebar-border);
+  /* hairline divider that fades out at both ends */
+  background: linear-gradient(90deg, transparent, rgba(111, 168, 255, .28), transparent) bottom / 100% 1px no-repeat;
 }
 
 /* Logo + wordmark, side by side, above the chapter count. Sized so the
@@ -412,7 +416,7 @@ body {
 .toc {
   list-style: none;
   margin: 0;
-  padding: .75rem 0;
+  padding: .6rem .75rem;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -473,29 +477,46 @@ body {
   }
 }
 
+/* Rounded rows inset from the edges; the chapter number sits in a small
+   badge. The active row gets a blue gradient tint, a hairline glow and a
+   short gradient bar on its left. */
 .toc-item {
+  position: relative;
   width: 100%;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: .8rem;
+  margin: 1px 0;
   text-align: left;
   background: transparent;
   border: none;
-  border-left: 3px solid transparent;
+  border-radius: 12px;
   color: var(--sidebar-text);
-  padding: .68rem 1.5rem .68rem 1.45rem;
+  padding: .55rem .85rem .55rem .7rem;
   cursor: pointer;
   font: inherit;
+  transition: background .15s ease, box-shadow .15s ease;
 }
 
-.toc-item:hover { background: var(--sidebar-bg-elevated); }
+.toc-item:hover { background: rgba(255, 255, 255, .05); }
+.toc-item:focus-visible { outline: 2px solid #8ab4ff; outline-offset: -2px; }
 
 .toc-item.active {
-  background: var(--sidebar-active-bg);
-  border-left-color: var(--sidebar-accent);
+  background: linear-gradient(90deg, rgba(17, 132, 207, .3), rgba(67, 75, 215, .16));
+  box-shadow: inset 0 0 0 1px rgba(111, 168, 255, .22), 0 4px 14px rgba(0, 0, 0, .18);
+}
+.toc-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #1184CF, #434BD7);
 }
 
-.toc-item.active .toc-title { color: var(--sidebar-active-text); }
+.toc-item.active .toc-title { color: var(--sidebar-active-text); font-weight: 600; }
 
 .toc-item.hidden { display: none; }
 
@@ -506,21 +527,29 @@ body {
 }
 
 .toc-num {
+  flex: 0 0 auto;
+  width: 2.1rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .06);
   font-variant-numeric: tabular-nums;
-  font-size: 1.02rem;
-  color: var(--sidebar-text);
-  padding-top: .15rem;
-  flex: 0 0 1.8em;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--sidebar-text-dim);
+  transition: background .15s ease, color .15s ease;
+}
+.toc-item:hover .toc-num { color: var(--sidebar-text); }
+.toc-item.active .toc-num {
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(17, 132, 207, .4);
 }
 
 /* The "Hộp thư" entry puts a line icon where a chapter number would be. */
-.toc-num-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  align-self: center;
-  padding-top: 0;
-}
+.toc-num-icon { color: var(--sidebar-text); }
 
 .toc-text { display: flex; flex-direction: column; gap: .18rem; min-width: 0; flex: 1 1 auto; }
 
@@ -533,11 +562,9 @@ body {
 /* per-chapter view count at the right end of the sidebar title */
 .toc-views {
   flex: 0 0 auto;
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: .2rem;
-  padding-top: .22rem;
   font-size: .8rem;
   font-variant-numeric: tabular-nums;
   color: var(--sidebar-text-dim);
@@ -548,7 +575,7 @@ body {
 .sidebar-footer {
   flex: 0 0 auto;
   padding: 1.1rem 1.75rem 1.5rem;
-  border-top: 1px solid var(--sidebar-border);
+  background: linear-gradient(90deg, transparent, rgba(111, 168, 255, .28), transparent) top / 100% 1px no-repeat;
   font-size: .88rem;
   line-height: 1.55;
   color: var(--sidebar-text);
@@ -1012,7 +1039,7 @@ body {
   .masthead-avatar { width: 1.75rem; height: 1.75rem; }
   .search-box { margin-top: .65rem; }
   .search-input { height: 2.4rem; font-size: .95rem; }
-  .toc { padding: .35rem 0; }
+  .toc { padding: .4rem .6rem; }
 
   /* footer: the full privacy note, then links on the left and © + visitor
      pill on the right */
