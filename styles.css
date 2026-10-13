@@ -696,29 +696,29 @@ body {
 
 .nav-btn:disabled { visibility: hidden; }
 
-/* Solid dark-navy pill around "Trước"/"Tiếp" — matches a reference button
-   image the user asked to copy (first built with a dashed border, then
-   changed to solid). Fixed color (not a theme token) so it stays dark blue
-   in both site themes, same precedent as the Google/.auth-btn fixed brand
-   colors elsewhere. */
+/* "Trước"/"Tiếp" pills — same blue gradient as the sign-in .auth-btn
+   (owner's ask, 2026-10-13), including its hover shift. Fixed colors so
+   they stay the same in both site themes. */
 .nav-btn .nav-dir {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 7rem;               /* both pills the same fixed width */
   padding: .4rem 1.15rem;
-  border: 2.5px solid #1c3b7a;
+  border: none;
   border-radius: 999px;
   font-size: .78rem;
   letter-spacing: .12em;
   text-transform: uppercase;
   font-weight: 600;
-  color: #1c3b7a;
-  background: transparent;
-  transition: background-color .2s;
+  color: #fff;
+  background-color: #3597D7;
+  background-image: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  background-size: calc(100% + 20px) calc(100% + 20px);
+  transition: background-position .2s;
 }
 
-.nav-btn:hover .nav-dir { background: rgba(28, 59, 122, .08); }
+.nav-btn:hover .nav-dir { background-position: -20px -20px; }
 
 .nav-btn .nav-chapter {
   font-size: 1rem;
@@ -961,8 +961,8 @@ body {
    "remove the shadow effect" ask. Deliberately fixed brand colors rather
    than theme tokens, same as the Google button, everywhere except the
    Google button itself (excluded below). The gradient stops were later
-   darkened a bit on request — does not apply to .nav-btn .nav-dir
-   (Trước/Tiếp), which is a separate dark-navy outline style, not this. */
+   darkened a bit on request — .nav-btn .nav-dir (Trước/Tiếp) and the
+   floating .float-nav-btn circles copy this gradient. */
 .auth-btn {
   align-items: center;
   appearance: none;
@@ -2219,16 +2219,19 @@ body {
   height: 3rem;
   border-radius: 50%;
   border: none;
-  background: var(--fab-bg);
+  /* same blue gradient as the sign-in .auth-btn */
+  background-color: #3597D7;
+  background-image: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  background-size: calc(100% + 20px) calc(100% + 20px);
   color: var(--fab-fg);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--fab-shadow);
   cursor: pointer;
-  transition: background .15s ease, transform .15s ease, opacity .15s ease;
+  transition: background-position .2s ease, transform .15s ease, opacity .15s ease;
 }
-.float-nav-btn:hover:not(:disabled) { background: var(--fab-bg-hover); transform: scale(1.06); }
+.float-nav-btn:hover:not(:disabled) { background-position: -20px -20px; transform: scale(1.06); }
 .float-nav-btn:focus-visible { outline: 3px solid #8ab4ff; outline-offset: 2px; }
 .float-nav-btn:disabled { opacity: .35; cursor: default; box-shadow: none; }
 
