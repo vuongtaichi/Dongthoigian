@@ -220,28 +220,82 @@
     })();
   </script>
   <script>
-    // Contents box: highlight the section being read (legal.css .toc a.is-active).
-    // A section counts once its top passes just under the floating bar and its
-    // stuck heading; at the very bottom the last section wins.
+    // Stacked section titles + contents highlight. Every section whose title
+    // has scrolled up to its slot (just under the floating bar, below the
+    // titles already stacked) gets a row in .title-stack; the last one is
+    // the section being read and is highlighted in the contents box. Slots
+    // are fixed (bar height + i × row height), so rows never shift the
+    // thresholds. At the very bottom of the page every section counts.
     (function () {
-      var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
-      var items = links.map(function (a) {
-        return { a: a, el: document.getElementById(a.getAttribute('href').slice(1)) };
-      }).filter(function (it) { return it.el; });
-      if (!items.length) return;
-      var current = null, queued = false;
+      var main = document.querySelector('main');
+      var sections = Array.prototype.slice.call(document.querySelectorAll('main .section[id]'));
+      if (!main || !sections.length) return;
+      var stack = document.createElement('nav');
+      stack.className = 'title-stack';
+      stack.setAttribute('aria-label', 'Các mục đã đọc');
+      stack.hidden = true;
+      document.body.appendChild(stack);
+      var items = sections.map(function (sec) {
+        var h2 = sec.querySelector('h2');
+        var row = document.createElement('a');
+        row.href = '#' + sec.id;
+        row.innerHTML = h2 ? h2.innerHTML : sec.id;
+        var link = document.querySelector('.toc a[href="#' + sec.id + '"]');
+        return { sec: sec, h2: h2 || sec, row: row, link: link };
+      });
+      function pinH() {
+        return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pin-h')) || 0;
+      }
+      // Phones (legal.css) have no stack, just one sticky title: row height 0.
+      var big = window.matchMedia('(min-width: 861px)');
+      function rowH() {
+        if (!big.matches) return 0;
+        return parseFloat(getComputedStyle(stack).getPropertyValue('--stack-row')) *
+          parseFloat(getComputedStyle(document.documentElement).fontSize);
+      }
+      var shown = -1, queued = false;
       function update() {
         queued = false;
-        var line = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pin-h')) || 0) + 64;
-        var active = null;
-        items.forEach(function (it) { if (it.el.getBoundingClientRect().top <= line) active = it; });
-        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) active = items[items.length - 1];
-        if (active === current) return;
-        if (current) { current.a.classList.remove('is-active'); current.a.removeAttribute('aria-current'); }
-        if (active) { active.a.classList.add('is-active'); active.a.setAttribute('aria-current', 'true'); }
-        current = active;
+        var top = pinH(), rh = rowH(), n = -1;
+        items.forEach(function (it, i) {
+          if (it.h2.getBoundingClientRect().top <= top + i * rh + 1) n = i;
+        });
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+          n = items.length - 1;
+        }
+        var r = main.getBoundingClientRect();
+        stack.style.top = top + 'px';
+        stack.style.left = r.left + 'px';
+        stack.style.width = r.width + 'px';
+        if (n === shown) return;
+        stack.textContent = '';
+        for (var i = 0; i <= n; i++) stack.appendChild(items[i].row);
+        stack.hidden = n < 0;
+        items.forEach(function (it, i) {
+          if (!it.link) return;
+          it.link.classList.toggle('is-active', i === n);
+          if (i === n) it.link.setAttribute('aria-current', 'true');
+          else it.link.removeAttribute('aria-current');
+        });
+        shown = n;
       }
       function queue() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+      // Jumping to a section (contents box or a stacked row) stops with its
+      // title exactly at its slot, so it joins the stack and its text starts
+      // right under it.
+      document.addEventListener('click', function (ev) {
+        var a = ev.target.closest && ev.target.closest('.toc a[href^="#"], .title-stack a');
+        if (!a) return;
+        var id = a.getAttribute('href').slice(1);
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].sec.id !== id) continue;
+          ev.preventDefault();
+          var y = window.scrollY + items[i].h2.getBoundingClientRect().top - (pinH() + i * rowH());
+          window.scrollTo({ top: Math.max(0, Math.ceil(y)), behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+          return;
+        }
+      });
       window.addEventListener('scroll', queue, { passive: true });
       window.addEventListener('resize', queue);
       update();
