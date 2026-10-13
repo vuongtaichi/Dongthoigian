@@ -771,16 +771,9 @@
     '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' +
     '<path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
 
-  // Artist's palette (like the old 🎨 glyph) but black-and-white: outline +
-  // solid dots in the current text colour, no fixed colours.
-  var PALETTE_SVG =
-    '<svg viewBox="0 0 24 24" width="1.2em" height="1.2em" fill="none" stroke="currentColor" ' +
-    'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.17-.83-.44-1.12-.28-.29-.44-.66-.44-1.13a1.64 1.64 0 0 1 1.67-1.67H16c3.05 0 5.5-2.45 5.5-5.5C21.5 6.01 17.46 2 12 2z"/>' +
-    '<circle cx="8.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/>' +
-    '<circle cx="13.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/>' +
-    '<circle cx="17" cy="10" r="1.2" fill="currentColor" stroke="none"/>' +
-    '<circle cx="6.5" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>';
+  // Colour-wheel ring for the chat bubble colour button (styled in CSS as a
+  // conic-gradient donut, like a modern OS colour well).
+  var PALETTE_SVG = '<span class="chat-color-icon" aria-hidden="true"></span>';
 
   // Chat attachments: a private Storage bucket, RLS-scoped per thread the
   // same way `messages` itself is (see comments-setup.sql) — so viewing one

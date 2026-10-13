@@ -1724,6 +1724,18 @@ body {
 }
 .chat-tool-btn:hover { background: var(--accent-soft-bg); }
 
+/* Chat bubble colour button: a rainbow ring that turns a little on hover. */
+.chat-color-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  background: conic-gradient(#f43f5e, #f97316, #facc15, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #f43f5e);
+  -webkit-mask: radial-gradient(circle, transparent 42%, #000 46%);
+          mask: radial-gradient(circle, transparent 42%, #000 46%);
+  transition: transform .35s ease;
+}
+.chat-tool-btn:hover .chat-color-icon { transform: rotate(120deg); }
+
 .chat-emoji-wrap { position: relative; flex: 0 0 auto; }
 
 .chat-emoji-popover {
