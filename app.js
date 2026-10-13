@@ -3095,7 +3095,7 @@
         '<div class="signin-hero">' +
           '<img class="signin-logo" src="assets/logo_v2.svg" alt="" />' +
           '<h3 class="signin-modal-title" id="signinTitle">Xin chào</h3>' +
-          '<p class="signin-sub" id="signinSub">Đăng nhập để bình luận, nhắn tin và lưu những đoạn bạn tâm đắc.</p>' +
+          '<p class="signin-sub" id="signinSub">Đăng nhập để bình luận, nhắn tin và lưu những đoạn nội dung bạn tâm đắc.</p>' +
         '</div>' +
         '<form class="auth-email-form" id="signinEmailForm" data-mode="signin" data-idtype="email" autocomplete="on" novalidate>' +
           '<div class="auth-tabs" role="tablist">' +
@@ -3301,7 +3301,7 @@
     var sub = document.getElementById('signinSub');
     if (sub) sub.textContent = (mode === 'signup')
       ? 'Miễn phí, chỉ mất vài giây. Bạn vẫn đọc được toàn bộ nhật ký mà không cần tài khoản.'
-      : 'Đăng nhập để bình luận, nhắn tin và lưu những đoạn bạn tâm đắc.';
+      : 'Đăng nhập để bình luận, nhắn tin và lưu những đoạn nội dung bạn tâm đắc.';
     var pass = form.querySelector('#signinPassword');
     if (pass) pass.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
     var submit = form.querySelector('#signinSubmit');
