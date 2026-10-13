@@ -156,7 +156,8 @@ body {
 .progress-fill {
   height: 100%;
   width: 0%;
-  background: var(--accent);
+  background: linear-gradient(90deg, #1184CF, #434BD7);
+  border-radius: 0 3px 3px 0;
   transition: width .12s linear;
 }
 
@@ -632,8 +633,8 @@ body {
 
 .chapter-lead-rule {
   width: 3rem;
-  height: 3px;
-  background: var(--accent);
+  height: 4px;
+  background: linear-gradient(90deg, #1184CF, #434BD7);
   border: none;
   margin: 1.6rem 0 2.4rem;
   border-radius: 2px;
@@ -759,67 +760,82 @@ body {
   margin-top: 4.5rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   font-family: var(--font-ui);
 }
 
+/* Prev / next chapter: clickable cards on the "Ghi chú" note surface, with a
+   blue-gradient arrow circle; they lift a little on hover. */
 .nav-btn {
-  background: none;
-  border: none;
-  color: var(--ink-faint);
-  cursor: pointer;
-  font: inherit;
   display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  padding: 0;
-  max-width: 48%;
+  align-items: center;
+  gap: .9rem;
+  min-width: 0;
+  padding: .9rem 1rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--note-shadow);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
-
+.nav-btn:hover {
+  transform: translateY(-2px);
+  border-color: #9fb6f0;
+  box-shadow: 0 10px 26px rgba(41, 81, 163, .18);
+}
+.nav-btn:focus-visible { outline: 3px solid #8ab4ff; outline-offset: 2px; }
 .nav-btn:disabled { visibility: hidden; }
+.nav-btn.prev { grid-column: 1; text-align: left; }
+.nav-btn.next { grid-column: 2; text-align: right; justify-content: flex-end; }
 
-/* "Trước"/"Tiếp" pills — same blue gradient as the sign-in .auth-btn
-   (owner's ask, 2026-10-13), including its hover shift. Fixed colors so
-   they stay the same in both site themes. */
-.nav-btn .nav-dir {
+.nav-arrow {
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 7rem;               /* both pills the same fixed width */
-  padding: .4rem 1.15rem;
-  border: none;
-  border-radius: 999px;
-  font-size: .78rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  font-weight: 600;
   color: #fff;
-  background-color: #3597D7;
-  background-image: linear-gradient(1deg, #434BD7, #1184CF 99%);
-  background-size: calc(100% + 20px) calc(100% + 20px);
-  transition: background-position .2s;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  transition: transform .15s ease;
 }
+.nav-btn.prev:hover .nav-arrow { transform: translateX(-3px); }
+.nav-btn.next:hover .nav-arrow { transform: translateX(3px); }
 
-.nav-btn:hover .nav-dir { background-position: -20px -20px; }
+.nav-text { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
 
-.nav-btn .nav-chapter {
-  font-size: 1rem;
+.nav-btn .nav-dir {
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
 }
 
 .nav-btn .nav-title {
-  font-size: 1.1rem;
-  color: var(--accent);
-  line-height: 1.4;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
 }
 
-/* Mirror layouts: prev hugs the left with left-aligned text, next the right.
-   align-items also stops the pill stretching to the column's full width. */
-.nav-btn.prev { text-align: left; align-items: flex-start; }
-.nav-btn.next { text-align: right; align-items: flex-end; }
+@media (max-width: 560px) {
+  .chapter-nav { grid-template-columns: 1fr; }
+  .nav-btn.prev, .nav-btn.next { grid-column: 1; }
+  .nav-btn:disabled { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn, .nav-arrow { transition: none; }
+  .nav-btn:hover, .nav-btn:hover .nav-arrow { transform: none; }
+}
 
 /* ---------- Responsive ---------- */
 
@@ -834,9 +850,10 @@ body {
     top: 1rem;
     right: 1rem;   /* top-right on mobile (was top-left) */
     z-index: 30;
-    background: var(--sidebar-bg);
-    color: var(--sidebar-active-text);
-    border: 1px solid var(--sidebar-border);
+    /* sign-in .auth-btn blue gradient */
+    background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+    color: #fff;
+    border: none;
     border-radius: 999px;
     padding: .55rem 1.1rem .55rem .9rem;
     font-family: var(--font-ui);
@@ -1252,29 +1269,54 @@ body {
 .comments { margin-top: 2rem; }
 
 /* Signed-out gate, sits just above the "Bình luận" heading */
+/* "Bạn cần đăng nhập…" — same card as the comment box */
 .guest-gate {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .8rem;
-  margin-bottom: 1.6rem;
-  padding: 1rem 1.1rem;
-  background: var(--accent-soft-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem 1.2rem;
+  margin-bottom: 1.8rem;
+  padding: 1rem 1.2rem;
+  background: var(--comment-box-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--note-shadow);
 }
 
 .guest-gate-msg {
   margin: 0;
+  flex: 1 1 16rem;
+  font-family: var(--font-ui);
+  font-size: .98rem;
   color: var(--ink-soft);
   line-height: 1.5;
 }
 
 .comments-title {
-  font-size: inherit;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink);
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
+}
+
+/* count badge next to "Bình luận" */
+.comments-count {
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 .5rem;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .comment-compose:not(:empty) { margin-bottom: 1.8rem; }
@@ -1417,6 +1459,19 @@ body {
 
 .comment-text { color: var(--ink); }
 
+/* name + time + text sit in a soft rounded bubble (actions stay below it) */
+.comment-bubble {
+  display: inline-block;
+  max-width: 100%;
+  padding: .55rem .9rem .65rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 4px 16px 16px 16px;
+}
+.comment-bubble .comment-head { margin-bottom: .15rem; }
+.comment-author { font-family: var(--font-ui); font-size: .95rem; }
+.comment-time { font-family: var(--font-ui); font-size: .82rem; }
+
 /* emoji reactions live inside the comment action row: 🙂+ at the start,
    the used-emoji pills pushed to the right */
 .creact-pills {
@@ -1500,11 +1555,11 @@ body {
 
 .comment-actions {
   position: relative;
-  margin-top: .4rem;
+  margin-top: .3rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .5rem .9rem;
+  gap: .4rem .35rem;
 }
 
 .comment-act {
@@ -1518,6 +1573,22 @@ body {
 }
 
 .comment-act:hover { color: var(--accent); }
+
+/* Trả lời / Sửa / Xoá as round icon buttons */
+.comment-act-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--ink-faint);
+  transition: background .15s ease, color .15s ease;
+}
+.comment-act-icon:hover { background: var(--accent-soft-bg); color: #1184CF; }
+.comment-act-icon.is-danger:hover { background: rgba(229, 72, 77, .12); color: #e5484d; }
+.comment-act-icon:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
 
 .comment-edit-form {
   margin-top: .5rem;

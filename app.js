@@ -303,10 +303,14 @@
     var next = chapters[idx + 1];
     html += '<nav class="chapter-nav">';
     html += '<button class="nav-btn prev" id="prevBtn"' + (prev ? '' : ' disabled') + '>';
-    if (prev) html += '<span class="nav-dir">&larr; Trước</span><span class="nav-chapter">Chương ' + String(idx).padStart(2, '0') + '</span><span class="nav-title">' + escapeHtml(prev.title) + '</span>';
+    if (prev) html += '<span class="nav-arrow" aria-hidden="true">' + NAV_ARROW_LEFT + '</span>' +
+      '<span class="nav-text"><span class="nav-dir">Chương trước · ' + String(idx).padStart(2, '0') + '</span>' +
+      '<span class="nav-title">' + escapeHtml(prev.title) + '</span></span>';
     html += '</button>';
     html += '<button class="nav-btn next" id="nextBtn"' + (next ? '' : ' disabled') + '>';
-    if (next) html += '<span class="nav-dir">Tiếp &rarr;</span><span class="nav-chapter">Chương ' + String(idx + 2).padStart(2, '0') + '</span><span class="nav-title">' + escapeHtml(next.title) + '</span>';
+    if (next) html += '<span class="nav-text"><span class="nav-dir">Chương tiếp · ' + String(idx + 2).padStart(2, '0') + '</span>' +
+      '<span class="nav-title">' + escapeHtml(next.title) + '</span></span>' +
+      '<span class="nav-arrow" aria-hidden="true">' + NAV_ARROW_RIGHT + '</span>';
     html += '</button>';
     html += '</nav>';
 
@@ -742,9 +746,9 @@
     var reactsOn = _commentReactsOn;
     var actions = '<div class="comment-actions" data-cid="' + c.id + '">' +
       (reactsOn ? creactAddHtml(c.id) : '') +
-      (authUser ? '<button type="button" class="comment-act" data-action="reply">Trả lời</button>' : '') +
-      (mine ? '<button type="button" class="comment-act" data-action="edit">Sửa</button>' : '') +
-      (canDelete ? '<button type="button" class="comment-act" data-action="del">Xoá</button>' : '') +
+      (authUser ? '<button type="button" class="comment-act comment-act-icon" data-action="reply" aria-label="Trả lời" title="Trả lời">' + REPLY_SVG + '</button>' : '') +
+      (mine ? '<button type="button" class="comment-act comment-act-icon" data-action="edit" aria-label="Sửa" title="Sửa">' + EDIT_SVG + '</button>' : '') +
+      (canDelete ? '<button type="button" class="comment-act comment-act-icon is-danger" data-action="del" aria-label="Xoá" title="Xoá">' + TRASH_SVG + '</button>' : '') +
       (reactsOn ? '<span class="creact-pills">' + creactPillsHtml(c.id) + '</span>' +
         '<span class="creact-who" hidden></span>' : '') +
       '</div>';
@@ -753,12 +757,14 @@
         '" data-id="' + c.id + '">' +
         avatarHtml(name, avatar, c.user_id, 'comment-avatar', hue) +
         '<div class="comment-body-col">' +
+          '<div class="comment-bubble">' +
           '<div class="comment-head">' +
             '<span class="comment-author">' + escapeHtml(name) + '</span>' +
             '<span class="comment-time">' + escapeHtml(relTime(c.created_at)) +
               (c.edited_at ? ' · đã sửa' : '') + '</span>' +
           '</div>' +
           '<div class="comment-text">' + escapeHtml(c.body || '').replace(/\r?\n/g, '<br>') + '</div>' +
+          '</div>' +
           actions +
           replies +
         '</div>' +
@@ -776,6 +782,29 @@
     renderCompose();
     loadComments(chapterId, token);
   }
+
+  // End-of-chapter nav card arrows.
+  var NAV_ARROW_LEFT =
+    '<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
+  var NAV_ARROW_RIGHT =
+    '<svg viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  // Comment action icons (Trả lời / Sửa / Xoá) — line icons, label kept in
+  // aria-label + title.
+  var REPLY_SVG =
+    '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
+  var EDIT_SVG =
+    '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  var TRASH_SVG =
+    '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 
   var EYE_SVG =
     '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" ' +
@@ -2593,7 +2622,7 @@
           return;
         }
         var rows = res.data || [];
-        if (titleEl) titleEl.textContent = 'Bình luận' + (rows.length ? ' (' + rows.length + ')' : '');
+        if (titleEl) setCommentsTitle(titleEl, rows.length);
         if (!rows.length) {
           list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';
           return;
@@ -2738,9 +2767,14 @@
   function bumpCount(delta) {
     var t = document.getElementById('commentsTitle');
     if (!t) return;
-    var m = /\((\d+)\)/.exec(t.textContent || '');
-    var n = Math.max(0, (m ? parseInt(m[1], 10) : 0) + delta);
-    t.textContent = 'Bình luận' + (n > 0 ? ' (' + n + ')' : '');
+    var badge = t.querySelector('.comments-count');
+    var n = Math.max(0, (badge ? parseInt(badge.textContent, 10) || 0 : 0) + delta);
+    setCommentsTitle(t, n);
+  }
+
+  // "Bình luận" heading + a small count badge (hidden at 0).
+  function setCommentsTitle(el, n) {
+    el.innerHTML = 'Bình luận' + (n > 0 ? ' <span class="comments-count">' + n + '</span>' : '');
   }
 
   function prependComment(row) {
