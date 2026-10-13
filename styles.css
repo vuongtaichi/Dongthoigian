@@ -315,6 +315,30 @@ body {
 }
 
 .profile-modal-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
+
+/* × in the top-right corner (replaces the old "Huỷ" button) */
+.profile-modal-close {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-faint);
+  font-family: var(--font-ui);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0 0 .1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.profile-modal-close:hover { background: var(--accent-soft-bg); color: var(--ink); }
+.profile-modal-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
 .profile-avatar-preview { align-self: center; }
 
 .profile-field { display: flex; flex-direction: column; gap: .4rem; color: var(--ink-soft); }

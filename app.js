@@ -1209,6 +1209,7 @@
     m.innerHTML =
       '<div class="profile-modal-backdrop" data-action="profile-cancel"></div>' +
       '<div class="profile-modal-card" role="dialog" aria-modal="true" aria-label="Hồ sơ của bạn">' +
+        '<button type="button" class="profile-modal-close" data-action="profile-cancel" aria-label="Đóng" title="Đóng">&times;</button>' +
         '<h3 class="profile-modal-title">Hồ sơ của bạn</h3>' +
         '<div class="profile-avatar-preview" id="profileAvatarPreview"></div>' +
         '<label class="profile-field"><span>Tên hiển thị</span>' +
@@ -1222,7 +1223,6 @@
         '<div class="profile-modal-btns">' +
           '<button type="button" class="auth-btn profile-signout" data-action="signout">Đăng xuất</button>' +
           '<span class="profile-modal-btns-right">' +
-            '<button type="button" class="comment-act" data-action="profile-cancel">Huỷ</button>' +
             '<button type="button" class="auth-btn" data-action="profile-save">Lưu</button>' +
           '</span>' +
         '</div>' +
