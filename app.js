@@ -1486,35 +1486,25 @@
     }).join('');
   }
 
-  function composePendingFileHtml(prefix) {
-    return '<div class="chat-pending-file" id="' + prefix + 'PendingFile" hidden>' +
-        '<span class="chat-pending-file-name"></span>' +
-        '<button type="button" class="chat-pending-file-remove" data-action="chat-attach-remove" data-for="' +
-          prefix + '" aria-label="Bỏ đính kèm">&times;</button>' +
-      '</div>';
-  }
-
+  // Sending attachments was removed from the compose box on request (the
+  // file button, picker and pending-file strip are gone, so the pending-file
+  // state below always stays null). Attachments on older messages still
+  // render in chatBubbleHtml().
   function composeToolsHtml(prefix) {
     return '<div class="chat-compose-icons">' +
         '<span class="chat-emoji-wrap">' +
           '<button type="button" class="chat-tool-btn" data-action="chat-emoji-toggle" aria-label="Chèn biểu tượng cảm xúc">' + emojiImg('🙂') + '</button>' +
           '<span class="chat-emoji-popover" hidden>' + chatEmojiButtonsHtml() + '</span>' +
         '</span>' +
-        '<button type="button" class="chat-tool-btn" data-action="chat-attach" data-for="' + prefix +
-          '" aria-label="Đính kèm tệp">' + emojiImg('📎') + '</button>' +
-      '</div>' +
-      '<input type="file" id="' + prefix + 'FileInput" class="chat-file-input" accept="' + ATTACHMENT_ACCEPT + '" hidden>';
+      '</div>';
   }
 
   // Shared by the reader's chat widget and the admin inbox reply box.
-  // Emoji/attach sit stacked above Send in a fixed-size column to the right
-  // of the textarea (not their own full-width row) — so they don't take up
-  // extra vertical space, and align-items:flex-end on .chat-compose-row
-  // (in styles.css) keeps that column pinned to its own size regardless of
-  // how tall the textarea grows.
+  // Emoji + Send sit to the right of the textarea; align-items:flex-end on
+  // .chat-compose-row (in styles.css) keeps them on the bottom line however
+  // tall the textarea grows.
   function composeFormHtml(formId, prefix, inputId, placeholder) {
     return '<form class="chat-compose" id="' + formId + '">' +
-        composePendingFileHtml(prefix) +
         '<div class="chat-compose-row">' +
           '<textarea id="' + inputId + '" class="chat-textarea" maxlength="2000" placeholder="' +
             escapeAttr(placeholder) + '"></textarea>' +

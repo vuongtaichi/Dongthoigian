@@ -841,8 +841,9 @@ body {
   .nav-btn:disabled { display: none; }
 }
 
-/* mobile: larger card text */
+/* mobile: body text at the "Ghi chú" note size (.note p); larger nav card text */
 @media (max-width: 860px) {
+  .entry-body p { font-size: 1.18rem; }
   .nav-btn { padding: 1rem 1.1rem; }
   .nav-btn .nav-dir { font-size: .85rem; }
   .nav-btn .nav-title { font-size: 1.2rem; }
