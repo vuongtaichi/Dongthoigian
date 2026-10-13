@@ -1383,18 +1383,25 @@ body {
   height: 3.4rem;
   border-radius: 50%;
   border: none;
-  background: var(--fab-bg);
+  padding: 0;
+  /* No fill/shadow: the logo badge is the whole button. A ring only
+     appears on hover / keyboard focus. */
+  background: transparent;
   color: var(--fab-fg);
-  box-shadow: var(--fab-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: box-shadow .15s ease;
   /* so a drag on the button doesn't scroll the page on touch */
   touch-action: none;
 }
 
-.chat-fab:hover { background: var(--fab-bg-hover); }
+.chat-fab:hover,
+.chat-fab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--fab-bg), var(--fab-shadow);
+}
 
 /* Site logo badge filling the round chat button. */
 .chat-fab-logo {
