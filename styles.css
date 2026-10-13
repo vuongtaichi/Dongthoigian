@@ -1821,7 +1821,9 @@ body {
 
 /* ---------- Sidebar admin entry ("Hộp thư") + inbox page ---------- */
 
-#tocAdminItem {
+/* The divider sits under the last admin entry ("Người dùng"), so both admin
+   items read as one group above chapter 1. */
+#tocAdminUsersItem {
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
@@ -2062,4 +2064,90 @@ body {
 
 @media (max-width: 860px) {
   .signin-modal-card { font-size: 1.1rem; }
+}
+
+/* ---- Admin user list ("Người dùng", admin only) ---- */
+.chapter.admin-users { max-width: min(900px, calc(100vw - 4rem)); }
+
+.admin-users-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.4rem 0 1rem;
+  font-family: var(--font-ui);
+}
+.admin-users-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: .6rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: .95rem;
+}
+.admin-users-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.admin-users-count { flex: 0 0 auto; color: var(--ink-faint); font-size: .9rem; }
+
+.admin-user-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+}
+.admin-user-list > .chat-empty { padding: 1.2rem; }
+.admin-user {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .8rem 1rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-ui);
+}
+.admin-user:first-child { border-top: 0; }
+.admin-user-avatar { width: 2.4rem; height: 2.4rem; flex: 0 0 auto; }
+.admin-user-main { flex: 1 1 auto; min-width: 0; }
+.admin-user-main p { margin: 0; }
+.admin-user-name { color: var(--ink); font-weight: 600; font-size: .98rem; }
+.admin-user-contact,
+.admin-user-stats {
+  color: var(--ink-soft);
+  font-size: .85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-user-stats { color: var(--ink-faint); }
+.admin-user-tag {
+  display: inline-block;
+  margin-left: .35rem;
+  padding: .05rem .45rem;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  color: var(--accent);
+  font-size: .72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.admin-user-dates {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .15rem;
+  color: var(--ink-faint);
+  font-size: .8rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .chapter.admin-users { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
+  .admin-users-bar { flex-direction: column; align-items: stretch; gap: .4rem; }
+  .admin-users-count { align-self: flex-end; }
+  .admin-user { flex-wrap: wrap; }
+  .admin-user-dates { flex-basis: 100%; flex-direction: row; justify-content: space-between; padding-left: 3.25rem; }
 }

@@ -1,4 +1,4 @@
-/* build: 2027-rpc-counters
+/* build: 2027-admin-users
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -37,6 +37,8 @@
   // instead of always falling through to chapter 1 (see routing near the
   // bottom of this file and renderAdminInbox's history/localStorage calls).
   var ADMIN_INBOX_ROUTE = 'admin-inbox';
+  // Same idea for the admin's "Người dùng" (user list) page.
+  var ADMIN_USERS_ROUTE = 'admin-users';
 
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -656,6 +658,13 @@
     '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+
+  // Two-person line icon for the "Người dùng" sidebar entry (admin only).
+  var USERS_SVG_SM =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' +
+    '<path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
 
   // Artist's palette (like the old 🎨 glyph) but black-and-white: outline +
   // solid dots in the current text colour, no fixed colours.
@@ -1778,19 +1787,34 @@
     var toc = document.getElementById('toc');
     if (!toc) return;
     var existing = document.getElementById('tocAdminItem');
+    var existingUsers = document.getElementById('tocAdminUsersItem');
     if (!(authUser && authUser.isAdmin)) {
       if (existing) existing.remove();
+      if (existingUsers) existingUsers.remove();
       return;
     }
-    if (existing) return;
-    var li = document.createElement('li');
-    li.id = 'tocAdminItem';
-    li.innerHTML =
-      '<button type="button" class="toc-item toc-admin-item" data-action="admin-inbox" aria-label="Hộp thư (quản trị)">' +
-        '<span class="toc-num toc-num-icon" aria-hidden="true">' + CHAT_SVG_SM + '</span>' +
-        '<span class="toc-text"><span class="toc-title">Hộp thư</span></span>' +
-      '</button>';
-    toc.insertBefore(li, toc.firstChild);
+    if (existing && existingUsers) return;
+    if (!existing) {
+      existing = document.createElement('li');
+      existing.id = 'tocAdminItem';
+      existing.innerHTML =
+        '<button type="button" class="toc-item toc-admin-item" data-action="admin-inbox" aria-label="Hộp thư (quản trị)">' +
+          '<span class="toc-num toc-num-icon" aria-hidden="true">' + CHAT_SVG_SM + '</span>' +
+          '<span class="toc-text"><span class="toc-title">Hộp thư</span></span>' +
+        '</button>';
+      toc.insertBefore(existing, toc.firstChild);
+    }
+    // "Người dùng" sits right below "Hộp thư", still above chapter 1.
+    if (!existingUsers) {
+      existingUsers = document.createElement('li');
+      existingUsers.id = 'tocAdminUsersItem';
+      existingUsers.innerHTML =
+        '<button type="button" class="toc-item toc-admin-item" data-action="admin-users" aria-label="Người dùng (quản trị)">' +
+          '<span class="toc-num toc-num-icon" aria-hidden="true">' + USERS_SVG_SM + '</span>' +
+          '<span class="toc-text"><span class="toc-title">Người dùng</span></span>' +
+        '</button>';
+      toc.insertBefore(existingUsers, existing.nextSibling);
+    }
   }
 
   function inboxThreadLi(t) {
@@ -2035,6 +2059,102 @@
     loadInboxThreads();
     saveLastChapter(ADMIN_INBOX_ROUTE);
     history.replaceState({ chapterId: ADMIN_INBOX_ROUTE }, '', '#' + ADMIN_INBOX_ROUTE);
+  }
+
+  // ---- admin user list: every account, newest sign-up first ----------------
+  //
+  // The "Người dùng" sidebar entry (below "Hộp thư", admin only). Emails and
+  // sign-in dates come from auth.users via the admin_list_users() RPC in
+  // comments-setup.sql, which refuses anyone but public.is_admin() — the
+  // client-side authUser.isAdmin check only gates the UI, same as the inbox.
+
+  var _adminUsers = [];
+
+  function adminUserContact(u) {
+    var e = u.email || '';
+    if (/@phone\.nkltt$/i.test(e)) return '+' + e.replace(/@.*$/, '').replace(/^p/, '');
+    return e;
+  }
+
+  function adminUserProvider(u) {
+    if (/@phone\.nkltt$/i.test(u.email || '')) return 'Số điện thoại';
+    if (u.provider === 'google') return 'Google';
+    return 'Email';
+  }
+
+  function adminUserRow(u) {
+    var stats = [];
+    if (u.comment_count) stats.push(u.comment_count + ' bình luận');
+    if (u.message_count) stats.push(u.message_count + ' tin nhắn');
+    return '<li class="admin-user">' +
+      avatarHtml(u.display_name, u.avatar_url, u.id, 'admin-user-avatar', u.avatar_url ? null : u.avatar_hue) +
+      '<div class="admin-user-main">' +
+        '<p class="admin-user-name">' + escapeHtml(u.display_name || 'Người đọc') +
+          (u.is_admin ? ' <span class="admin-user-tag">Quản trị</span>' : '') + '</p>' +
+        '<p class="admin-user-contact">' + escapeHtml(adminUserContact(u)) +
+          ' · ' + escapeHtml(adminUserProvider(u)) + '</p>' +
+        (stats.length ? '<p class="admin-user-stats">' + escapeHtml(stats.join(' · ')) + '</p>' : '') +
+      '</div>' +
+      '<div class="admin-user-dates">' +
+        '<span>Tham gia ' + escapeHtml(relTime(u.created_at)) + '</span>' +
+        '<span>' + (u.last_sign_in_at ? 'Đăng nhập ' + escapeHtml(relTime(u.last_sign_in_at)) : 'Chưa đăng nhập') + '</span>' +
+      '</div>' +
+    '</li>';
+  }
+
+  function renderAdminUserList() {
+    var list = document.getElementById('adminUserList');
+    if (!list) return;
+    var input = document.getElementById('adminUserSearch');
+    var q = input ? input.value.trim().toLowerCase() : '';
+    var rows = !q ? _adminUsers : _adminUsers.filter(function (u) {
+      return ((u.display_name || '') + ' ' + adminUserContact(u)).toLowerCase().indexOf(q) !== -1;
+    });
+    var count = document.getElementById('adminUserCount');
+    if (count) count.textContent = (q ? rows.length + ' / ' : '') + _adminUsers.length + ' người dùng';
+    list.innerHTML = rows.length
+      ? rows.map(adminUserRow).join('')
+      : '<li class="chat-empty">' + (q ? 'Không tìm thấy ai.' : 'Chưa có người dùng nào.') + '</li>';
+  }
+
+  function loadAdminUsers() {
+    if (!sb || !authUser || !authUser.isAdmin) return;
+    sb.rpc('admin_list_users').then(function (res) {
+      if (!readerEl.querySelector('.admin-users')) return;   // navigated away meanwhile
+      if (!res || res.error) {
+        var list = document.getElementById('adminUserList');
+        if (list) list.innerHTML = '<li class="chat-empty">Không tải được danh sách người dùng.</li>';
+        return;
+      }
+      _adminUsers = res.data || [];
+      renderAdminUserList();
+    });
+  }
+
+  function renderAdminUsers() {
+    if (!authUser || !authUser.isAdmin) return;
+    readerEl.removeAttribute('data-chapter-id');
+    readerEl.innerHTML =
+      '<article class="chapter admin-users">' +
+        '<p class="chapter-kicker">Quản trị</p>' +
+        '<h2 class="chapter-title">Người dùng</h2>' +
+        '<hr class="chapter-lead-rule">' +
+        '<div class="admin-users-bar">' +
+          '<input type="search" id="adminUserSearch" class="admin-users-search" placeholder="Tìm theo tên, email, số điện thoại..." autocomplete="off">' +
+          '<span class="admin-users-count" id="adminUserCount"></span>' +
+        '</div>' +
+        '<ul class="admin-user-list" id="adminUserList"><li class="chat-empty">Đang tải...</li></ul>' +
+      '</article>';
+    document.getElementById('adminUserSearch').addEventListener('input', renderAdminUserList);
+    scrollReaderToTop();
+    updateProgress();
+    Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-action') === 'admin-users');
+    });
+    resetChatFabPos();
+    loadAdminUsers();
+    saveLastChapter(ADMIN_USERS_ROUTE);
+    history.replaceState({ chapterId: ADMIN_USERS_ROUTE }, '', '#' + ADMIN_USERS_ROUTE);
   }
 
   // ---- sign-in modal: Google + email/phone, both usable right away --------
@@ -2678,6 +2798,7 @@
       else if (act === 'signin-tab') switchSigninTab(a.getAttribute('data-mode'));
       else if (act === 'signin-idtype') switchSigninIdType(a.getAttribute('data-type'));
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
+      else if (act === 'admin-users') { renderAdminUsers(); closeDrawer(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
       else if (act === 'inbox-back') backToInboxList();
       else if (act === 'chat-msg-delete') onChatMessageDelete(a);
@@ -2764,15 +2885,19 @@
       // provisional apart). If this user turns out not to be the admin,
       // just leave chapter 1 (already showing) alone.
       if (_pendingAdminInboxRoute && _authSettled) {
+        var pendingRoute = _pendingAdminInboxRoute;
         _pendingAdminInboxRoute = false;
-        if (authUser && authUser.isAdmin) { renderAdminInbox(); return; }
+        if (authUser && authUser.isAdmin) {
+          if (pendingRoute === ADMIN_USERS_ROUTE) renderAdminUsers(); else renderAdminInbox();
+          return;
+        }
       }
       // Safety net: if whoever's signed in stops being admin (signed out,
       // switched accounts) while the inbox is on screen, don't strand them
       // on an orphaned admin page — send them back to the last chapter.
       // Gated on _authSettled for the same reason as the pending-route
       // check above — authUser.isAdmin is unreliable mid-fetch.
-      if (_authSettled && readerEl.querySelector('.admin-inbox') && !(authUser && authUser.isAdmin)) {
+      if (_authSettled && readerEl.querySelector('.admin-inbox, .admin-users') && !(authUser && authUser.isAdmin)) {
         renderChapter(loadLastChapter() || chapters[0].id, { push: false });
       }
       // Only rebuild the chat panel body when who's signed in actually
@@ -2842,6 +2967,7 @@
   window.addEventListener('popstate', function () {
     var id = routeHash() || loadLastChapter() || chapters[0].id;
     if (id === ADMIN_INBOX_ROUTE && authUser && authUser.isAdmin) { renderAdminInbox(); return; }
+    if (id === ADMIN_USERS_ROUTE && authUser && authUser.isAdmin) { renderAdminUsers(); return; }
     renderChapter(id, { push: false });
   });
   searchEl.addEventListener('input', applySearch);
@@ -2858,7 +2984,8 @@
   // Supabase) — show chapter 1 for now and let refresh()'s pending-route
   // check switch into the inbox once getSession() confirms this user
   // actually is the admin.
-  _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE);
+  // Holds which admin route is pending (inbox or user list), or false.
+  _pendingAdminInboxRoute = (startId === ADMIN_INBOX_ROUTE || startId === ADMIN_USERS_ROUTE) ? startId : false;
   if (sb) initEngagement();
   if (_pendingAdminInboxRoute) {
     renderChapter(chapters[0].id, { silent: true });
