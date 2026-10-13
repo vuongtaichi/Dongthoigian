@@ -579,11 +579,19 @@ body {
 .toc-item:focus-visible { outline: 2px solid #8ab4ff; outline-offset: -2px; }
 
 .toc-item.active {
-  /* solid pill in the site's blue gradient (same as the sign-in button) */
-  background: linear-gradient(100deg, #1184CF, #434BD7);
-  box-shadow: 0 6px 18px rgba(17, 132, 207, .35), inset 0 1px 0 rgba(255, 255, 255, .18);
+  background: linear-gradient(90deg, rgba(17, 132, 207, .3), rgba(67, 75, 215, .16));
+  box-shadow: inset 0 0 0 1px rgba(111, 168, 255, .22), 0 4px 14px rgba(0, 0, 0, .18);
 }
-.toc-item.active:hover { background: linear-gradient(100deg, #1690dd, #4b53e0); }
+.toc-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #1184CF, #434BD7);
+}
 
 .toc-item.active .toc-title { color: var(--sidebar-active-text); font-weight: 600; }
 
