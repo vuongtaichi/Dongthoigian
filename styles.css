@@ -2320,19 +2320,21 @@ body {
     right: 0;
     transform: translateY(-50%);
     z-index: 1;
-    width: 1.9rem;
-    height: 4rem;
-    padding: 0 0 0 .15rem;
-    border: 1px solid var(--sidebar-border);
-    border-right: none;
+    width: 2.6rem;
+    height: 5.25rem;
+    padding: 0 0 0 .25rem;
+    border: none;
     border-radius: 999px 0 0 999px;
-    background: var(--sidebar-bg-elevated);
-    color: var(--sidebar-active-text);
-    box-shadow: -2px 0 10px rgba(0, 0, 0, .25);
+    /* a brighter blue than the other floating buttons (owner's ask) so it
+       stands out against the dark drawer; white still reads on it */
+    background: #3d72db;
+    color: var(--fab-fg);
+    box-shadow: var(--fab-shadow);
     cursor: pointer;
   }
-  .sidebar-close:hover { background: var(--sidebar-active-bg); }
-  .sidebar-close:focus-visible { outline: 2px solid var(--sidebar-accent); outline-offset: -3px; }
+  .sidebar-close:hover { background: var(--fab-bg); }
+  .sidebar-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
   /* keep the chapter rows' view counts clear of the tab */
-  .sidebar .toc { padding-right: 1.9rem; }
+  .sidebar .toc { padding-right: 2.6rem; }
+  .sidebar-close svg { width: 1.6em; height: 1.6em; }
 }
