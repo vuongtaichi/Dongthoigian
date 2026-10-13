@@ -3215,8 +3215,12 @@
       else if (ev.key === 'ArrowUp') { ev.preventDefault(); (o.previousElementSibling || search).focus(); }
       else if (ev.key === 'Escape') { ev.stopPropagation(); closePhoneCcPop(true); }
     });
+    // The browser's password manager fills a saved email into the first
+    // visible box (the phone number); move it to the Email tab instead.
+    m.querySelector('#signinPhone').addEventListener('change', rescueEmailFromPhone);
     // A full number pasted or typed with "+" picks the country from its code.
     m.querySelector('#signinPhone').addEventListener('input', function (ev) {
+      if (rescueEmailFromPhone()) return;
       var v = ev.target.value;
       if (v.charAt(0) !== '+') return;
       var d = v.replace(/\D/g, '');
@@ -3336,6 +3340,33 @@
     var msg = document.getElementById('signinMsg');
     if (msg) msg.textContent = '';
     document.getElementById('signinModal').hidden = false;
+    // Start on the method used last time (phone if never signed in here).
+    var form = document.getElementById('signinEmailForm');
+    var last = null;
+    try { last = localStorage.getItem(SIGNIN_IDTYPE_KEY); } catch (e) {}
+    if (form && (last === 'email' || last === 'phone') && form.getAttribute('data-idtype') !== last) {
+      switchSigninIdType(last, true);
+    }
+    // Autofill may land without an input event; check again once it has run.
+    setTimeout(rescueEmailFromPhone, 300);
+    setTimeout(rescueEmailFromPhone, 1200);
+  }
+
+  var SIGNIN_IDTYPE_KEY = 'nkltt-signin-idtype';
+
+  // An email (anything with "@" or letters) in the phone box → move it to
+  // the email box and switch to the Email tab. Returns true if it moved.
+  function rescueEmailFromPhone() {
+    var ph = document.getElementById('signinPhone');
+    var em = document.getElementById('signinIdentity');
+    if (!ph || !em) return false;
+    var v = ph.value.trim();
+    if (!/@|[a-z]/i.test(v)) return false;
+    ph.value = '';
+    if (!em.value) em.value = v;
+    var form = document.getElementById('signinEmailForm');
+    if (form && form.getAttribute('data-idtype') !== 'email') switchSigninIdType('email', true);
+    return true;
   }
 
   function closeSigninModal() {
@@ -3367,7 +3398,7 @@
     if (msgEl) msgEl.textContent = '';
   }
 
-  function switchSigninIdType(type) {
+  function switchSigninIdType(type, noFocus) {
     var form = document.getElementById('signinEmailForm');
     if (!form) return;
     var phone = (type === 'phone');
@@ -3381,7 +3412,7 @@
     if (phoneRow) phoneRow.hidden = !phone;
     closePhoneCcPop(false);
     var focusEl = form.querySelector(phone ? '#signinPhone' : '#signinIdentity');
-    if (focusEl) focusEl.focus();
+    if (focusEl && !noFocus) focusEl.focus();
     var m = form.querySelector('#signinMsg');
     if (m) m.textContent = '';
   }
@@ -3444,6 +3475,7 @@
         if (msg) msg.textContent = 'Kiểm tra email để xác nhận tài khoản.';
         return;
       }
+      try { localStorage.setItem(SIGNIN_IDTYPE_KEY, idtype); } catch (e) {}
       closeSigninModal();   // signed in — onAuthStateChange repaints everything else
     });
   }
