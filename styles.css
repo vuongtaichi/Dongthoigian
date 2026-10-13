@@ -29,6 +29,7 @@
   --note-shadow: 0 0 20px rgba(41, 81, 163, .12);
   --note-label-grad: linear-gradient(90deg, #1184CF, #434BD7);
   --react-ink: #1c6fc4;   /* text of your own reaction pill */
+  --comment-box-bg: #fdfdff;   /* main comment box: near-white */
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
   --fab-bg-hover: #1c3b7a;
@@ -74,6 +75,7 @@
     --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
     --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
     --react-ink: #7cc4ff;
+    --comment-box-bg: var(--note-bg);
     --border: #223151;
 
     --sidebar-bg: #060b16;
@@ -105,6 +107,7 @@
   --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
   --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
   --react-ink: #7cc4ff;
+  --comment-box-bg: var(--note-bg);
   --border: #223151;
 
   --sidebar-bg: #060b16;
@@ -1293,7 +1296,7 @@ body {
 #commentForm {
   gap: .4rem;
   padding: .6rem .7rem .7rem;
-  background: var(--note-bg);
+  background: var(--comment-box-bg);
   border: 1px solid var(--note-border);
   border-radius: 14px;
   box-shadow: var(--note-shadow);
