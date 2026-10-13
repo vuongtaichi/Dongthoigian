@@ -1936,9 +1936,13 @@ body {
   justify-content: space-between;
   gap: .6rem;
   padding: .75rem .75rem .75rem 1.1rem;
-  /* the sign-in .auth-btn blue gradient, white text */
-  background: linear-gradient(100deg, #1184CF, #434BD7);
-  color: #fff;
+  /* light bar: the "Ghi chú" card surface, a thin rule, and a 3px blue
+     gradient accent along the top edge */
+  background:
+    linear-gradient(90deg, #1184CF, #434BD7) top / 100% 3px no-repeat,
+    var(--note-bg);
+  border-bottom: 1px solid var(--note-border);
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -1952,9 +1956,7 @@ body {
   white-space: nowrap;
 }
 
-/* the colour / close buttons sit on the gradient: white glyphs, glassy hover */
 .chat-panel-head .chat-tool-btn { border-radius: 50%; }
-.chat-panel-head .chat-tool-btn:hover { background: rgba(255, 255, 255, .2); }
 
 .chat-panel-close {
   flex: 0 0 auto;
@@ -1962,8 +1964,8 @@ body {
   height: 2rem;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, .14);
-  color: #fff;
+  background: var(--accent-soft-bg);
+  color: var(--ink-soft);
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
@@ -1973,8 +1975,8 @@ body {
   justify-content: center;
   transition: background .15s ease;
 }
-.chat-panel-close:hover { background: rgba(255, 255, 255, .28); }
-.chat-panel-close:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.chat-panel-close:hover { background: rgba(229, 72, 77, .12); color: #e5484d; }
+.chat-panel-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
 
 .chat-panel-body {
   flex: 1 1 auto;
