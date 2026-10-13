@@ -2306,3 +2306,33 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .chapter-bar, .chapter-bar.show { transition: none; }
 }
+
+/* ---- Mobile drawer close tab ("›", middle of the right edge) ---- */
+.sidebar-close { display: none; }
+
+@media (max-width: 860px) {
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 1;
+    width: 1.9rem;
+    height: 4rem;
+    padding: 0 0 0 .15rem;
+    border: 1px solid var(--sidebar-border);
+    border-right: none;
+    border-radius: 999px 0 0 999px;
+    background: var(--sidebar-bg-elevated);
+    color: var(--sidebar-active-text);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, .25);
+    cursor: pointer;
+  }
+  .sidebar-close:hover { background: var(--sidebar-active-bg); }
+  .sidebar-close:focus-visible { outline: 2px solid var(--sidebar-accent); outline-offset: -3px; }
+  /* keep the chapter rows' view counts clear of the tab */
+  .sidebar .toc { padding-right: 1.9rem; }
+}

@@ -1,4 +1,4 @@
-/* build: 2027-toc-icon
+/* build: 2027-sidebar-close
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -3116,6 +3116,9 @@
     sidebarEl.classList.add('open');
     scrimEl.classList.add('open');
     toggleEl.setAttribute('aria-expanded', 'true');
+    // Open with the chapter being read in the middle of the list, not
+    // wherever the list was last scrolled to.
+    centerActiveTocItem();
   }
   function closeDrawer() {
     if (window.innerWidth > 860) return;
@@ -3128,6 +3131,23 @@
     sidebarEl.classList.contains('open') ? closeDrawer() : openDrawer();
   });
   scrimEl.addEventListener('click', closeDrawer);
+
+  // Mobile only (hidden by CSS on desktop): a "›" tab at the middle of the
+  // screen's right edge, pointing the way the drawer slides out, so it can
+  // be closed without picking a chapter. Escape closes it too.
+  (function () {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sidebar-close';
+    btn.setAttribute('aria-label', 'Đóng mục lục');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+    btn.addEventListener('click', function () { closeDrawer(); toggleEl.focus(); });
+    sidebarEl.appendChild(btn);
+  })();
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && sidebarEl.classList.contains('open')) closeDrawer();
+  });
   window.addEventListener('popstate', function () {
     var id = routeHash() || loadLastChapter() || chapters[0].id;
     if (id === ADMIN_INBOX_ROUTE && authUser && authUser.isAdmin) { renderAdminInbox(); return; }
