@@ -3378,6 +3378,7 @@ body {
 }
 .chapter-bar-inner {
   max-width: 660px;
+  width: 100%;
   margin: 0 auto;
   padding: .8rem 2rem;
   display: flex;
@@ -3385,6 +3386,62 @@ body {
   gap: .75rem;
   min-width: 0;
   white-space: nowrap;
+  /* it's a button now (opens the full-title card) — reset button looks */
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.chapter-bar.show .chapter-bar-inner { pointer-events: auto; }
+.chapter-bar-inner:hover .chapter-bar-title { color: var(--accent); }
+.chapter-bar-inner:focus-visible { outline: 2px solid #8ab4ff; outline-offset: -2px; }
+
+/* full-title card under the bar */
+.chapter-bar-pop {
+  pointer-events: auto;
+  position: absolute;
+  top: calc(100% + .5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 2rem));
+  padding: 1rem 1.25rem 1.1rem;
+  background: var(--card);
+  border: 1px solid var(--note-border);
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(6, 11, 22, .22);
+  animation: chapter-pop-in .16s ease;
+}
+.chapter-bar-pop[hidden] { display: none; }
+.chapter-bar-pop::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, #1184CF, #434BD7);
+}
+.chapter-bar-pop p { margin: 0; }
+.chapter-bar-pop-kicker {
+  font-family: var(--font-ui);
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.chapter-bar-pop-title {
+  margin-top: .35rem !important;
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+@keyframes chapter-pop-in {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 .chapter-bar-kicker {
   flex: 0 0 auto;
@@ -3428,6 +3485,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .chapter-bar, .chapter-bar.show { transition: none; }
+  .chapter-bar-pop { animation: none; }
 }
 
 /* ---- Mobile drawer close tab ("›", middle of the right edge) ---- */

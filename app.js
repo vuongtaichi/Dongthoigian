@@ -304,15 +304,45 @@
     bar = document.createElement('div');
     bar.id = 'chapterBar';
     bar.className = 'chapter-bar';
-    bar.setAttribute('aria-hidden', 'true');   // the real <h2> is the heading
-    bar.innerHTML = '<div class="chapter-bar-inner">' +
-      '<span class="chapter-bar-kicker"></span><span class="chapter-bar-title"></span></div>';
+    // Tap / click the bar → a small card under it with the full title (the
+    // bar itself cuts long titles off with "…").
+    bar.innerHTML = '<button type="button" class="chapter-bar-inner" data-action="chapter-bar-pop" ' +
+        'aria-expanded="false" aria-controls="chapterBarPop" title="Xem tên chương đầy đủ">' +
+        '<span class="chapter-bar-kicker"></span><span class="chapter-bar-title"></span></button>' +
+      '<div class="chapter-bar-pop" id="chapterBarPop" role="dialog" aria-label="Tên chương" hidden>' +
+        '<p class="chapter-bar-pop-kicker"></p><p class="chapter-bar-pop-title"></p></div>';
     (document.querySelector('.app') || document.body).appendChild(bar);
     return bar;
   }
 
+  function toggleChapterBarPop(open) {
+    var bar = document.getElementById('chapterBar');
+    if (!bar) return;
+    var pop = bar.querySelector('.chapter-bar-pop');
+    var btn = bar.querySelector('.chapter-bar-inner');
+    if (open == null) open = pop.hidden;
+    if (open) {
+      pop.querySelector('.chapter-bar-pop-kicker').textContent = bar.querySelector('.chapter-bar-kicker').textContent;
+      pop.querySelector('.chapter-bar-pop-title').textContent = bar.querySelector('.chapter-bar-title').textContent;
+    }
+    pop.hidden = !open;
+    btn.setAttribute('aria-expanded', String(!!open));
+  }
+  document.addEventListener('click', function (ev) {
+    var bar = document.getElementById('chapterBar');
+    if (!bar) return;
+    if (ev.target.closest && ev.target.closest('.chapter-bar-inner')) { toggleChapterBarPop(); return; }
+    if (!(ev.target.closest && ev.target.closest('.chapter-bar-pop'))) toggleChapterBarPop(false);
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    var pop = document.getElementById('chapterBarPop');
+    if (pop && !pop.hidden) { toggleChapterBarPop(false); ev.stopPropagation(); }
+  }, true);
+
   function setChapterBar(idx) {
     var bar = ensureChapterBar();
+    toggleChapterBarPop(false);
     bar.classList.remove('show');
     document.body.classList.remove('chapter-bar-on');
     bar.hidden = idx < 0;
@@ -327,6 +357,7 @@
     var title = readerEl.querySelector('.chapter-title');
     var show = !!title && title.getBoundingClientRect().bottom < bar.offsetHeight;
     bar.classList.toggle('show', show);
+    if (!show) toggleChapterBarPop(false);
     // lets CSS shrink the mobile "Mục lục" pill to just its icon meanwhile
     document.body.classList.toggle('chapter-bar-on', show);
   }
