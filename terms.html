@@ -111,5 +111,24 @@
       <a href="/privacy.html">Chính sách quyền riêng tư</a>
     </nav>
   </footer>
+  <script>
+    // Floating title bar: once the big title scrolls away, a slim bar with
+    // the title and the two chips slides down from the top (legal.css .pinbar).
+    (function () {
+      var h1 = document.querySelector('.hero h1');
+      var chips = document.querySelector('.hero .chips');
+      if (!h1 || !chips || !('IntersectionObserver' in window)) return;
+      var bar = document.createElement('div');
+      bar.className = 'pinbar';
+      bar.setAttribute('aria-hidden', 'true');
+      bar.innerHTML = '<div class="pinbar-inner"><p class="pinbar-title"></p></div>';
+      bar.querySelector('.pinbar-title').textContent = h1.textContent;
+      bar.firstChild.appendChild(chips.cloneNode(true));
+      document.body.appendChild(bar);
+      new IntersectionObserver(function (entries) {
+        document.body.classList.toggle('pinned', !entries[0].isIntersecting);
+      }).observe(h1);
+    })();
+  </script>
 </body>
 </html>
