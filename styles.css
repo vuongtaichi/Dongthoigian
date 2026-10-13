@@ -2342,6 +2342,17 @@ body {
     height: min(34rem, calc(100dvh - 6.5rem));
   }
   .chat-panel.chat-panel-compact { max-height: min(34rem, calc(100dvh - 6.5rem)); }
+
+  /* slightly larger text on phones (1.05rem = 16.8px, which also keeps
+     iOS Safari from zooming in when the textarea is focused) */
+  .chat-msg-bubble,
+  .chat-textarea { font-size: 1.05rem; }
+  .chat-textarea { min-height: 2.8rem; height: 2.8rem; }
+  .chat-compose-actions { min-height: 2.8rem; }
+  .chat-panel-title { font-size: 1.05rem; }
+  .chat-msg-time,
+  .chat-msg .chat-msg-from { font-size: .8rem; }
+  .chat-guest { font-size: 1rem; }
 }
 
 /* A bubble not authored by whoever's viewing (the admin's reply, in the
