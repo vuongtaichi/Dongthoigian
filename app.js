@@ -198,6 +198,33 @@
     var pct = max > 0 ? (top / max) * 100 : 0;
     progressFillEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
     updateChapterBar();
+    updateToTop(top);
+  }
+
+  // "Lên đầu trang" button: fades in above the "previous chapter" circle
+  // once the reader has scrolled down a screen or so (styles.css .to-top).
+  function updateToTop(top) {
+    var btn = document.getElementById('toTop');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'toTop';
+      btn.className = 'to-top';
+      btn.setAttribute('aria-label', 'Lên đầu trang');
+      btn.title = 'Lên đầu trang';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="1.2em" height="1.2em" fill="none" stroke="currentColor" ' +
+        'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+      btn.addEventListener('click', function () {
+        var smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var opts = { top: 0, behavior: smooth ? 'smooth' : 'auto' };
+        if (readerEl.scrollHeight > readerEl.clientHeight + 1) readerEl.scrollTo(opts);
+        else window.scrollTo(opts);
+      });
+      (document.querySelector('.app') || document.body).appendChild(btn);
+    }
+    var show = top > Math.min(600, window.innerHeight * 0.8);
+    btn.classList.toggle('show', show);
+    btn.tabIndex = show ? 0 : -1;
   }
 
   // Jumps to the top of whichever container is actually scrolling (same
