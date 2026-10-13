@@ -841,6 +841,14 @@ body {
   .nav-btn:disabled { display: none; }
 }
 
+/* mobile: larger card text */
+@media (max-width: 860px) {
+  .nav-btn { padding: 1rem 1.1rem; }
+  .nav-btn .nav-dir { font-size: .85rem; }
+  .nav-btn .nav-title { font-size: 1.2rem; }
+  .nav-arrow { width: 2.7rem; height: 2.7rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nav-btn, .nav-arrow { transition: none; }
   .nav-btn:hover, .nav-btn:hover .nav-arrow { transform: none; }
@@ -1389,6 +1397,7 @@ body {
   border-radius: 8px;
   padding: .7rem .8rem;
   font: inherit;
+  font-family: var(--font-body);
   background: var(--card);
   color: var(--ink);
   resize: vertical;
@@ -1494,12 +1503,99 @@ body {
 .comment-replies:empty { display: none; }
 .comment-reply .comment-avatar { width: 1.8rem; height: 1.8rem; }
 
+/* Reply box: "Đang trả lời {name} ✕" chip, then your avatar beside a
+   rounded card (textarea + round paper-plane send) with a blue focus ring. */
 .comment-reply-form {
   margin-top: .7rem;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .45rem;
+  font-family: var(--font-ui);
+  animation: comment-in .2s ease-out;
 }
+
+.reply-to {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .15rem .3rem .15rem .65rem;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  color: var(--ink-soft);
+  font-size: .8rem;
+}
+.reply-to > svg { color: #1184CF; flex: 0 0 auto; }
+.reply-to strong { color: var(--ink); font-weight: 600; }
+
+.reply-cancel {
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0 0 .1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.reply-cancel:hover { background: rgba(229, 72, 77, .12); color: #e5484d; }
+.reply-cancel:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
+
+.reply-row { display: flex; align-items: flex-end; gap: .6rem; }
+.reply-row .comment-avatar { width: 1.8rem; height: 1.8rem; margin: 0 0 .45rem; }
+
+.reply-box {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: .4rem;
+  padding: .3rem .3rem .3rem .9rem;
+  background: var(--comment-box-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 1.5rem;
+  box-shadow: var(--note-shadow);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.reply-box:focus-within {
+  border-color: #1184CF;
+  box-shadow: 0 0 0 3px rgba(17, 132, 207, .18), var(--note-shadow);
+}
+.reply-box .comment-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 2.5rem;
+  height: 2.5rem;   /* one line until autoGrowTextarea() sizes it */
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  max-height: 10rem;
+  padding: .45rem 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  resize: none;
+  line-height: 1.5;
+}
+.reply-box .comment-body:focus { outline: none; }
+.reply-box .comment-body::placeholder { color: var(--ink-faint); font-style: italic; }
+
+.reply-send {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(17, 132, 207, .3);
+}
+.reply-send svg { margin-right: .1rem; }
+
+.comment-reply-status { padding-left: 2.4rem; font-size: .82rem; }
+.comment-reply-status:empty { display: none; }
 
 .comment-head {
   display: flex;
@@ -1993,7 +2089,9 @@ body {
   border-radius: 18px 18px 6px 18px;
   padding: .55rem .9rem;
   box-shadow: 0 2px 8px rgba(17, 132, 207, .22);
-  font-size: .95rem;
+  /* message text is body text: same serif as the diary and comments */
+  font-family: var(--font-body);
+  font-size: 1.05rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -2056,8 +2154,8 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   resize: none;
-  min-height: 2.65rem;
-  height: 2.65rem;   /* one line until autoGrowTextarea() sizes it */
+  min-height: 2.8rem;
+  height: 2.8rem;   /* one line until autoGrowTextarea() sizes it */
   /* Grows with typed content (autoGrowTextarea in app.js) rather than
      staying this fixed height with an inner scrollbar. This cap is just a
      sanity ceiling for a huge paste — overflow-y:auto is the fallback past
@@ -2071,8 +2169,8 @@ body {
   /* Noto Color Emoji is a subset (index.html) covering only the site's own
      emojis, so listing it first only changes those — matching the Noto
      images in the picker and message bubbles. */
-  font-family: 'Noto Color Emoji', var(--font-ui);
-  font-size: .95rem;
+  font-family: 'Noto Color Emoji', var(--font-body);
+  font-size: 1.05rem;
   line-height: 1.5;
   color: var(--ink);
   background: var(--paper);
@@ -2093,7 +2191,7 @@ body {
   align-items: center;
   gap: .25rem;
   flex: 0 0 auto;
-  min-height: 2.65rem;
+  min-height: 2.8rem;
 }
 
 .chat-compose-icons {

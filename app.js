@@ -2871,15 +2871,24 @@
     var form = document.createElement('form');
     form.className = 'comment-reply-form';
     form.setAttribute('data-parent', parentId);
+    // Messenger-style: "Đang trả lời {name} ✕" chip, then your avatar next
+    // to a rounded card holding an auto-growing textarea + round send button.
+    var toEl = li.querySelector('.comment-author');
+    var toName = toEl ? toEl.textContent : '';
     form.innerHTML =
-      '<textarea class="comment-body" rows="2" maxlength="' + COMMENT_MAX + '" placeholder="Trả lời..." required></textarea>' +
-      '<div class="comment-form-row">' +
-        '<span class="comment-status comment-reply-status" role="status"></span>' +
-        '<span class="comment-edit-btns">' +
-          '<button type="button" class="comment-act" data-action="reply-cancel">Huỷ</button>' +
-          '<button type="submit" class="auth-btn">Gửi</button>' +
-        '</span>' +
-      '</div>';
+      '<div class="reply-to">' + REPLY_SVG +
+        '<span>Đang trả lời <strong>' + escapeHtml(toName) + '</strong></span>' +
+        '<button type="button" class="reply-cancel" data-action="reply-cancel" aria-label="Huỷ" title="Huỷ">&times;</button>' +
+      '</div>' +
+      '<div class="reply-row">' +
+        avatarHtml(authUser.name, authUser.avatar, authUser.id, 'comment-avatar',
+          authUser.avatar ? null : authUser.avatarHue) +
+        '<div class="reply-box">' +
+          '<textarea class="comment-body" rows="1" maxlength="' + COMMENT_MAX + '" placeholder="Viết câu trả lời..." required></textarea>' +
+          '<button type="submit" class="auth-btn reply-send" aria-label="Gửi" title="Gửi">' + SEND_SVG + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<span class="comment-status comment-reply-status" role="status"></span>';
     var actionsEl = li.querySelector('.comment-actions');
     if (actionsEl && actionsEl.parentNode === col) col.insertBefore(form, actionsEl.nextSibling);
     else col.appendChild(form);
@@ -3089,6 +3098,8 @@
     });
     document.addEventListener('input', function (ev) {
       if (ev.target && ev.target.classList && ev.target.classList.contains('chat-textarea')) {
+        autoGrowTextarea(ev.target);
+      } else if (ev.target && ev.target.closest && ev.target.closest('.reply-box')) {
         autoGrowTextarea(ev.target);
       }
     });
