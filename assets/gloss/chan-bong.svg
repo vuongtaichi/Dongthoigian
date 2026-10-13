@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Chăn bông rằn ri gấp vuông vức trên giường, gối đặt bên trên">
+  <defs>
+    <pattern id="camo" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="#3d5a2c"/>
+      <path d="M4 12q20-10 36 0t28-2 18 14-20 10-32-6-30 4z" fill="#b9c25a"/>
+      <path d="M44 42q22-6 34 6t-6 16-24-4-10-12z" fill="#4b3a33"/>
+      <path d="M6 64q16-6 26 4t18-2 8 14-22 6-28-8z" fill="#1c201a"/>
+      <path d="M66 80q14-4 24 4t-4 12-18-4z" fill="#b9c25a"/>
+      <path d="M80 4q14 0 18 8t-10 8-12-8z" fill="#1c201a"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="#eef1ea"/>
+  <!-- bed -->
+  <path d="M0 236h400v64H0z" fill="#3e5a3c"/>
+  <path d="M0 236h400" stroke="#2e452c" stroke-width="2"/>
+  <g stroke="#1e2a1a" stroke-width="2" stroke-linejoin="round">
+    <!-- folded blanket: top, right side, front with its fold layers -->
+    <path d="M90 120L130 92H330L290 120Z" fill="url(#camo)"/>
+    <path d="M290 120L330 92V222L290 252Z" fill="url(#camo)"/>
+    <rect x="90" y="120" width="200" height="132" fill="url(#camo)"/>
+    <path d="M96 160q-6 0-6 8v22q0 8 6 8h188q6 0 6-8v-22q0-8-6-8z" fill="#8f8c55"/>
+    <path d="M90 214h200M90 232h200" fill="none" stroke-width="1.5" opacity=".7"/>
+    <!-- pillow on top -->
+    <path d="M140 104L160 90H270L250 104Z" fill="url(#camo)"/>
+    <rect x="140" y="104" width="110" height="22" rx="3" fill="url(#camo)"/>
+    <path d="M250 104L270 90V112L250 126Z" fill="url(#camo)"/>
+  </g>
+  <path d="M100 166h180" stroke="#a8a56a" stroke-width="2" opacity=".7"/>
+</svg>

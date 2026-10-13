@@ -3378,18 +3378,21 @@ body {
 .chapter:not(.admin-inbox):not(.admin-users) { padding-bottom: 8.5rem; }
 
 /* Large screens: the circles sit beside the text column instead of the
-   corners (text = .chapter's 660px minus 2×2rem padding = 596px, plus a
-   2.5rem gap each side), vertically centred on the same row as the chat
+   corners (cards = .chapter-read's 720px minus 2×2rem padding = 656px,
+   plus a 1.25rem gap each side; the reader keeps its scrollbar gutter on
+   both edges so the column is centred under the fixed bar and both gaps
+   match), vertically centred on the same row as the chat
    button (3.4rem vs 3rem → +.2rem), which drops back to its plain corner.
    Below 1340px the next circle would run into the chat button, so the
    corner layout above is used instead. */
 @media (min-width: 1340px) {
   .float-nav {
     justify-content: center;
-    gap: calc(596px + 5rem);
+    gap: calc(656px + 2.5rem);
     padding: 0;
     bottom: 1.45rem;
   }
+  .reader { scrollbar-gutter: stable both-edges; }
   .chat-widget { bottom: 1.25rem; }
 }
 
@@ -4034,12 +4037,14 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 }
 
 /* ---------- Close buttons on popups: white × in a red circle ----------
-   Sign-in, profile, chat panel and the sign-in reminder all share this look;
+   Sign-in, profile, chat panel, the sign-in reminder and the glossary popup
+   all share this look;
    each keeps its own position/size rules above. */
 .signin-modal-close,
 .profile-modal-close,
 .chat-panel-close,
-.reminder-x {
+.reminder-x,
+.gloss-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4054,7 +4059,8 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .signin-modal-close:hover,
 .profile-modal-close:hover,
 .chat-panel-close:hover,
-.reminder-x:hover {
+.reminder-x:hover,
+.gloss-close:hover {
   background: #d13438;
   color: #fff;
   transform: scale(1.06);
@@ -4062,11 +4068,116 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .signin-modal-close:focus-visible,
 .profile-modal-close:focus-visible,
 .chat-panel-close:focus-visible,
-.reminder-x:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.reminder-x:focus-visible,
+.gloss-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
 .signin-modal-close svg,
 .profile-modal-close svg,
 .chat-panel-close svg,
-.reminder-x svg { display: block; }
+.reminder-x svg,
+.gloss-close svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
-  .signin-modal-close, .profile-modal-close, .chat-panel-close, .reminder-x { transition: none; }
+  .signin-modal-close, .profile-modal-close, .chat-panel-close, .reminder-x, .gloss-close { transition: none; }
+}
+
+/* ---------- Glossary: marked words + explanation popup ----------
+   Words listed in data.js `glossary` get a dotted underline in the diary
+   text; tapping one opens .gloss-pop next to it (app.js openGloss /
+   positionGloss). The popup uses the modal family look: white card, blue
+   gradient strip on top, red-circle ×. */
+.gloss {
+  border-bottom: 1.5px dotted var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.gloss:hover,
+.gloss[aria-expanded="true"] { background: var(--accent-soft-bg); color: var(--accent-strong); }
+.gloss:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+
+.gloss-pop {
+  position: fixed;
+  z-index: 75;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 1.15rem 1.25rem 1.25rem;
+  background: linear-gradient(90deg, #1184CF, #434BD7) top / 100% 4px no-repeat, var(--card);
+  border: 1px solid var(--note-border);
+  border-radius: 18px;
+  box-shadow: var(--panel-shadow);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  animation: reminder-in .16s ease-out;
+}
+.gloss-pop[hidden] { display: none; }
+.gloss-pop.gloss-wide { width: min(400px, calc(100vw - 24px)); }
+.gloss-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -.2rem -.3rem 0 .6rem;
+  cursor: pointer;
+}
+.gloss-kicker {
+  margin: 0;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+.gloss-title { margin: .15rem 0 .7rem; font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
+.gloss-content p { margin: 0 0 .6rem; font-size: .95rem; line-height: 1.6; }
+.gloss-content p:last-child { margin-bottom: 0; }
+.gloss-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  border: 1px solid var(--note-border);
+  background: #eef1ea;
+}
+.gloss-img + p { margin-top: .7rem; }
+.gloss-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: oath;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+.gloss-list li {
+  counter-increment: oath;
+  position: relative;
+  padding: .55rem .7rem .6rem 2.6rem;
+  background: var(--note-bg);
+  border-radius: 12px;
+  font-size: .9rem;
+  line-height: 1.55;
+  text-align: justify;
+}
+.gloss-list li::before {
+  content: counter(oath);
+  position: absolute;
+  left: .6rem;
+  top: .55rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gloss, .gloss-pop { transition: none; animation: none; }
 }

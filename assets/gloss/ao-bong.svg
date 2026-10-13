@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Áo bông quân đội màu xanh, có đai vải">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#256b31"/><stop offset=".45" stop-color="#2f8a3e"/><stop offset="1" stop-color="#22622d"/>
+    </linearGradient>
+    <pattern id="camo" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="40" height="40" fill="#4f7a3a"/>
+      <path d="M2 6q8-4 14 2t-4 8-10-4z" fill="#26331f"/>
+      <path d="M22 20q8-4 14 2t-4 8-10-4z" fill="#a37a52"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="#eef1ea"/>
+  <!-- hanger -->
+  <path d="M200 14v14q-6 0-6 6" fill="none" stroke="#8a8f86" stroke-width="3" stroke-linecap="round"/>
+  <path d="M124 54h152" stroke="#8a8f86" stroke-width="4" stroke-linecap="round"/>
+  <g stroke="#164a20" stroke-width="2" stroke-linejoin="round">
+    <path d="M124 60L94 84 78 260 116 266 136 128Z" fill="url(#g)"/>
+    <path d="M276 60L306 84 322 260 284 266 264 128Z" fill="url(#g)"/>
+    <path d="M78 244l38 6M322 244l-38 6" fill="none"/>
+    <path d="M172 40L124 60 130 120 128 282H272L270 120 276 60 228 40 200 70Z" fill="url(#g)"/>
+    <!-- camouflage lining showing inside the collar -->
+    <path d="M172 40l28 30-8 6-26-28z" fill="url(#camo)"/>
+    <path d="M228 40l-28 30 8 6 26-28z" fill="url(#camo)"/>
+    <path d="M172 40L200 70 180 96 158 48ZM228 40L200 70 220 96 242 48Z" fill="url(#g)"/>
+    <path d="M200 76V282" fill="none"/>
+    <rect x="144" y="112" width="44" height="46" rx="4" fill="url(#g)"/>
+    <path d="M142 112h48l-4 18q-20 6-40 0z" fill="url(#g)"/>
+    <rect x="212" y="112" width="44" height="46" rx="4" fill="url(#g)"/>
+    <path d="M210 112h48l-4 18q-20 6-40 0z" fill="url(#g)"/>
+    <!-- fabric belt, tied in front -->
+    <path d="M128 196h144v14H128z" fill="#2a7a37"/>
+    <path d="M196 204q-14 16-6 34M204 204q14 14 4 30" fill="none" stroke="#2a7a37" stroke-width="5"/>
+  </g>
+  <g fill="#4a3a2a" stroke="#2a2018" stroke-width="1">
+    <circle cx="166" cy="124" r="3.5"/><circle cx="234" cy="124" r="3.5"/>
+    <circle cx="200" cy="100" r="4"/><circle cx="200" cy="138" r="4"/><circle cx="200" cy="176" r="4"/>
+    <circle cx="200" cy="232" r="4"/><circle cx="200" cy="262" r="4"/>
+  </g>
+  <g stroke="#1d5a28" stroke-width="1.5" opacity=".6" fill="none">
+    <path d="M140 230q30 6 50 0M210 230q30 6 50 0M96 150q10 4 22 0M282 150q10 4 22 0"/>
+  </g>
+</svg>

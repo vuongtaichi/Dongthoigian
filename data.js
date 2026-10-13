@@ -21,7 +21,7 @@ const chapters = [
     title: "Ngày đầu nhập ngũ",
     intro: [
       "Vừa nhập ngũ phải cách ly 14 ngày mới bắt đầu huấn luyện. Mình được phân vào trung đội 4, đại đội 4, tiểu đoàn 2, trung đoàn 1. Phụ trách trung đội là anh Quang - trung đội trưởng. Cả trung đội có 40 chiến sĩ, chia thành 4 tiểu đội, mỗi tiểu đội có 1 tiểu đội trưởng - là lính cũ nhập ngũ từ năm trước. Trong ấn tượng ban đầu, cả 4 người đều rất nhiệt tình và dễ tính. Mình được phân sang tiểu đội 4 của anh Việt Anh, thấy anh Việt Anh rất hiền và thoải mái. Cả trung đội ở chung trong 1 phòng có 20 giường tầng. Trong phòng chỉ có 3 người khác cùng làng với mình, còn lại toàn là những gương mặt lạ lẫm.",
-      "Trong lúc đang sắp xếp đồ đạc thì bất ngờ anh Quang gọi mình với Hùng dọn đồ sang phòng trung đội trưởng, và rất có thể sẽ ở đây trong ít nhất 2 tuần cách ly. Một lúc sau mới biết anh Quang chọn 2 đứa mình làm cò. Thế nên ngày hôm nay ít phải tập trung hơn so với mọi người, và cũng không cần phải dọn vệ sinh bên ngoài, chủ yếu ngồi trong phòng làm mấy công việc liên quan đến máy tính với sổ sách.",
+      "Trong lúc đang sắp xếp đồ đạc thì anh Quang gọi mình với Hùng dọn đồ sang phòng trung đội trưởng, và rất có thể sẽ ở đây trong ít nhất 2 tuần cách ly. Một lúc sau mới biết anh Quang chọn 2 đứa mình làm cò. Thế nên ngày hôm nay ít phải tập trung hơn so với mọi người, và cũng không cần phải dọn vệ sinh bên ngoài, chủ yếu ngồi trong phòng làm mấy công việc liên quan đến máy tính với sổ sách.",
       "Ở cùng phòng với anh trung đội trưởng có vẻ thoải mái hơn về vấn đề nội vụ vệ sinh và tăng gia sản xuất, nhưng ít được tiếp xúc với mọi người. Thấy thèm cảm giác được ở chung phòng với trung đội, mọi người làm gì cũng làm cùng nhau.",
       "Ngày đầu để lại ấn tượng không tệ!"
     ],
@@ -1009,5 +1009,75 @@ const chapters = [
       "Nếu được hỏi nhập ngũ có vất vả không, thì đã có lúc mình từng nghĩ hai từ “vất vả” vẫn còn rất nhẹ nhàng để nói về những lần bước đi chỉ bằng ý chí. Nhưng có chịu được không? Hoàn toàn có thể! Chương trình huấn luyện đã được thiết kế với cường độ tăng dần từ thấp đến cao, thế nên chỉ cần tuân thủ chương trình huấn luyện, những cái vất vả đều có thể vượt qua. Sau này mình cũng nhận ra, nhờ những ngày tháng vất vả đó mà mình biết quý lấy những gì mình đang có, và bắt đầu nói chuyện với gia đình nhiều hơn. Bởi vì, quân đội là nơi lần đầu tiên mình có cảm giác nhớ nhà, cũng là nơi lần đầu tiên mình nhận ra, chỉ cần được tự do làm điều mình muốn, tự nó đã là một loại may mắn và hạnh phúc.",
       "Nhìn lại toàn bộ hành trình, điều đọng lại trong mình đấy là, không cần phải quá tính toán thiệt hơn, cứ làm thật tốt công việc của mình và làm có trách nhiệm, mình sẽ nhận lại được những gì thật sự xứng đáng, không ở khía cạnh này thì sẽ ở khía cạnh khác."
     ]
+  }
+];
+
+/*
+  Glossary: words in the diary that show an explanation popup when tapped
+  (app.js: glossaryHtml / openGloss). Each entry:
+    terms:    the word(s) to mark, matched whole-word, any case
+    chapters: optional — only these chapter ids (default: every chapter)
+    where:    optional — 'body' (diary text) and/or 'note' (Ghi chú);
+              default ['body']
+    title:    popup heading
+    text:     optional paragraphs; list: optional numbered list
+    image:    optional illustration (assets/gloss/), with its alt text
+*/
+const glossary = [
+  {
+    terms: ["cò"],
+    chapters: ["ch-2"],
+    title: "Cò",
+    text: ["Liên lạc."]
+  },
+  {
+    terms: ["10 lời thề danh dự"],
+    title: "10 lời thề danh dự của QĐNDVN",
+    list: [
+      "Hy sinh tất cả vì tổ quốc Việt Nam; dưới sự lãnh đạo của Đảng Cộng sản Việt Nam, phấn đấu thực hiện một nước Việt Nam hòa bình, độc lập và xã hội chủ nghĩa, góp phần tích cực vào cuộc đấu tranh của nhân dân thế giới vì hòa bình, độc lập dân tộc, dân chủ và chủ nghĩa xã hội.",
+      "Tuyệt đối phục tùng mệnh lệnh cấp trên; khi nhận bất cứ nhiệm vụ gì đều tận tâm, tận lực thi hành nhanh chóng và chính xác.",
+      "Không ngừng nâng cao tinh thần yêu nước Xã hội chủ nghĩa, tinh thần quốc tế vô sản, rèn luyện ý chí chiến đấu kiên quyết và bền bỉ, thắng không kiêu, bại không nản, dù gian lao khổ hạnh cũng không sờn lòng, vào sống ra chết cũng không nản chí. Nhiệm vụ nào cũng hoàn thành, khó khăn nào cũng vượt qua, kẻ thù nào cũng đánh thắng.",
+      "Ra sức học tập nâng cao trình độ chính trị, quân sự, văn hóa, khoa học kỹ thuật, nghiệp vụ, triệt để chấp hành điều lệnh, điều lệ, rèn luyện tính tổ chức, tính kỷ luật và tác phong chính quy, xây dựng quân đội ngày càng hùng mạnh, luôn luôn sẵn sàng chiến đấu.",
+      "Nêu cao tinh thần làm chủ tập thể xã hội chủ nghĩa, làm tròn nhiệm vụ chiến đấu bảo vệ tổ quốc, xây dựng chủ nghĩa xã hội và làm tròn nghĩa vụ quốc tế. Gương mẫu chấp hành và vận động nhân dân thực hiện mọi đường lối, chủ trương của Đảng, chính sách và luật pháp của Nhà nước.",
+      "Luôn luôn cảnh giác, tuyệt đối giữ bí mật quân sự và bí mật quốc gia. Nếu bị quân địch bắt, dù phải chịu cực hình tàn khốc thế nào cũng cương quyết một lòng trung thành với sự nghiệp cách mạng, không bao giờ phản bội xưng khai.",
+      "Đoàn kết chặt chẽ với nhau như ruột thịt trên tình thương yêu giai cấp; hết lòng giúp đỡ nhau lúc thường cũng như lúc ra trận; thực hiện toàn quân một ý chí.",
+      "Ra sức giữ gìn vũ khí trang bị, quyết không để hư hỏng hoặc rơi vào tay quân thù. Luôn nêu cao tinh thần bảo vệ của công, không tham ô, lãng phí.",
+      "Khi tiếp xúc với nhân dân làm đúng ba điều nên: Kính trọng dân, giúp đỡ dân, bảo vệ dân và ba điều răn: Không lấy của dân, không dọa nạt dân, không quấy nhiễu dân. Để gây lòng tin cậy, yêu mến của nhân dân, thực hiện quân với dân một ý chí.",
+      "Giữ vững phẩm chất tốt đẹp và truyền thống quyết chiến, quyết thắng của quân đội nhân dân, luôn tự phê bình và phê bình, không làm điều gì hại tới danh dự của quân đội và quốc thể nước Cộng hòa Xã hội Chủ nghĩa Việt Nam."
+    ]
+  },
+  {
+    terms: ["nước nóng"],
+    chapters: ["ch-7"],
+    title: "Nước nóng",
+    text: ["Thường được đun thủ công bằng lò hơi đốt củi."]
+  },
+  {
+    terms: ["bình tông"],
+    title: "Bình tông",
+    image: "assets/gloss/binh-tong.svg",
+    alt: "Bình tông đựng nước, kèm ca nhôm và túi vải rằn ri"
+  },
+  {
+    terms: ["áo dã ngoại"],
+    title: "Áo dã ngoại",
+    image: "assets/gloss/ao-da-ngoai.svg",
+    alt: "Áo dã ngoại vải rằn ri"
+  },
+  {
+    terms: ["áo bông"],
+    chapters: ["ch-9"],
+    where: ["body", "note"],
+    title: "Áo bông",
+    image: "assets/gloss/ao-bong.svg",
+    alt: "Áo bông màu xanh, có đai vải"
+  },
+  {
+    terms: ["chăn bông"],
+    chapters: ["ch-9"],
+    where: ["note"],
+    title: "Chăn bông",
+    image: "assets/gloss/chan-bong.svg",
+    alt: "Chăn bông rằn ri gấp vuông trên giường"
   }
 ];

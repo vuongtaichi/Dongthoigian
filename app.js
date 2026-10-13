@@ -107,16 +107,146 @@
   }
   chapters.forEach(function (ch, i) { chapters[i] = normalizeDeep(ch); });
 
-  function paragraphsHtml(arr) {
-    return arr.map(function (p) { return '<p>' + escapeHtml(p) + '</p>'; }).join('');
+  // `gl` (optional, from glossFor) marks glossary words in the text.
+  function paragraphsHtml(arr, gl) {
+    return arr.map(function (p) {
+      return '<p>' + (gl ? glossaryHtml(escapeHtml(p), gl) : escapeHtml(p)) + '</p>';
+    }).join('');
   }
+
+  // ---- glossary: tap a marked word for an explanation popup ---------------
+  //
+  // Entries live in data.js (`glossary`). glossFor() picks the ones for one
+  // chapter and one place ('body' = diary text, 'note' = Ghi chú) and builds
+  // a single whole-word, any-case regex for them; glossaryHtml() wraps each
+  // match in a focusable span that openGloss() turns into the popup. A span
+  // (not a <button>) so selecting text across it still offers "Lưu trích dẫn".
+  function glossFor(ch, where) {
+    var list = (typeof glossary !== 'undefined') ? glossary : [];
+    var map = {}, terms = [];
+    list.forEach(function (g, i) {
+      if (g.chapters && g.chapters.indexOf(ch.id) === -1) return;
+      if ((g.where || ['body']).indexOf(where) === -1) return;
+      g.terms.forEach(function (t) { map[t.toLowerCase()] = i; terms.push(t); });
+    });
+    if (!terms.length) return null;
+    terms.sort(function (a, b) { return b.length - a.length; });   // longest first
+    var alt = terms.map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+    return { re: new RegExp('(^|[^\\p{L}\\p{N}])(' + alt + ')(?![\\p{L}\\p{N}])', 'giu'), map: map };
+  }
+  function glossaryHtml(html, gl) {
+    return html.replace(gl.re, function (m, pre, term) {
+      var i = gl.map[term.toLowerCase()];
+      if (i === undefined) return m;
+      return pre + '<span class="gloss" role="button" tabindex="0" aria-haspopup="dialog" data-gloss="' + i + '">' +
+        term + '</span>';
+    });
+  }
+
+  var _glossAnchor = null;
+  function glossPopEl() {
+    var pop = document.getElementById('glossPop');
+    if (pop) return pop;
+    pop = document.createElement('div');
+    pop.id = 'glossPop';
+    pop.className = 'gloss-pop';
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-labelledby', 'glossTitle');
+    pop.hidden = true;
+    pop.innerHTML =
+      '<button type="button" class="gloss-close" aria-label="Đóng">' + CLOSE_X_SVG + '</button>' +
+      '<p class="gloss-kicker">Giải thích</p>' +
+      '<h4 class="gloss-title" id="glossTitle"></h4>' +
+      '<div class="gloss-content"></div>';
+    pop.querySelector('.gloss-close').addEventListener('click', function () { closeGloss(true); });
+    document.body.appendChild(pop);
+    return pop;
+  }
+  function openGloss(anchor) {
+    var g = (typeof glossary !== 'undefined') ? glossary[+anchor.getAttribute('data-gloss')] : null;
+    if (!g) return;
+    var pop = glossPopEl();
+    if (_glossAnchor) _glossAnchor.removeAttribute('aria-expanded');
+    _glossAnchor = anchor;
+    anchor.setAttribute('aria-expanded', 'true');
+    pop.querySelector('.gloss-title').textContent = g.title;
+    var html = '';
+    if (g.image) {
+      html += '<img class="gloss-img" src="' + escapeHtml(g.image) + '" alt="' + escapeHtml(g.alt || g.title) + '">';
+    }
+    (g.text || []).forEach(function (t) { html += '<p>' + escapeHtml(t) + '</p>'; });
+    if (g.list) {
+      html += '<ol class="gloss-list">' + g.list.map(function (t) {
+        return '<li>' + escapeHtml(t) + '</li>';
+      }).join('') + '</ol>';
+    }
+    pop.querySelector('.gloss-content').innerHTML = html;
+    pop.classList.toggle('gloss-wide', !!(g.list || g.image));
+    pop.scrollTop = 0;
+    pop.hidden = false;
+    positionGloss();
+    var img = pop.querySelector('.gloss-img');
+    if (img && !img.complete) img.addEventListener('load', positionGloss, { once: true });
+  }
+  function closeGloss(refocus) {
+    var pop = document.getElementById('glossPop');
+    if (pop) pop.hidden = true;
+    if (_glossAnchor) {
+      _glossAnchor.removeAttribute('aria-expanded');
+      if (refocus && _glossAnchor.isConnected) _glossAnchor.focus();
+    }
+    _glossAnchor = null;
+  }
+  // Below the word if it fits, else above, else on the roomier side with a
+  // scrollable height; kept inside the viewport horizontally. Closes once
+  // the word scrolls out of view or is no longer on the page.
+  function positionGloss() {
+    var pop = document.getElementById('glossPop');
+    if (!pop || pop.hidden || !_glossAnchor) return;
+    if (!_glossAnchor.isConnected) { closeGloss(false); return; }
+    var r = _glossAnchor.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight, gap = 10, edge = 12;
+    if (r.bottom < 0 || r.top > vh) { closeGloss(false); return; }
+    pop.style.maxHeight = '';
+    var h = pop.offsetHeight, w = pop.offsetWidth;
+    var below = vh - r.bottom - gap - edge, above = r.top - gap - edge;
+    var top;
+    if (h <= below) top = r.bottom + gap;
+    else if (h <= above) top = r.top - gap - h;
+    else if (below >= above) { pop.style.maxHeight = below + 'px'; top = r.bottom + gap; }
+    else { pop.style.maxHeight = above + 'px'; top = edge; }
+    var left = Math.min(Math.max(edge, r.left + r.width / 2 - w / 2), vw - w - edge);
+    pop.style.top = Math.round(top) + 'px';
+    pop.style.left = Math.round(left) + 'px';
+  }
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    var g = t.closest && t.closest('.gloss');
+    if (g) {
+      if (_glossAnchor === g) closeGloss(false);
+      else openGloss(g);
+      return;
+    }
+    if (_glossAnchor && !(t.closest && t.closest('.gloss-pop'))) closeGloss(false);
+  });
+  document.addEventListener('keydown', function (ev) {
+    var g = ev.target.closest && ev.target.closest('.gloss');
+    if (g && (ev.key === 'Enter' || ev.key === ' ')) {
+      ev.preventDefault();
+      if (_glossAnchor === g) closeGloss(false); else openGloss(g);
+    } else if (ev.key === 'Escape' && _glossAnchor) {
+      closeGloss(true);
+    }
+  });
+  document.addEventListener('scroll', positionGloss, true);   // the reader, the page, or any panel
+  window.addEventListener('resize', positionGloss);
 
   // Renders a chapter's optional "Ghi chú" (P/S) note box, in either
   // paragraph form (chapter.ps) or definition-list form (chapter.psList).
   function noteHtml(chapter) {
     var out = '';
     if (chapter.ps) {
-      out += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(chapter.ps) + '</div>';
+      out += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(chapter.ps, glossFor(chapter, 'note')) + '</div>';
     }
     if (chapter.psList) {
       var rows = chapter.psList.map(function (row) {
@@ -414,7 +544,7 @@
     // Simple chapters: a flat "intro" array of paragraphs, in one card.
     if (ch.intro) {
       html += '<section class="entry-card">';
-      html += '<div class="entry-body">' + paragraphsHtml(ch.intro) + '</div>';
+      html += '<div class="entry-body">' + paragraphsHtml(ch.intro, glossFor(ch, 'body')) + '</div>';
       if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
       html += '</section>';
       html += noteHtml(ch);   // the note gets its own box below the text card
@@ -426,10 +556,10 @@
         html += '<section class="entry-card subentry">';
         html += '<h3 class="subentry-heading"><span class="entry-num" aria-hidden="true">' + (i + 1) + '</span>' +
           (se.tag ? '<span class="tag">' + escapeHtml(se.tag) + '</span>' : '') + escapeHtml(se.heading) + '</h3>';
-        html += '<div class="entry-body">' + paragraphsHtml(se.paragraphs) + '</div>';
+        html += '<div class="entry-body">' + paragraphsHtml(se.paragraphs, glossFor(ch, 'body')) + '</div>';
         if (se.signature) html += '<p class="signature">' + escapeHtml(se.signature) + '</p>';
         html += '</section>';
-        if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps) + '</div>';
+        if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps, glossFor(ch, 'note')) + '</div>';
       });
     }
 
