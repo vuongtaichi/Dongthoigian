@@ -1,4 +1,4 @@
-/* build: 2027-drawer-right
+/* build: 2027-toc-icon
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -245,6 +245,7 @@
   function setChapterBar(idx) {
     var bar = ensureChapterBar();
     bar.classList.remove('show');
+    document.body.classList.remove('chapter-bar-on');
     bar.hidden = idx < 0;
     if (idx < 0) return;
     bar.querySelector('.chapter-bar-kicker').textContent = 'Chương ' + String(idx + 1).padStart(2, '0');
@@ -257,6 +258,8 @@
     var title = readerEl.querySelector('.chapter-title');
     var show = !!title && title.getBoundingClientRect().bottom < bar.offsetHeight;
     bar.classList.toggle('show', show);
+    // lets CSS shrink the mobile "Mục lục" pill to just its icon meanwhile
+    document.body.classList.toggle('chapter-bar-on', show);
   }
 
   function renderChapter(id, opts) {

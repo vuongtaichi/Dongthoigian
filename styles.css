@@ -754,9 +754,9 @@ body {
     color: var(--sidebar-active-text);
     border: 1px solid var(--sidebar-border);
     border-radius: 999px;
-    padding: .55rem 1rem .55rem .85rem;
+    padding: .55rem 1.1rem .55rem .9rem;
     font-family: var(--font-ui);
-    font-size: .8rem;
+    font-size: 1rem;
     box-shadow: var(--shadow);
     cursor: pointer;
   }
@@ -2207,16 +2207,16 @@ body {
 /* leave room so the buttons never cover the last lines of a chapter */
 .chapter:not(.admin-inbox):not(.admin-users) { padding-bottom: 8.5rem; }
 
-/* Large screens: the circles hug the text column instead of the corners
-   (text = .chapter's 660px minus 2×2rem padding = 596px, plus a 1rem gap
-   each side), vertically centred on the same row as the chat button
-   (3.4rem vs 3rem → +.2rem), which drops back to its plain corner. Below
-   1280px the next circle would run into the chat button, so the corner
-   layout above is used instead. */
-@media (min-width: 1280px) {
+/* Large screens: the circles sit beside the text column instead of the
+   corners (text = .chapter's 660px minus 2×2rem padding = 596px, plus a
+   2.5rem gap each side), vertically centred on the same row as the chat
+   button (3.4rem vs 3rem → +.2rem), which drops back to its plain corner.
+   Below 1340px the next circle would run into the chat button, so the
+   corner layout above is used instead. */
+@media (min-width: 1340px) {
   .float-nav {
     justify-content: center;
-    gap: calc(596px + 2rem);
+    gap: calc(596px + 5rem);
     padding: 0;
     bottom: 1.45rem;
   }
@@ -2266,7 +2266,7 @@ body {
 .chapter-bar-kicker {
   flex: 0 0 auto;
   font-family: var(--font-ui);
-  font-size: .75rem;
+  font-size: .95rem;
   font-weight: 600;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -2278,7 +2278,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: var(--font-body);
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   font-weight: 600;
   color: var(--ink);
 }
@@ -2291,8 +2291,16 @@ body {
     max-width: none;
     min-height: 4.25rem;
     align-items: center;
-    padding: 0 8.25rem 0 1.25rem;
+    /* the pill is icon-only while this bar shows, so only ~3rem to clear */
+    padding: 0 4.5rem 0 1.25rem;
   }
+  .chapter-bar-title { font-size: 1.25rem; }
+
+  /* While the title bar is up, the "Mục lục" pill drops its text and
+     becomes a round icon button (same height, so it stays centred). */
+  body.chapter-bar-on .drawer-toggle { padding: .55rem; gap: 0; }
+  body.chapter-bar-on .drawer-toggle-label { display: none; }
+  body.chapter-bar-on .drawer-toggle .bars { width: 1.4rem; height: 1.4rem; justify-content: center; align-items: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
