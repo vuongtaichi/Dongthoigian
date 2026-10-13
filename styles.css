@@ -31,6 +31,9 @@
   --react-ink: #1c6fc4;   /* text of your own reaction pill */
   --comment-box-bg: #fdfdff;   /* main comment box: near-white */
   --eye-ink: #000;   /* eye icon in the view-count pill */
+  --panel-shadow: 0 18px 48px rgba(15, 27, 51, .18), 0 2px 8px rgba(15, 27, 51, .08);   /* chat panel, popovers */
+  --mine-bg: #eef4ff;   /* your own comment bubble */
+  --mine-border: #cfdcf7;
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
   --fab-bg-hover: #1c3b7a;
@@ -78,6 +81,9 @@
     --react-ink: #7cc4ff;
     --comment-box-bg: var(--note-bg);
     --eye-ink: var(--ink);
+    --panel-shadow: 0 18px 48px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3);
+    --mine-bg: #182a4d;
+    --mine-border: #2b4272;
     --border: #223151;
 
     --sidebar-bg: #060b16;
@@ -111,6 +117,9 @@
   --react-ink: #7cc4ff;
   --comment-box-bg: var(--note-bg);
   --eye-ink: var(--ink);
+  --panel-shadow: 0 18px 48px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3);
+  --mine-bg: #182a4d;
+  --mine-border: #2b4272;
   --border: #223151;
 
   --sidebar-bg: #060b16;
@@ -908,6 +917,57 @@ body {
   .sidebar, .scrim { transition: none; }
 }
 
+/* Mobile drawer: a compact header and a two-line footer, so most of the
+   drawer's height goes to the chapter list. */
+@media (max-width: 860px) {
+  /* brand on its own row; sign-in (or avatar) left and "94 chương" right
+     on the next row; search below */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: .85rem 1.1rem .8rem;
+  }
+  .masthead-brand { gap: .5rem; flex: 1 0 100%; }
+  .masthead-logo { width: 2rem; height: 2rem; }
+  .masthead-title { font-size: 1.1rem; }
+  .masthead-count { order: 2; margin: .55rem 0 0 auto; font-size: .82rem; line-height: 1.2; }
+  .masthead-auth { order: 1; margin-top: .55rem; font-size: .95rem; min-width: 0; }
+  .search-box { order: 3; flex: 1 0 100%; }
+  .masthead-auth .auth-btn { padding: 3px 14px; font-size: .9rem; }
+  .masthead-avatar { width: 1.75rem; height: 1.75rem; }
+  .search-box { margin-top: .65rem; }
+  .search-input { height: 2.4rem; font-size: .95rem; }
+  .toc { padding: .35rem 0; }
+
+  /* footer: privacy note clamped to one line (tap to expand — app.js),
+     then links on the left and © + visitor pill on the right */
+  .sidebar-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .3rem .5rem;
+    padding: .55rem 1.1rem max(.6rem, env(safe-area-inset-bottom));
+    font-size: .8rem;
+    line-height: 1.45;
+  }
+  .sidebar-footer p { margin: 0; }
+  .sidebar-note {
+    grid-column: 1 / -1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+    color: var(--sidebar-text-dim);
+    cursor: pointer;
+  }
+  .sidebar-note.is-open { display: block; color: var(--sidebar-text); }
+  .sidebar-footer-links { font-size: .78rem; gap: .35rem; }
+  .sidebar-footer .copyright { white-space: nowrap; font-size: .78rem; }
+  .sidebar-footer .visit-count { margin-left: .3rem; padding: .05rem .45rem; font-size: .72rem; }
+  .sidebar-footer .visit-count-label { display: none; }
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -1425,7 +1485,8 @@ body {
   list-style: none;
   margin: .9rem 0 0;
   padding: 0 0 0 1rem;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--note-border);
+  border-radius: 0 0 0 12px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1449,10 +1510,20 @@ body {
 
 .comment-author { font-weight: 700; color: var(--ink); }
 
+/* your own comment: a small "Bạn" tag after the name */
 .comment.is-mine .comment-author::after {
-  content: ' · bạn';
-  color: var(--ink-faint);
-  font-weight: 400;
+  content: 'Bạn';
+  display: inline-block;
+  margin-left: .45rem;
+  padding: 0 .45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1184CF, #434BD7);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: .02em;
+  vertical-align: .12em;
 }
 
 .comment-time { color: var(--ink-faint); }
@@ -1463,14 +1534,29 @@ body {
 .comment-bubble {
   display: inline-block;
   max-width: 100%;
-  padding: .55rem .9rem .65rem;
+  padding: .6rem 1rem .7rem;
   background: var(--note-bg);
   border: 1px solid var(--note-border);
-  border-radius: 4px 16px 16px 16px;
+  border-radius: 6px 20px 20px 20px;
+  box-shadow: 0 2px 10px rgba(41, 81, 163, .07);
+  animation: comment-in .25s ease-out;
 }
-.comment-bubble .comment-head { margin-bottom: .15rem; }
-.comment-author { font-family: var(--font-ui); font-size: .95rem; }
-.comment-time { font-family: var(--font-ui); font-size: .82rem; }
+/* your own comments: a pale blue bubble */
+.comment.is-mine > .comment-body-col > .comment-bubble {
+  background: var(--mine-bg);
+  border-color: var(--mine-border);
+}
+@keyframes comment-in {
+  from { opacity: 0; translate: 0 6px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comment-bubble { animation: none; }
+}
+.comment-bubble .comment-head { margin-bottom: .2rem; }
+.comment-author { font-family: var(--font-ui); font-size: .95rem; font-weight: 600; }
+.comment-time { font-family: var(--font-ui); font-size: .78rem; }
+.comment-avatar { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--note-border); }
 
 /* emoji reactions live inside the comment action row: 🙂+ at the start,
    the used-emoji pills pushed to the right */
@@ -1723,10 +1809,20 @@ body {
   flex-direction: column;
   background: var(--card);
   color: var(--ink);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--note-border);
+  border-radius: 20px;
+  box-shadow: var(--panel-shadow);
   overflow: hidden;
+  /* `translate`, not `transform` — fitChatPanelInViewport() owns transform */
+  animation: chat-panel-in .2s ease-out;
+}
+
+@keyframes chat-panel-in {
+  from { opacity: 0; translate: 0 10px; scale: .97; }
+  to   { opacity: 1; translate: 0 0; scale: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-panel { animation: none; }
 }
 
 /* Guest view: no thread to show, so shrink to the sign-in prompt + buttons
@@ -1743,29 +1839,46 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: .6rem;
-  padding: .8rem 1rem;
-  border-bottom: 1px solid var(--border);
+  padding: .75rem .75rem .75rem 1.1rem;
+  /* the sign-in .auth-btn blue gradient, white text */
+  background: linear-gradient(100deg, #1184CF, #434BD7);
+  color: #fff;
   font-weight: 600;
 }
 
 .chat-panel-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1rem;
+  letter-spacing: .01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* the colour / close buttons sit on the gradient: white glyphs, glassy hover */
+.chat-panel-head .chat-tool-btn { border-radius: 50%; }
+.chat-panel-head .chat-tool-btn:hover { background: rgba(255, 255, 255, .2); }
+
 .chat-panel-close {
   flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
   border: none;
-  background: none;
-  color: var(--ink-faint);
-  font-size: 1.3rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
-  padding: .1rem .3rem;
+  padding: 0 0 .1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease;
 }
-.chat-panel-close:hover { color: var(--ink); }
+.chat-panel-close:hover { background: rgba(255, 255, 255, .28); }
+.chat-panel-close:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 
 .chat-panel-body {
   flex: 1 1 auto;
@@ -1774,6 +1887,15 @@ body {
   flex-direction: column;
   padding: 1rem;
   gap: .8rem;
+  background: var(--paper);
+}
+
+/* reader's widget: the compose bar is its own white strip across the bottom */
+.chat-panel .chat-compose {
+  margin: 0 -1rem -1rem;
+  padding: .7rem .8rem .8rem;
+  background: var(--card);
+  border-top: 1px solid var(--note-border);
 }
 
 .chat-guest {
@@ -1868,8 +1990,9 @@ body {
   /* default (no colour picked): the sign-in .auth-btn blue gradient */
   background: linear-gradient(1deg, #434BD7, #1184CF 99%);
   color: #fff;
-  border-radius: 12px 12px 2px 12px;
-  padding: .55rem .75rem;
+  border-radius: 18px 18px 6px 18px;
+  padding: .55rem .9rem;
+  box-shadow: 0 2px 8px rgba(17, 132, 207, .22);
   font-size: .95rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -1924,14 +2047,17 @@ body {
 
 .chat-compose-row {
   display: flex;
-  gap: .5rem;
+  gap: .4rem;
   align-items: flex-end;
 }
 
+/* rounded pill input; grows upward as you type */
 .chat-textarea {
   flex: 1 1 auto;
+  min-width: 0;
   resize: none;
-  min-height: 2.5rem;
+  min-height: 2.65rem;
+  height: 2.65rem;   /* one line until autoGrowTextarea() sizes it */
   /* Grows with typed content (autoGrowTextarea in app.js) rather than
      staying this fixed height with an inner scrollbar. This cap is just a
      sanity ceiling for a huge paste — overflow-y:auto is the fallback past
@@ -1939,39 +2065,52 @@ body {
   max-height: 12rem;
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: .5rem .6rem;
+  border-radius: 1.3rem;
+  padding: .55rem 1rem;
   font: inherit;
   /* Noto Color Emoji is a subset (index.html) covering only the site's own
      emojis, so listing it first only changes those — matching the Noto
      images in the picker and message bubbles. */
   font-family: 'Noto Color Emoji', var(--font-ui);
   font-size: .95rem;
+  line-height: 1.5;
   color: var(--ink);
   background: var(--paper);
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.chat-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chat-textarea:focus {
+  outline: none;
+  border-color: #1184CF;
+  box-shadow: 0 0 0 3px rgba(17, 132, 207, .18);
+}
 
-/* Emoji + attach stacked above Send, in a fixed-size column to the right of
-   the textarea — align-items:flex-end on .chat-compose-row keeps this
-   column pinned to its own natural height regardless of how tall the
-   textarea grows, so growth never pushes/resizes these buttons. */
+/* Emoji + attach + round Send in one row to the right of the textarea —
+   align-items:flex-end on .chat-compose-row keeps them on the bottom line
+   however tall the textarea grows. */
 .chat-compose-actions {
   display: flex;
-  flex-direction: column;
-  gap: .3rem;
+  align-items: center;
+  gap: .25rem;
   flex: 0 0 auto;
+  min-height: 2.65rem;
 }
 
-/* Emoji + attach side by side, above Send (the .chat-compose-actions column
-   above stacks this row over the Send button). */
 .chat-compose-icons {
   display: flex;
-  gap: .2rem;
+  gap: .1rem;
 }
 
-.chat-send { flex: 0 0 auto; }
+/* round paper-plane button in the .auth-btn gradient */
+.chat-send {
+  flex: 0 0 auto;
+  width: 2.65rem;
+  height: 2.65rem;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(17, 132, 207, .3);
+}
+.chat-send svg { margin: 0 .1rem 0 0; }
 
 /* Emoji + attach icon buttons — no border/background box on purpose (removed
    on request, to save space); just the glyph, with a hover highlight. */
@@ -2016,9 +2155,9 @@ body {
   gap: .15rem;
   padding: .5rem;
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--panel-shadow);
 }
 
 .chat-emoji-choice {
@@ -2108,9 +2247,19 @@ body {
   word-break: break-word;
 }
 
+/* Mobile: the button is pinned bottom-centre (see the float-nav section),
+   so the panel opens as a sheet across the screen, above the button row. */
 @media (max-width: 860px) {
-  .chat-widget { right: 1rem; bottom: 1rem; }
-  .chat-panel { width: min(20rem, calc(100vw - 2rem)); }
+  .chat-panel {
+    position: fixed;
+    left: .75rem;
+    right: .75rem;
+    top: auto;
+    bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.25rem);
+    width: auto;
+    height: min(34rem, calc(100dvh - 6.5rem));
+  }
+  .chat-panel.chat-panel-compact { max-height: min(34rem, calc(100dvh - 6.5rem)); }
 }
 
 /* A bubble not authored by whoever's viewing (the admin's reply, in the
@@ -2118,9 +2267,11 @@ body {
    left-aligned and softer than the "mine" default in .chat-msg-bubble. */
 .chat-msg.is-them { align-items: flex-start; }
 .chat-msg.is-them .chat-msg-bubble {
-  background: var(--accent-soft-bg);
+  background: var(--card);
   color: var(--ink);
-  border-radius: 12px 12px 12px 2px;
+  border: 1px solid var(--note-border);
+  border-radius: 18px 18px 18px 6px;
+  box-shadow: 0 1px 4px rgba(15, 27, 51, .06);
 }
 .chat-msg-from { font-size: .75rem; color: var(--ink-faint); margin-bottom: .1rem; }
 
@@ -2525,6 +2676,34 @@ body {
 
 @media (max-width: 860px) {
   .float-nav { left: 0; bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+  /* Chat button pinned bottom-centre, on the prev/next row and vertically
+     centred on it (3.2rem button vs 3rem circles → .1rem lower). Not
+     draggable here (MOBILE_MQ in app.js). Centred with auto margins, not a
+     transform, so the fixed .chat-panel sheet still measures from the
+     viewport. Hidden while the chapter drawer is open. */
+  .chat-widget,
+  .app:has(> .float-nav[hidden]) .chat-widget {
+    left: 0;
+    right: 0;
+    bottom: calc(max(1rem, env(safe-area-inset-bottom)) - .1rem);
+    width: 3.2rem;
+    margin: 0 auto;
+  }
+  body:has(.sidebar.open) .chat-widget { visibility: hidden; }
+
+  /* Always-on modern border: a white inner gap, then the blue gradient
+     ring, then a soft blue glow. */
+  .chat-fab {
+    width: 3.2rem;
+    height: 3.2rem;
+    padding: 3px;
+    background: var(--card);
+    box-shadow: 0 6px 18px rgba(17, 132, 207, .35), 0 1px 3px rgba(15, 27, 51, .2);
+  }
+  .chat-fab::before { opacity: 1; }
+  .chat-fab:hover,
+  .chat-fab:focus-visible { box-shadow: 0 8px 22px rgba(17, 132, 207, .5), 0 1px 3px rgba(15, 27, 51, .2); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2620,23 +2799,35 @@ body {
     right: 0;
     transform: translateY(-50%);
     z-index: 1;
-    width: 2.6rem;
-    height: 5.25rem;
-    padding: 0 0 0 .25rem;
-    border: none;
-    border-radius: 999px 0 0 999px;
-    /* bright sky blue (#6fa8ff) at 40% opacity (owner's ask) so it stands
-       out against the dark drawer while the drawer shows through; the white
-       chevron itself stays fully opaque. Hover/focus goes solid #3d72db
-       (solid sky blue would be too light for the white chevron). */
-    background: rgba(111, 168, 255, .4);
+    width: 2.25rem;
+    height: 4.75rem;
+    padding: 0 0 0 .2rem;
+    /* frosted-glass tab: the .auth-btn blue gradient at ~50% over a blur
+       of the rows behind it, a hairline light edge and an inner highlight.
+       Hover/focus turns the gradient solid and nudges the chevron. */
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-right: none;
+    border-radius: 18px 0 0 18px;
+    background: linear-gradient(180deg, rgba(17, 132, 207, .5), rgba(67, 75, 215, .5));
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
     color: var(--fab-fg);
-    box-shadow: var(--fab-shadow);
+    box-shadow: -4px 0 18px rgba(0, 0, 0, .3), inset 1px 1px 0 rgba(255, 255, 255, .18);
     cursor: pointer;
+    transition: background .2s ease, width .2s ease;
   }
   .sidebar-close:hover,
-  .sidebar-close:focus-visible { background: #3d72db; }
+  .sidebar-close:focus-visible {
+    width: 2.5rem;
+    background: linear-gradient(180deg, #1184CF, #434BD7);
+  }
   .sidebar-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
   /* floats over the chapter rows (owner's ask) — rows keep their full width */
-  .sidebar-close svg { width: 1.6em; height: 1.6em; }
+  .sidebar-close svg { width: 1.45em; height: 1.45em; transition: transform .2s ease; }
+  .sidebar-close:hover svg,
+  .sidebar-close:focus-visible svg { transform: translateX(2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-close, .sidebar-close svg { transition: none; }
 }

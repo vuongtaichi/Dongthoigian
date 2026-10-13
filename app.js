@@ -504,7 +504,9 @@
       var pill = document.createElement('span');
       pill.className = 'visit-count';
       pill.setAttribute('aria-label', n.toLocaleString('vi-VN') + ' lượt xem');
-      pill.innerHTML = EYE_SVG + '<span>' + n.toLocaleString('vi-VN') + ' lượt xem</span>';
+      // " lượt xem" is hidden on mobile (styles.css) to keep the footer short
+      pill.innerHTML = EYE_SVG + '<span>' + n.toLocaleString('vi-VN') +
+        '<span class="visit-count-label"> lượt xem</span></span>';
       el.appendChild(pill);
     });
   }
@@ -792,11 +794,16 @@
     'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   // Comment action icons (Trả lời / Sửa / Xoá) — line icons, label kept in
-  // aria-label + title.
+  // aria-label + title. Trả lời is a chat bubble.
   var REPLY_SVG =
     '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
+    '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.9-.9L3 20.5l1.5-4.6A8 8 0 0 1 3.5 11.5 8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/></svg>';
+  // Chat "Gửi" button: a paper plane (label kept in aria-label + title).
+  var SEND_SVG =
+    '<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>';
   var EDIT_SVG =
     '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -1336,6 +1343,10 @@
   // can never sit off-screen.
   var _suppressFabClick = false;   // true only across the click a drag synthesises
 
+  // Mobile: the button is pinned bottom-centre between the prev/next
+  // circles (styles.css) and can't be dragged.
+  var MOBILE_MQ = window.matchMedia('(max-width: 860px)');
+
   function chatFabBox() {
     var fab = document.getElementById('chatFab');
     var r = fab && fab.getBoundingClientRect();
@@ -1390,7 +1401,8 @@
   // dragged, keep it on-screen; then re-fit any open panel.
   function reclampChatWidget() {
     var w = document.getElementById('chatWidget');
-    if (w && w.style.left) {
+    if (w && w.style.left && MOBILE_MQ.matches) resetChatFabPos();
+    else if (w && w.style.left) {
       var r = w.getBoundingClientRect();
       applyChatFabPos(r.left, r.top, true);
     }
@@ -1428,6 +1440,7 @@
 
     fab.addEventListener('pointerdown', function (e) {
       if (e.button != null && e.button !== 0) return;
+      if (MOBILE_MQ.matches) return;
       active = true; dragging = false;
       sx = e.clientX; sy = e.clientY;
       var r = document.getElementById('chatWidget').getBoundingClientRect();
@@ -1507,7 +1520,7 @@
             escapeAttr(placeholder) + '"></textarea>' +
           '<div class="chat-compose-actions">' +
             composeToolsHtml(prefix) +
-            '<button type="submit" class="auth-btn chat-send">Gửi</button>' +
+            '<button type="submit" class="auth-btn chat-send" aria-label="Gửi" title="Gửi">' + SEND_SVG + '</button>' +
           '</div>' +
         '</div>' +
       '</form>';
@@ -3224,6 +3237,15 @@
       'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
     btn.addEventListener('click', function () { closeDrawer(); toggleEl.focus(); });
     sidebarEl.appendChild(btn);
+  })();
+
+  // Mobile: the footer's privacy note is clamped to one line (styles.css)
+  // to leave room for the chapter list; tapping it expands / collapses it.
+  (function () {
+    var note = sidebarEl.querySelector('.sidebar-footer > p:first-child');
+    if (!note) return;
+    note.classList.add('sidebar-note');
+    note.addEventListener('click', function () { note.classList.toggle('is-open'); });
   })();
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape' && sidebarEl.classList.contains('open')) closeDrawer();
