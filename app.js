@@ -2541,7 +2541,7 @@
   }
 
   function onSaveChapterToggle(btn) {
-    if (!authUser) { openSigninModal(); return; }
+    if (!authUser) { openSigninModal('Đăng nhập hoặc đăng ký để lưu chương này.'); return; }
     var chapterId = readerEl.getAttribute('data-chapter-id');
     if (!chapterId || btn.disabled) return;
     var row = savedChapterRow(chapterId);
@@ -2627,7 +2627,7 @@
   function onQuoteSave() {
     var q = currentQuote();
     if (!q) { hideQuotePop(); return; }
-    if (!authUser) { hideQuotePop(); openSigninModal(); return; }
+    if (!authUser) { hideQuotePop(); openSigninModal('Đăng nhập hoặc đăng ký để lưu trích dẫn này.'); return; }
     if (q.text.length > QUOTE_MAX) { showToast('Đoạn chọn quá dài (tối đa ' + QUOTE_MAX + ' ký tự).'); return; }
     var dup = _savedItems.some(function (r) {
       return r.kind === 'quote' && r.chapter_id === q.chapterId && r.quote === q.text;
@@ -2782,6 +2782,7 @@
       '<div class="signin-modal-card" role="dialog" aria-modal="true" aria-label="Đăng nhập / Đăng ký">' +
         '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
         '<h3 class="signin-modal-title">Đăng nhập / Đăng ký</h3>' +
+        '<p class="signin-modal-reason" id="signinReason" hidden></p>' +
         '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
           GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
         '<div class="signin-modal-divider"><span>hoặc</span></div>' +
@@ -2807,11 +2808,15 @@
     defeatAutofillFont(m);
   }
 
-  function openSigninModal() {
+  // `reason` (optional) says why sign-in is needed — e.g. a guest pressing
+  // "Lưu chương" — shown in a highlighted line under the title.
+  function openSigninModal(reason) {
     if (authUser) return;
     ensureSigninModal();
     var msg = document.getElementById('signinMsg');
     if (msg) msg.textContent = '';
+    var why = document.getElementById('signinReason');
+    if (why) { why.textContent = reason || ''; why.hidden = !reason; }
     document.getElementById('signinModal').hidden = false;
   }
 
