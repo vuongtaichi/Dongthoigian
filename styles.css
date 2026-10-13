@@ -2326,13 +2326,15 @@ body {
     border: none;
     border-radius: 999px 0 0 999px;
     /* a brighter blue than the other floating buttons (owner's ask) so it
-       stands out against the dark drawer; white still reads on it */
-    background: #3d72db;
+       stands out against the dark drawer, at 75% opacity so the drawer shows
+       through a little; the white chevron itself stays fully opaque */
+    background: rgba(61, 114, 219, .75);
     color: var(--fab-fg);
     box-shadow: var(--fab-shadow);
     cursor: pointer;
   }
-  .sidebar-close:hover { background: var(--fab-bg); }
+  .sidebar-close:hover,
+  .sidebar-close:focus-visible { background: #3d72db; }
   .sidebar-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
   /* keep the chapter rows' view counts clear of the tab */
   .sidebar .toc { padding-right: 2.6rem; }
