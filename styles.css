@@ -28,6 +28,7 @@
   --note-border: #dde3f7;
   --note-shadow: 0 0 20px rgba(41, 81, 163, .12);
   --note-label-grad: linear-gradient(90deg, #1184CF, #434BD7);
+  --react-ink: #1c6fc4;   /* text of your own reaction pill */
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
   --fab-bg-hover: #1c3b7a;
@@ -72,6 +73,7 @@
     --note-border: #26345a;
     --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
     --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
+    --react-ink: #7cc4ff;
     --border: #223151;
 
     --sidebar-bg: #060b16;
@@ -102,6 +104,7 @@
   --note-border: #26345a;
   --note-shadow: 0 0 20px rgba(0, 0, 0, .35);
   --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
+  --react-ink: #7cc4ff;
   --border: #223151;
 
   --sidebar-bg: #060b16;
@@ -906,10 +909,16 @@ body {
 /* View count: a non-interactive pill (eye + number) leading the reaction row */
 .reaction-views {
   cursor: default;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
 }
 
-.reaction-views:hover { border-color: var(--border); }
+.reaction-views:hover {
+  border-color: var(--note-border);
+  box-shadow: none;
+  transform: none;
+}
+/* eye icon picks up the site's blue gradient accent colour */
+.reaction-views svg { color: #1184CF; }
 
 .reaction-views .reaction-emoji {
   display: inline-flex;
@@ -928,22 +937,33 @@ body {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
-  border: 1px solid var(--border);
-  background: var(--card);
+  /* same surface as the "Ghi chú" note card */
+  border: 1px solid var(--note-border);
+  background: var(--note-bg);
   color: var(--ink-soft);
   border-radius: 999px;
-  padding: .3rem .9rem;
-  font: inherit;
+  padding: .35rem .95rem;
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  line-height: 1.4;
   cursor: pointer;
-  transition: border-color .12s ease, background .12s ease, color .12s ease;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease, color .15s ease;
+}
+.reaction .reaction-emoji { font-size: 1.15em; }
+
+.reaction:hover {
+  border-color: #9fb6f0;
+  box-shadow: var(--note-shadow);
+  transform: translateY(-1px);
 }
 
-.reaction:hover { border-color: var(--accent); }
-
+/* your own reaction: thin blue-gradient outline + blue text */
 .reaction.reacted {
-  border-color: var(--accent);
-  background: var(--accent-soft-bg);
-  color: var(--accent-strong);
+  border-color: transparent;
+  background:
+    linear-gradient(var(--note-bg), var(--note-bg)) padding-box,
+    linear-gradient(1deg, #434BD7, #1184CF 99%) border-box;
+  color: var(--react-ink);
   font-weight: 600;
 }
 
@@ -964,10 +984,11 @@ body {
 
 /* the "＋ / smiley" add-reaction button */
 .reaction-add {
-  color: var(--ink-faint);
+  color: var(--ink-soft);
   gap: .2rem;
-  padding: .3rem .7rem;
+  padding: .35rem .8rem;
 }
+.reaction-add:hover { color: #1184CF; }
 .reaction-add-plus { font-weight: 700; }
 
 .reaction-bar { position: relative; }
@@ -1001,20 +1022,40 @@ body {
 .reaction-hint-msg { font-size: .9rem; line-height: 1.4; color: var(--ink-soft); }
 .reaction-hint .reaction-hint-btn { padding: .4rem 1rem; }
 
-.reaction-picker { display: flex; flex-wrap: wrap; gap: .35rem; }
+/* Messenger-style floating emoji bar: one rounded pill, emojis grow on hover */
+.reaction-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem;
+  padding: .3rem .45rem;
+  border-radius: 999px;
+  border-color: var(--note-border);
+  background: var(--note-bg);
+  box-shadow: var(--note-shadow);
+}
 
 .reaction-choice {
-  border: 1px solid var(--border);
-  background: var(--card);
-  border-radius: 999px;
-  padding: .25rem .6rem;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
   font: inherit;
+  font-size: 1.35rem;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: border-color .12s ease, background .12s ease;
+  transition: transform .15s ease, background .15s ease;
 }
-.reaction-choice:hover { border-color: var(--accent); }
-.reaction-choice.reacted { border-color: var(--accent); background: var(--accent-soft-bg); }
+.reaction-choice:hover { transform: scale(1.25) translateY(-2px); }
+.reaction-choice.reacted { background: rgba(17, 132, 207, .14); }
+@media (prefers-reduced-motion: reduce) {
+  .reaction, .reaction-choice { transition: none; }
+  .reaction:hover, .reaction-choice:hover { transform: none; }
+}
 
 .reaction-who {
   display: flex;
@@ -1245,6 +1286,37 @@ body {
   resize: vertical;
   min-height: 4.5rem;
 }
+
+/* The main "write a comment" box: one card (same surface as the "Ghi chú"
+   note) holding a borderless textarea + the send row; a blue ring shows on
+   focus. Reply/edit forms further down keep the plain style above. */
+#commentForm {
+  gap: .4rem;
+  padding: .6rem .7rem .7rem;
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--note-shadow);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+#commentForm:focus-within {
+  border-color: #1184CF;
+  box-shadow: 0 0 0 3px rgba(17, 132, 207, .18), var(--note-shadow);
+}
+#commentForm .comment-body {
+  border: none;
+  background: transparent;
+  padding: .4rem .3rem;
+  resize: none;
+  min-height: 5rem;
+}
+#commentForm .comment-body:focus { outline: none; }
+#commentForm .comment-body::placeholder { color: var(--ink-faint); font-style: italic; }
+#commentForm .comment-form-row {
+  padding-top: .55rem;
+  border-top: 1px solid var(--note-border);
+}
+#commentForm .comment-status { font-family: var(--font-ui); font-size: .85rem; }
 
 .comment-form-row {
   display: flex;
