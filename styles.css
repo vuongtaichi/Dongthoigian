@@ -34,6 +34,8 @@
   --panel-shadow: 0 18px 48px rgba(15, 27, 51, .18), 0 2px 8px rgba(15, 27, 51, .08);   /* chat panel, popovers */
   --mine-bg: #eef4ff;   /* your own comment bubble */
   --mine-border: #cfdcf7;
+  --scroll-thumb: rgba(41, 81, 163, .3);   /* chat scrollbars */
+  --scroll-thumb-hover: rgba(41, 81, 163, .55);
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
   --fab-bg-hover: #1c3b7a;
@@ -84,6 +86,8 @@
     --panel-shadow: 0 18px 48px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3);
     --mine-bg: #182a4d;
     --mine-border: #2b4272;
+    --scroll-thumb: rgba(138, 180, 255, .3);
+    --scroll-thumb-hover: rgba(138, 180, 255, .55);
     --border: #223151;
 
     --sidebar-bg: #060b16;
@@ -120,6 +124,8 @@
   --panel-shadow: 0 18px 48px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3);
   --mine-bg: #182a4d;
   --mine-border: #2b4272;
+  --scroll-thumb: rgba(138, 180, 255, .3);
+  --scroll-thumb-hover: rgba(138, 180, 255, .55);
   --border: #223151;
 
   --sidebar-bg: #060b16;
@@ -2021,17 +2027,23 @@ body {
   gap: .6rem;
 }
 
-/* Custom thin scrollbar for the chat surfaces (thread, textarea, admin
-   thread list), so it looks the same everywhere this app draws one
-   instead of each platform's own default. Only takes effect where the
-   browser honors it — Chrome/Edge/Firefox desktop and Android Chrome;
-   iOS Safari ignores ::-webkit-scrollbar entirely and always shows its
-   own translucent overlay scrollbar regardless of any CSS here. */
+/* One slim, rounded, translucent-blue scrollbar for the chat surfaces
+   (thread, textarea, admin thread list) on every device, so phones look
+   like desktop: same colour with or without hover (touch never hovers),
+   a little darker while hovered/dragged where a mouse exists. Chrome 121+
+   and Firefox use the standard scrollbar-* properties; the ::-webkit-
+   rules cover older Chromium/Safari. iOS Safari always draws its own
+   overlay scrollbar regardless. */
 .chat-thread,
 .chat-textarea,
 .inbox-thread-list {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+.chat-thread:hover,
+.chat-textarea:hover,
+.inbox-thread-list:hover {
+  scrollbar-color: var(--scroll-thumb-hover) transparent;
 }
 .chat-thread::-webkit-scrollbar,
 .chat-textarea::-webkit-scrollbar,
@@ -2043,36 +2055,19 @@ body {
 .inbox-thread-list::-webkit-scrollbar-track {
   background: transparent;
 }
+/* 2px transparent border + padding-box clip = a 4px pill inset from the edge */
 .chat-thread::-webkit-scrollbar-thumb,
 .chat-textarea::-webkit-scrollbar-thumb,
 .inbox-thread-list::-webkit-scrollbar-thumb {
-  background-color: var(--border);
-  border-radius: 8px;
+  background-color: var(--scroll-thumb);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
 }
 .chat-thread::-webkit-scrollbar-thumb:hover,
 .chat-textarea::-webkit-scrollbar-thumb:hover,
 .inbox-thread-list::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ink-faint);
-}
-
-/* Touch devices never fire :hover, so the lighter --border thumb above
-   never gets a chance to darken there — it just reads as near-invisible.
-   Use the darker, always-on color from the start on touch (this is also
-   the one Android Chrome actually honors; iOS Safari draws its own
-   overlay scrollbar regardless, per the note above). */
-@media (hover: none) {
-  .chat-thread,
-  .chat-textarea,
-  .inbox-thread-list {
-    /* A fixed dark blue rather than an --ink token, so it stays blue
-       (not a neutral gray/black) regardless of light/dark theme. */
-    scrollbar-color: #1c3b7a transparent;
-  }
-  .chat-thread::-webkit-scrollbar-thumb,
-  .chat-textarea::-webkit-scrollbar-thumb,
-  .inbox-thread-list::-webkit-scrollbar-thumb {
-    background-color: #1c3b7a;
-  }
+  background-color: var(--scroll-thumb-hover);
 }
 
 .chat-empty {
