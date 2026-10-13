@@ -2337,7 +2337,6 @@ body {
   .sidebar-close:hover,
   .sidebar-close:focus-visible { background: #3d72db; }
   .sidebar-close:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
-  /* keep the chapter rows' view counts clear of the tab */
-  .sidebar .toc { padding-right: 2.6rem; }
+  /* floats over the chapter rows (owner's ask) — rows keep their full width */
   .sidebar-close svg { width: 1.6em; height: 1.6em; }
 }
