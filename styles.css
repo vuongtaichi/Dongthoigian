@@ -1065,8 +1065,10 @@ body {
   border-radius: 999px;
 }
 .auth-idbtn.is-active {
-  background: var(--accent);
-  color: var(--paper);
+  /* same blue gradient as the sign-in .auth-btn */
+  background-color: #3597D7;
+  background-image: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
   font-weight: 600;
 }
 
