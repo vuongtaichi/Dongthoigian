@@ -1,4 +1,4 @@
-/* build: 2027-admin-users
+/* build: 2027-new-user-badge
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -1814,6 +1814,7 @@
           '<span class="toc-text"><span class="toc-title">Người dùng</span></span>' +
         '</button>';
       toc.insertBefore(existingUsers, existing.nextSibling);
+      setTocBadge('tocAdminUsersItem', _adminNewUsers);
     }
   }
 
@@ -1842,11 +1843,16 @@
 
   // Sums each thread's unread count onto the "Hộp thư" sidebar entry.
   function updateAdminInboxBadge() {
-    var li = document.getElementById('tocAdminItem');
+    var total = _inboxThreads.reduce(function (sum, t) { return sum + (t.unread || 0); }, 0);
+    setTocBadge('tocAdminItem', total);
+  }
+
+  // Red count pill on an admin sidebar entry (same look as the inbox one).
+  function setTocBadge(liId, total) {
+    var li = document.getElementById(liId);
     if (!li) return;
     var btn = li.querySelector('.toc-item');
     if (!btn) return;
-    var total = _inboxThreads.reduce(function (sum, t) { return sum + (t.unread || 0); }, 0);
     var badge = btn.querySelector('.toc-badge');
     if (total > 0) {
       if (!badge) {
@@ -2069,6 +2075,34 @@
   // client-side authUser.isAdmin check only gates the UI, same as the inbox.
 
   var _adminUsers = [];
+  var _adminUsersSeenAt = null;   // when the admin last opened this list (server-stored)
+  var _adminNewUsers = 0;
+
+  // "Người dùng" badge: accounts created since the admin last opened the
+  // list. Polled alongside the inbox (refresh() + the 60s interval). The
+  // seen-at time lives in profiles.admin_users_seen_at, not localStorage, so
+  // it's the same on every device — like the inbox's message_reads.
+  function loadAdminNewUsers() {
+    if (!sb || !authUser || !authUser.isAdmin) return;
+    sb.rpc('admin_new_users').then(function (res) {
+      if (!res || res.error) return;
+      var row = (res.data && res.data[0]) || {};
+      _adminUsersSeenAt = row.seen_at || null;
+      // While the list is on screen, anything new gets marked seen by
+      // loadAdminUsers instead — don't flash a badge for the open page.
+      if (readerEl.querySelector('.admin-users')) {
+        if (row.n) loadAdminUsers();
+        return;
+      }
+      _adminNewUsers = Number(row.n) || 0;
+      setTocBadge('tocAdminUsersItem', _adminNewUsers);
+    });
+  }
+
+  function isNewAdminUser(u) {
+    if (u.id === authUser.id) return false;
+    return !_adminUsersSeenAt || Date.parse(u.created_at) > Date.parse(_adminUsersSeenAt);
+  }
 
   function adminUserContact(u) {
     var e = u.email || '';
@@ -2090,7 +2124,8 @@
       avatarHtml(u.display_name, u.avatar_url, u.id, 'admin-user-avatar', u.avatar_url ? null : u.avatar_hue) +
       '<div class="admin-user-main">' +
         '<p class="admin-user-name">' + escapeHtml(u.display_name || 'Người đọc') +
-          (u.is_admin ? ' <span class="admin-user-tag">Quản trị</span>' : '') + '</p>' +
+          (u.is_admin ? ' <span class="admin-user-tag">Quản trị</span>' : '') +
+          (u._new ? ' <span class="admin-user-tag admin-user-tag-new">Mới</span>' : '') + '</p>' +
         '<p class="admin-user-contact">' + escapeHtml(adminUserContact(u)) +
           ' · ' + escapeHtml(adminUserProvider(u)) + '</p>' +
         (stats.length ? '<p class="admin-user-stats">' + escapeHtml(stats.join(' · ')) + '</p>' : '') +
@@ -2126,13 +2161,29 @@
         if (list) list.innerHTML = '<li class="chat-empty">Không tải được danh sách người dùng.</li>';
         return;
       }
+      var prevNew = {};
+      _adminUsers.forEach(function (u) { if (u._new) prevNew[u.id] = true; });
       _adminUsers = res.data || [];
+      // "Mới" = new since the previous visit; keeps the tag through a
+      // re-load while the page stays open.
+      _adminUsers.forEach(function (u) { u._new = prevNew[u.id] || isNewAdminUser(u); });
       renderAdminUserList();
+      var newest = _adminUsers.reduce(function (max, u) {
+        return (!max || Date.parse(u.created_at) > Date.parse(max)) ? u.created_at : max;
+      }, null);
+      _adminNewUsers = 0;
+      setTocBadge('tocAdminUsersItem', 0);
+      if (newest && (!_adminUsersSeenAt || Date.parse(newest) > Date.parse(_adminUsersSeenAt))) {
+        sb.rpc('admin_mark_users_seen', { p_at: newest }).then(function (r) {
+          if (r && !r.error) _adminUsersSeenAt = newest;
+        });
+      }
     });
   }
 
   function renderAdminUsers() {
     if (!authUser || !authUser.isAdmin) return;
+    _adminUsers = [];
     readerEl.removeAttribute('data-chapter-id');
     readerEl.innerHTML =
       '<article class="chapter admin-users">' +
@@ -2874,7 +2925,7 @@
       updateAdminTocItem();
       if (authUser) {
         refreshChatUnreadBadge();
-        if (authUser.isAdmin) loadInboxThreads();
+        if (authUser.isAdmin) { loadInboxThreads(); loadAdminNewUsers(); }
       } else {
         setChatBadge(0);
       }
@@ -2929,7 +2980,7 @@
     setInterval(function () {
       if (!authUser) return;
       refreshChatUnreadBadge();
-      if (authUser.isAdmin) loadInboxThreads();
+      if (authUser.isAdmin) { loadInboxThreads(); loadAdminNewUsers(); }
     }, 60000);
   }
 

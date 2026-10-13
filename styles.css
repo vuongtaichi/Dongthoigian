@@ -2151,3 +2151,4 @@ body {
   .admin-user { flex-wrap: wrap; }
   .admin-user-dates { flex-basis: 100%; flex-direction: row; justify-content: space-between; padding-left: 3.25rem; }
 }
+.admin-user-tag-new { background: #e5484d; color: #fff; }
