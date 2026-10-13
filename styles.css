@@ -314,13 +314,14 @@ body {
 
 /* Google.com-style search pill: white, fully rounded, magnifier on the
    left, ✕ on the right while there's text, soft shadow on hover/focus.
+   Filled with the footer visitor-count pill's grey (#d5d6db, black text).
    Fixed colors (not theme tokens) so it reads the same in both themes. */
 .search-input {
   width: 100%;
   height: 2.75rem;
-  background: #fff;
-  border: 1px solid #dfe1e5;
-  color: #202124;
+  background: #d5d6db;
+  border: 1px solid #d5d6db;
+  color: #000;
   border-radius: 999px;
   padding: 0 2.6rem 0 2.75rem;
   font-family: var(--font-ui);
@@ -328,13 +329,13 @@ body {
   transition: box-shadow .15s ease, border-color .15s ease;
 }
 
-.search-input::placeholder { color: #70757a; }
+.search-input::placeholder { color: #4d5156; }
 
 .search-input:hover,
 .search-input:focus {
   outline: none;
   border-color: transparent;
-  box-shadow: 0 1px 6px rgba(32, 33, 36, .28), 0 0 0 1px rgba(223, 225, 229, .9);
+  box-shadow: 0 1px 6px rgba(32, 33, 36, .28);
 }
 
 /* hide the browser's own clear button — #searchClear replaces it */
@@ -345,7 +346,7 @@ body {
   left: .85rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #9aa0a6;
+  color: #4d5156;
   pointer-events: none;
 }
 
@@ -359,7 +360,7 @@ body {
   border: none;
   border-radius: 50%;
   background: none;
-  color: #70757a;
+  color: #4d5156;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -367,7 +368,7 @@ body {
   padding: 0;
 }
 .search-clear[hidden] { display: none; }
-.search-clear:hover { background: #f1f3f4; color: #202124; }
+.search-clear:hover { background: #c3c5cc; color: #000; }
 
 .toc {
   list-style: none;
