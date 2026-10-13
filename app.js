@@ -2522,6 +2522,40 @@
     if (key) loadSaved();
   }
 
+  // A small reminder (not the sign-in form) for guests who press a save
+  // button: the message, then "Đăng nhập / Đăng ký" (opens the sign-in
+  // modal) or "Để sau". Same centred card on every screen size; closes on
+  // the backdrop, × or Escape.
+  function showSigninReminder(text) {
+    var m = document.getElementById('signinReminder');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'signinReminder';
+      m.className = 'reminder-modal';
+      m.innerHTML =
+        '<div class="reminder-backdrop" data-action="reminder-close"></div>' +
+        '<div class="reminder-card" role="alertdialog" aria-modal="true" aria-labelledby="reminderTitle" aria-describedby="reminderText">' +
+          '<button type="button" class="reminder-x" data-action="reminder-close" aria-label="Đóng">&times;</button>' +
+          '<span class="reminder-icon" aria-hidden="true">' + BOOKMARK_SVG + '</span>' +
+          '<h3 class="reminder-title" id="reminderTitle">Cần đăng nhập</h3>' +
+          '<p class="reminder-text" id="reminderText"></p>' +
+          '<div class="reminder-btns">' +
+            '<button type="button" class="reminder-later" data-action="reminder-close">Để sau</button>' +
+            '<button type="button" class="auth-btn" data-action="reminder-signin">Đăng nhập / Đăng ký</button>' +
+          '</div>' +
+        '</div>';
+      (document.querySelector('.app') || document.body).appendChild(m);
+    }
+    document.getElementById('reminderText').textContent = text;
+    m.hidden = false;
+    m.querySelector('[data-action="reminder-signin"]').focus();
+  }
+
+  function closeSigninReminder() {
+    var m = document.getElementById('signinReminder');
+    if (m) m.hidden = true;
+  }
+
   // -- chapter bookmark --
 
   function saveChapterBtnHtml() {
@@ -2541,7 +2575,7 @@
   }
 
   function onSaveChapterToggle(btn) {
-    if (!authUser) { openSigninModal('Đăng nhập hoặc đăng ký để lưu chương này.'); return; }
+    if (!authUser) { showSigninReminder('Bạn cần đăng nhập hoặc đăng ký để lưu chương này.'); return; }
     var chapterId = readerEl.getAttribute('data-chapter-id');
     if (!chapterId || btn.disabled) return;
     var row = savedChapterRow(chapterId);
@@ -2627,7 +2661,7 @@
   function onQuoteSave() {
     var q = currentQuote();
     if (!q) { hideQuotePop(); return; }
-    if (!authUser) { hideQuotePop(); openSigninModal('Đăng nhập hoặc đăng ký để lưu trích dẫn này.'); return; }
+    if (!authUser) { hideQuotePop(); showSigninReminder('Bạn cần đăng nhập hoặc đăng ký để lưu trích dẫn này.'); return; }
     if (q.text.length > QUOTE_MAX) { showToast('Đoạn chọn quá dài (tối đa ' + QUOTE_MAX + ' ký tự).'); return; }
     var dup = _savedItems.some(function (r) {
       return r.kind === 'quote' && r.chapter_id === q.chapterId && r.quote === q.text;
@@ -2782,7 +2816,6 @@
       '<div class="signin-modal-card" role="dialog" aria-modal="true" aria-label="Đăng nhập / Đăng ký">' +
         '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
         '<h3 class="signin-modal-title">Đăng nhập / Đăng ký</h3>' +
-        '<p class="signin-modal-reason" id="signinReason" hidden></p>' +
         '<button type="button" class="auth-btn auth-ghost auth-google" data-action="signin-google">' +
           GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
         '<div class="signin-modal-divider"><span>hoặc</span></div>' +
@@ -2808,15 +2841,11 @@
     defeatAutofillFont(m);
   }
 
-  // `reason` (optional) says why sign-in is needed — e.g. a guest pressing
-  // "Lưu chương" — shown in a highlighted line under the title.
-  function openSigninModal(reason) {
+  function openSigninModal() {
     if (authUser) return;
     ensureSigninModal();
     var msg = document.getElementById('signinMsg');
     if (msg) msg.textContent = '';
-    var why = document.getElementById('signinReason');
-    if (why) { why.textContent = reason || ''; why.hidden = !reason; }
     document.getElementById('signinModal').hidden = false;
   }
 
@@ -3425,6 +3454,8 @@
       else if (act === 'admin-inbox') { renderAdminInbox(); closeDrawer(); }
       else if (act === 'admin-users') { renderAdminUsers(); closeDrawer(); }
       else if (act === 'saved-page') { renderSaved(); closeDrawer(); }
+      else if (act === 'reminder-close') closeSigninReminder();
+      else if (act === 'reminder-signin') { closeSigninReminder(); openSigninModal(); }
       else if (act === 'inbox-open') openInboxThread(a.getAttribute('data-uid'));
       else if (act === 'inbox-back') backToInboxList();
       else if (act === 'chat-msg-delete') onChatMessageDelete(a);
@@ -3450,7 +3481,7 @@
       if (ev.key === 'Escape') {
         closeProfileModal(); closeReactionPopovers(); closeAllCreactPopovers();
         closeChatPanel(); closeSigninModal(); closeAllChatEmojiPopovers();
-        hideQuotePop();
+        hideQuotePop(); closeSigninReminder();
       }
     });
     document.addEventListener('change', function (ev) {
