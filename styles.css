@@ -1396,6 +1396,15 @@ body {
 
 .chat-fab:hover { background: var(--fab-bg-hover); }
 
+/* Site logo badge filling the round chat button. */
+.chat-fab-logo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+  pointer-events: none;
+}
+
 /* Panel opens toward the screen centre once the button has been dragged
    (JS sets data-hpos / data-vpos from the button's quadrant). Undragged,
    the base .chat-panel rule below still applies (bottom-right button). */

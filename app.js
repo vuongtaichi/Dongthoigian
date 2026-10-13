@@ -737,10 +737,11 @@
     '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>' +
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
 
-  var CHAT_SVG =
-    '<svg viewBox="0 0 24 24" width="1.5em" height="1.5em" fill="none" stroke="currentColor" ' +
-    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+  // The floating chat button shows the site logo (a circular badge that
+  // fills the round FAB). Not draggable/clickable itself so the FAB's own
+  // drag + click handling still gets the pointer events.
+  var CHAT_FAB_ICON =
+    '<img class="chat-fab-logo" src="assets/logo_v2.svg" alt="" draggable="false" aria-hidden="true" />';
 
   // Smaller line version of the chat bubble, for the "Hộp thư" sidebar entry
   // (replaces a 💬 emoji so it reads as a plain sketch, matching the rest of
@@ -1232,7 +1233,7 @@
     w.id = 'chatWidget';
     w.innerHTML =
       '<button type="button" class="chat-fab" id="chatFab" data-action="chat-toggle" aria-label="Nhắn tin" aria-expanded="false">' +
-        CHAT_SVG +
+        CHAT_FAB_ICON +
       '</button>' +
       '<div class="chat-panel" id="chatPanel" hidden role="dialog" aria-label="Nhắn tin">' +
         '<div class="chat-panel-head">' +
