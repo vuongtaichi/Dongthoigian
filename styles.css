@@ -3641,10 +3641,11 @@ body {
      pull it up by that much so it sits flush against the header border */
   top: -.6rem;
   z-index: 2;
-  /* frosted, so the sidebar gradient shows through as chapters slide under */
-  background: rgba(11, 21, 48, .55);
-  -webkit-backdrop-filter: blur(10px);
-          backdrop-filter: blur(10px);
+  /* solid: the sidebar's top colour with a touch of its cyan glow, so
+     chapters scrolling underneath don't show through */
+  background:
+    linear-gradient(rgba(17, 132, 207, .1), rgba(17, 132, 207, .1)),
+    var(--sidebar-bg);
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
