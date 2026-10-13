@@ -1552,9 +1552,9 @@
           bubbleHue: row.bubble_hue
         };
         var title = document.getElementById('chatPanelTitle');
-        if (title) title.textContent = 'Nhắn tin cho ' + _chatAdmin.name;
+        if (title) title.textContent = 'Nhắn tin cho Admin';   // fixed label, not the admin's name
         var guestMsg = document.getElementById('chatGuestMsg');
-        if (guestMsg) guestMsg.innerHTML = 'Đăng nhập để gửi tin nhắn cho <strong>' + escapeHtml(_chatAdmin.name) + '</strong>.';
+        if (guestMsg) guestMsg.innerHTML = 'Đăng nhập để gửi tin nhắn cho <strong>Admin</strong>.';
       });
   }
 
@@ -1575,7 +1575,7 @@
               'aria-label="Đổi màu bong bóng chat" hidden>' + PALETTE_SVG + '</button>' +
             '<span class="chat-color-popover" id="chatColorPopover" hidden></span>' +
           '</span>' +
-          '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
+          '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho Admin</span>' +
           '<button type="button" class="chat-panel-close" data-action="chat-toggle" aria-label="Đóng">' + CLOSE_X_SVG + '</button>' +
         '</div>' +
         '<div class="chat-panel-body" id="chatPanelBody"></div>' +
@@ -2068,8 +2068,7 @@
       closeChatColorPopover();
       body.innerHTML =
         '<div class="chat-guest">' +
-          '<p class="chat-guest-msg" id="chatGuestMsg">Đăng nhập để gửi tin nhắn cho <strong>' +
-            escapeHtml(_chatAdmin.name) + '</strong>.</p>' +
+          '<p class="chat-guest-msg" id="chatGuestMsg">Đăng nhập để gửi tin nhắn cho <strong>Admin</strong>.</p>' +
           '<button type="button" class="auth-btn auth-ghost auth-google" data-action="chat-google">' +
             GOOGLE_G_SVG + '<span>Đăng nhập bằng Google</span></button>' +
           '<button type="button" class="auth-btn" data-action="chat-signin">Đăng nhập/Đăng ký</button>' +
