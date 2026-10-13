@@ -572,8 +572,8 @@ body {
 
 .sidebar-footer p { margin: 0 0 .5rem; }
 .sidebar-footer p:last-child { margin-bottom: 0; }
-/* the privacy note ("Tên đơn vị … riêng tư") in white */
-.sidebar-footer > p:first-child { color: #fff; }
+/* the privacy note ("Tên đơn vị … riêng tư"): same colour as the links below */
+.sidebar-footer > p:first-child { color: var(--sidebar-text-dim); }
 
 .sidebar-footer .copyright {
   font-family: var(--font-ui);
