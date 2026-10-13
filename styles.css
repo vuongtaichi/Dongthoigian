@@ -2325,10 +2325,11 @@ body {
     padding: 0 0 0 .25rem;
     border: none;
     border-radius: 999px 0 0 999px;
-    /* a brighter blue than the other floating buttons (owner's ask) so it
-       stands out against the dark drawer, at 50% opacity so the drawer shows
-       through a little; the white chevron itself stays fully opaque */
-    background: rgba(61, 114, 219, .5);
+    /* bright sky blue (#6fa8ff) at 40% opacity (owner's ask) so it stands
+       out against the dark drawer while the drawer shows through; the white
+       chevron itself stays fully opaque. Hover/focus goes solid #3d72db
+       (solid sky blue would be too light for the white chevron). */
+    background: rgba(111, 168, 255, .4);
     color: var(--fab-fg);
     box-shadow: var(--fab-shadow);
     cursor: pointer;
