@@ -3016,30 +3016,7 @@
     // just above chapter 1, below the admin entries if any
     var first = toc.querySelector('.toc-item[data-index]');
     toc.insertBefore(li, first ? first.closest('li') : toc.firstChild);
-    syncSavedTocBg();
   }
-
-  // The pinned "Đã lưu" entry paints the sidebar's own gradient, sized to
-  // the sidebar and shifted by the entry's offset in it, so it lines up
-  // exactly with the sidebar behind it (styles.css: #tocSavedItem).
-  function syncSavedTocBg() {
-    var li = document.getElementById('tocSavedItem');
-    if (!li || !sidebarEl) return;
-    var sb = sidebarEl.getBoundingClientRect();
-    var r = li.getBoundingClientRect();
-    li.style.setProperty('--sb-w', sidebarEl.clientWidth + 'px');
-    li.style.setProperty('--sb-h', sidebarEl.clientHeight + 'px');
-    li.style.setProperty('--sb-x', (sb.left + sidebarEl.clientLeft - r.left) + 'px');
-    li.style.setProperty('--sb-y', (sb.top + sidebarEl.clientTop - r.top) + 'px');
-  }
-  var _savedBgRaf = 0;
-  function queueSavedTocBg() {
-    if (_savedBgRaf) return;
-    _savedBgRaf = requestAnimationFrame(function () { _savedBgRaf = 0; syncSavedTocBg(); });
-  }
-  if (tocEl) tocEl.addEventListener('scroll', queueSavedTocBg, { passive: true });
-  window.addEventListener('resize', queueSavedTocBg);
-  window.addEventListener('load', queueSavedTocBg);
 
   function renderSaved() {
     if (!authUser) return;
@@ -4222,7 +4199,6 @@
     // Open with the chapter being read in the middle of the list, not
     // wherever the list was last scrolled to.
     centerActiveTocItem();
-    queueSavedTocBg();
   }
   function closeDrawer() {
     if (window.innerWidth > 860) return;

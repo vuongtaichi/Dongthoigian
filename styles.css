@@ -44,7 +44,7 @@
   --border: #dce3f0;
 
   /* Sidebar: deep navy → indigo gradient (--sidebar-bg is its top colour,
-     --sidebar-bg-end is mixed 50/50 with it for the middle-to-bottom colour). */
+     mixed 80/20 with --sidebar-bg-end for the flat colour below the header). */
   --sidebar-bg: #0b1530;
   --sidebar-bg-end: #1b1d5c;
   --sidebar-bg-elevated: #17264a;
@@ -196,12 +196,10 @@ body {
 .sidebar {
   flex: 0 0 363px;
   width: 363px;
-  /* navy → indigo down to the middle, then that middle colour flat to the
-     bottom (even across the width), with a cyan glow top-left */
-  background:
-    radial-gradient(110% 40% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
-    linear-gradient(180deg, var(--sidebar-bg) 0%,
-      color-mix(in srgb, var(--sidebar-bg), var(--sidebar-bg-end)) 50%);
+  /* One flat colour from the header down (chapter list, pinned "Đã lưu"
+     entry, footer); the header fades into it from navy (.masthead). */
+  --sidebar-flat: color-mix(in srgb, var(--sidebar-bg) 80%, var(--sidebar-bg-end));
+  background: var(--sidebar-flat);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
   position: sticky;
@@ -217,8 +215,12 @@ body {
 .masthead {
   flex: 0 0 auto;
   padding: 1.25rem 1.75rem 1.5rem;
-  /* hairline divider that fades out at both ends */
-  background: linear-gradient(90deg, transparent, rgba(111, 168, 255, .28), transparent) bottom / 100% 1px no-repeat;
+  /* hairline divider that fades out at both ends, over a cyan glow top-left
+     and a navy → --sidebar-flat fade */
+  background:
+    linear-gradient(90deg, transparent, rgba(111, 168, 255, .28), transparent) bottom / 100% 1px no-repeat,
+    radial-gradient(110% 100% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
+    linear-gradient(180deg, var(--sidebar-bg), var(--sidebar-flat));
 }
 
 /* Logo + wordmark, side by side, above the chapter count. Sized so the
@@ -3642,16 +3644,9 @@ body {
      pull it up by that much so it sits flush against the header border */
   top: -.6rem;
   z-index: 2;
-  /* solid, so chapters scrolling underneath don't show through. It paints
-     the sidebar's own background (keep in sync with .sidebar), sized to the
-     sidebar and offset by app.js (syncSavedTocBg) so the two line up. */
-  background:
-    radial-gradient(110% 40% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
-    linear-gradient(180deg, var(--sidebar-bg) 0%,
-      color-mix(in srgb, var(--sidebar-bg), var(--sidebar-bg-end)) 50%);
-  background-repeat: no-repeat;
-  background-size: var(--sb-w, 100%) var(--sb-h, 100vh);
-  background-position: var(--sb-x, 0) var(--sb-y, 0);
+  /* solid, same flat colour as the sidebar below it, so chapters scrolling
+     underneath don't show through */
+  background: var(--sidebar-flat);
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
