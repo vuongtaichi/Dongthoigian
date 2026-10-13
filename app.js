@@ -672,7 +672,7 @@
   //  1. profiles.country — the 2-letter country of the reader's IP, read by
   //     /api/geo (Vercel's X-Vercel-IP-Country header) and saved by the reader's
   //     own browser after sign-in (syncMyCountry). Needs the `country` column
-  //     from supabase/country.sql; until it exists the query just fails quietly.
+  //     from comments-setup.sql; until it exists the query just fails quietly.
   //  2. the calling code of a phone sign-up (+61… → AU), as a fallback.
   // Every country's calling code ('VN84' = Việt Nam, +84), from Google's
   // libphonenumber. Ordered by code; where several countries share one (+1,
