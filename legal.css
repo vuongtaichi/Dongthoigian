@@ -103,6 +103,10 @@ body.pinned .toc { top: 5rem; }
 }
 .toc a span { color: var(--ink-faint); font-variant-numeric: tabular-nums; font-size: .8rem; }
 .toc a:hover { background: var(--soft); color: var(--ink); }
+/* the section being read (scroll-spy script at the bottom of each page) */
+.toc a.is-active { background: var(--soft); color: var(--accent); font-weight: 600; }
+.toc a.is-active span { color: var(--accent); }
+.toc a { transition: background .2s ease, color .2s ease; }
 
 main { display: flex; flex-direction: column; gap: 1rem; }
 .intro, .section {

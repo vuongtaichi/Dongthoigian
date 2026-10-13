@@ -136,5 +136,33 @@
       }).observe(h1);
     })();
   </script>
+  <script>
+    // Contents box: highlight the section being read (legal.css .toc a.is-active).
+    // A section counts once its top passes just under the floating bar and its
+    // stuck heading; at the very bottom the last section wins.
+    (function () {
+      var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+      var items = links.map(function (a) {
+        return { a: a, el: document.getElementById(a.getAttribute('href').slice(1)) };
+      }).filter(function (it) { return it.el; });
+      if (!items.length) return;
+      var current = null, queued = false;
+      function update() {
+        queued = false;
+        var line = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pin-h')) || 0) + 64;
+        var active = null;
+        items.forEach(function (it) { if (it.el.getBoundingClientRect().top <= line) active = it; });
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) active = items[items.length - 1];
+        if (active === current) return;
+        if (current) { current.a.classList.remove('is-active'); current.a.removeAttribute('aria-current'); }
+        if (active) { active.a.classList.add('is-active'); active.a.setAttribute('aria-current', 'true'); }
+        current = active;
+      }
+      function queue() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+      window.addEventListener('scroll', queue, { passive: true });
+      window.addEventListener('resize', queue);
+      update();
+    })();
+  </script>
 </body>
 </html>
