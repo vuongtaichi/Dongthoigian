@@ -3201,6 +3201,18 @@
     renderChapter(id, { push: false });
   });
   searchEl.addEventListener('input', applySearch);
+  // Google-style ✕ inside the search pill: shown only while there's text.
+  var searchClearEl = document.getElementById('searchClear');
+  if (searchClearEl) {
+    var syncSearchClear = function () { searchClearEl.hidden = !searchEl.value; };
+    searchEl.addEventListener('input', syncSearchClear);
+    searchClearEl.addEventListener('click', function () {
+      searchEl.value = '';
+      syncSearchClear();
+      applySearch();
+      searchEl.focus();
+    });
+  }
   readerEl.addEventListener('scroll', updateProgress);
   window.addEventListener('scroll', updateProgress, { passive: true });
   window.addEventListener('resize', updateProgress);
