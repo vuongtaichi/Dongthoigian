@@ -767,13 +767,16 @@ body {
   .sidebar {
     position: fixed;
     z-index: 40;
-    left: 0; top: 0; bottom: 0;
+    /* slides in from the right, next to the top-right "Mục lục" button */
+    right: 0; left: auto; top: 0; bottom: 0;
+    border-right: none;
+    border-left: 1px solid var(--sidebar-border);
     /* the base rule sets height:100vh, which on mobile is the *large* viewport
        (behind the URL bar) — that pushes the footer off-screen. Track the
        visible viewport instead so the footer stays pinned. */
     height: 100vh;
     height: 100dvh;
-    transform: translateX(-100%);
+    transform: translateX(100%);
     width: min(90vw, 411px);
     transition: transform .28s ease;
     box-shadow: var(--shadow);

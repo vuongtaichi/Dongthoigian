@@ -1,4 +1,4 @@
-/* build: 2027-title-bar
+/* build: 2027-drawer-right
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
