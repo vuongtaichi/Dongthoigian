@@ -125,6 +125,12 @@
       bar.querySelector('.pinbar-title').textContent = h1.textContent;
       bar.firstChild.appendChild(chips.cloneNode(true));
       document.body.appendChild(bar);
+      // section headings stick just below the bar (legal.css .section h2)
+      function syncPinH() {
+        document.documentElement.style.setProperty('--pin-h', bar.offsetHeight + 'px');
+      }
+      syncPinH();
+      window.addEventListener('resize', syncPinH);
       new IntersectionObserver(function (entries) {
         document.body.classList.toggle('pinned', !entries[0].isIntersecting);
       }).observe(h1);

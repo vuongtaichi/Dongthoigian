@@ -114,7 +114,13 @@ main { display: flex; flex-direction: column; gap: 1rem; }
 .section { scroll-margin-top: 6rem; }   /* clear of the floating .pinbar */
 .section h2 {
   display: flex; align-items: center; gap: .75rem;
-  font-family: var(--font-ui); font-size: 1.15rem; margin: 0 0 .7rem; color: var(--ink);
+  font-family: var(--font-ui); font-size: 1.15rem; color: var(--ink);
+  /* sticks just under the floating .pinbar (--pin-h, set by the page
+     script) while its section scrolls by; card-coloured and full-width
+     so the text underneath doesn't show through */
+  position: sticky; top: var(--pin-h, 0px); z-index: 2;
+  margin: -.4rem -1.7rem .3rem; padding: .4rem 1.7rem;
+  background: var(--card);
 }
 .num {
   flex: 0 0 auto; width: 2rem; height: 2rem; border-radius: 10px;
@@ -161,6 +167,7 @@ a:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
   .toc { position: static; padding: .8rem .5rem; }
   .toc ol { display: grid; grid-template-columns: 1fr 1fr; }
   .intro, .section { padding: 1.2rem 1.15rem; border-radius: 16px; }
+  .section h2 { margin: -.4rem -1.15rem .3rem; padding: .4rem 1.15rem; }
   .intro { font-size: 1.1rem; }
   footer { padding: 1.25rem 1rem 2rem; }
   .pinbar-inner { padding: .5rem 1rem; }
