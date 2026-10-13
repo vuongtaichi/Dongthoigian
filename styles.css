@@ -902,7 +902,7 @@ body {
     height: 100vh;
     height: 100dvh;
     transform: translateX(100%);
-    width: min(90vw, 411px);
+    width: min(82vw, 380px);
     transition: transform .28s ease;
     box-shadow: var(--shadow);
   }
