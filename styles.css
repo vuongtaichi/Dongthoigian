@@ -43,14 +43,17 @@
   --fab-shadow: 0 4px 14px rgba(15, 27, 51, .28);
   --border: #dce3f0;
 
-  --sidebar-bg: #0f1b33;
+  /* Sidebar: deep navy → indigo gradient (--sidebar-bg is its top colour,
+     --sidebar-bg-end the bottom one). */
+  --sidebar-bg: #0b1530;
+  --sidebar-bg-end: #1b1d5c;
   --sidebar-bg-elevated: #17264a;
   --sidebar-active-bg: #26406f;
-  --sidebar-text: #c7d2e8;
-  --sidebar-text-dim: #7c8aae;
+  --sidebar-text: #cdd7ee;
+  --sidebar-text-dim: #8592b8;
   --sidebar-active-text: #ffffff;
   --sidebar-accent: #6fa0e8;
-  --sidebar-border: #223256;
+  --sidebar-border: rgba(160, 180, 255, .12);
 
   --shadow: 0 8px 28px rgba(15, 27, 51, 0.10);
 
@@ -90,14 +93,15 @@
     --scroll-thumb-hover: rgba(138, 180, 255, .55);
     --border: #223151;
 
-    --sidebar-bg: #060b16;
+    --sidebar-bg: #050a18;
+    --sidebar-bg-end: #12123f;
     --sidebar-bg-elevated: #111d34;
     --sidebar-active-bg: #1d3157;
     --sidebar-text: #a9b7d6;
     --sidebar-text-dim: #5c6b8f;
     --sidebar-active-text: #ffffff;
     --sidebar-accent: #7fb0ff;
-    --sidebar-border: #16223c;
+    --sidebar-border: rgba(160, 180, 255, .1);
 
     --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   }
@@ -128,13 +132,14 @@
   --scroll-thumb-hover: rgba(138, 180, 255, .55);
   --border: #223151;
 
-  --sidebar-bg: #060b16;
+  --sidebar-bg: #050a18;
+  --sidebar-bg-end: #12123f;
   --sidebar-bg-elevated: #111d34;
   --sidebar-text: #a9b7d6;
   --sidebar-text-dim: #5c6b8f;
   --sidebar-active-text: #ffffff;
   --sidebar-accent: #7fb0ff;
-  --sidebar-border: #16223c;
+  --sidebar-border: rgba(160, 180, 255, .1);
 
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
@@ -191,10 +196,11 @@ body {
 .sidebar {
   flex: 0 0 363px;
   width: 363px;
-  /* a faint blue glow in the top-left corner over the flat navy */
+  /* navy → indigo, with a cyan glow top-left and a violet one bottom-right */
   background:
-    radial-gradient(120% 45% at 0% 0%, rgba(17, 132, 207, .16), transparent 70%),
-    var(--sidebar-bg);
+    radial-gradient(110% 40% at 0% 0%, rgba(17, 132, 207, .28), transparent 70%),
+    radial-gradient(90% 35% at 100% 100%, rgba(108, 92, 231, .30), transparent 70%),
+    linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-end) 100%);
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
   position: sticky;
@@ -569,23 +575,15 @@ body {
   transition: background .15s ease, box-shadow .15s ease;
 }
 
-.toc-item:hover { background: rgba(255, 255, 255, .05); }
+.toc-item:hover { background: rgba(255, 255, 255, .07); }
 .toc-item:focus-visible { outline: 2px solid #8ab4ff; outline-offset: -2px; }
 
 .toc-item.active {
-  background: linear-gradient(90deg, rgba(17, 132, 207, .3), rgba(67, 75, 215, .16));
-  box-shadow: inset 0 0 0 1px rgba(111, 168, 255, .22), 0 4px 14px rgba(0, 0, 0, .18);
+  /* solid pill in the site's blue gradient (same as the sign-in button) */
+  background: linear-gradient(100deg, #1184CF, #434BD7);
+  box-shadow: 0 6px 18px rgba(17, 132, 207, .35), inset 0 1px 0 rgba(255, 255, 255, .18);
 }
-.toc-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 22%;
-  bottom: 22%;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(180deg, #1184CF, #434BD7);
-}
+.toc-item.active:hover { background: linear-gradient(100deg, #1690dd, #4b53e0); }
 
 .toc-item.active .toc-title { color: var(--sidebar-active-text); font-weight: 600; }
 
@@ -3572,7 +3570,10 @@ body {
      pull it up by that much so it sits flush against the header border */
   top: -.6rem;
   z-index: 2;
-  background: var(--sidebar-bg);
+  /* frosted, so the sidebar gradient shows through as chapters slide under */
+  background: rgba(11, 21, 48, .55);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
