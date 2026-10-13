@@ -315,6 +315,22 @@
     return bar;
   }
 
+  // .is-truncated when the title doesn't fit (ends in "…"). On large screens
+  // the bar only opens the full-title card then (see the click handler).
+  function markChapterBarTruncated(bar) {
+    var t = bar.querySelector('.chapter-bar-title');
+    var cut = !!t && t.scrollWidth > t.clientWidth + 1;
+    bar.classList.toggle('is-truncated', cut);
+    var btn = bar.querySelector('.chapter-bar-inner');
+    var active = cut || window.innerWidth <= 860;
+    btn.title = active ? 'Xem tên chương đầy đủ' : '';
+    btn.tabIndex = active ? 0 : -1;
+  }
+  window.addEventListener('resize', function () {
+    var bar = document.getElementById('chapterBar');
+    if (bar && bar.classList.contains('show')) markChapterBarTruncated(bar);
+  });
+
   function toggleChapterBarPop(open) {
     var bar = document.getElementById('chapterBar');
     if (!bar) return;
@@ -331,7 +347,12 @@
   document.addEventListener('click', function (ev) {
     var bar = document.getElementById('chapterBar');
     if (!bar) return;
-    if (ev.target.closest && ev.target.closest('.chapter-bar-inner')) { toggleChapterBarPop(); return; }
+    if (ev.target.closest && ev.target.closest('.chapter-bar-inner')) {
+      // large screens: only when the bar actually cuts the title off
+      if (window.innerWidth > 860 && !bar.classList.contains('is-truncated')) return;
+      toggleChapterBarPop();
+      return;
+    }
     if (!(ev.target.closest && ev.target.closest('.chapter-bar-pop'))) toggleChapterBarPop(false);
   });
   document.addEventListener('keydown', function (ev) {
@@ -358,6 +379,7 @@
     var show = !!title && title.getBoundingClientRect().bottom < bar.offsetHeight;
     bar.classList.toggle('show', show);
     if (!show) toggleChapterBarPop(false);
+    else markChapterBarTruncated(bar);
     // lets CSS shrink the mobile "Mục lục" pill to just its icon meanwhile
     document.body.classList.toggle('chapter-bar-on', show);
   }
