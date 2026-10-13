@@ -3239,15 +3239,6 @@
     btn.addEventListener('click', function () { closeDrawer(); toggleEl.focus(); });
     sidebarEl.appendChild(btn);
   })();
-
-  // Mobile: the footer's privacy note is clamped to one line (styles.css)
-  // to leave room for the chapter list; tapping it expands / collapses it.
-  (function () {
-    var note = sidebarEl.querySelector('.sidebar-footer > p:first-child');
-    if (!note) return;
-    note.classList.add('sidebar-note');
-    note.addEventListener('click', function () { note.classList.toggle('is-open'); });
-  })();
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape' && sidebarEl.classList.contains('open')) closeDrawer();
   });

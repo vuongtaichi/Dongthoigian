@@ -955,8 +955,8 @@ body {
   .search-input { height: 2.4rem; font-size: .95rem; }
   .toc { padding: .35rem 0; }
 
-  /* footer: privacy note clamped to one line (tap to expand — app.js),
-     then links on the left and © + visitor pill on the right */
+  /* footer: the full privacy note, then links on the left and © + visitor
+     pill on the right */
   .sidebar-footer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -967,16 +967,7 @@ body {
     line-height: 1.45;
   }
   .sidebar-footer p { margin: 0; }
-  .sidebar-note {
-    grid-column: 1 / -1;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-    overflow: hidden;
-    color: var(--sidebar-text-dim);
-    cursor: pointer;
-  }
-  .sidebar-note.is-open { display: block; color: var(--sidebar-text); }
+  .sidebar-footer > p:first-child { grid-column: 1 / -1; color: var(--sidebar-text-dim); }
   .sidebar-footer-links { font-size: .78rem; gap: .35rem; }
   .sidebar-footer .copyright { white-space: nowrap; font-size: .78rem; }
   .sidebar-footer .visit-count { margin-left: .3rem; padding: .05rem .45rem; font-size: .72rem; }
@@ -2898,15 +2889,16 @@ body {
     width: 2.25rem;
     height: 4.75rem;
     padding: 0 0 0 .2rem;
-    /* frosted-glass tab: the .auth-btn blue gradient at ~50% over a blur
-       of the rows behind it, a hairline light edge and an inner highlight.
-       Hover/focus turns the gradient solid and nudges the chevron. */
+    /* glass tab: the .auth-btn blue gradient at ~60% over a light blur, so
+       the rows behind it stay partly readable; a hairline light edge and an
+       inner highlight. Hover/focus turns the gradient solid and nudges the
+       chevron. */
     border: 1px solid rgba(255, 255, 255, .22);
     border-right: none;
     border-radius: 18px 0 0 18px;
-    background: linear-gradient(180deg, rgba(17, 132, 207, .5), rgba(67, 75, 215, .5));
-    -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+    background: linear-gradient(180deg, rgba(17, 132, 207, .6), rgba(67, 75, 215, .6));
+    -webkit-backdrop-filter: blur(1.5px);
+            backdrop-filter: blur(1.5px);
     color: var(--fab-fg);
     box-shadow: -4px 0 18px rgba(0, 0, 0, .3), inset 1px 1px 0 rgba(255, 255, 255, .18);
     cursor: pointer;
