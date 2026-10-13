@@ -1005,7 +1005,7 @@ body {
   gap: .9rem;
   min-width: 0;
   padding: .9rem 1rem;
-  background: var(--note-bg);
+  background: var(--card);
   border: 1px solid var(--note-border);
   border-radius: 14px;
   box-shadow: var(--note-shadow);
