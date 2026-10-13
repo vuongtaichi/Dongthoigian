@@ -748,7 +748,7 @@ body {
     gap: .6rem;
     position: fixed;
     top: 1rem;
-    left: 1rem;
+    right: 1rem;   /* top-right on mobile (was top-left) */
     z-index: 30;
     background: var(--sidebar-bg);
     color: var(--sidebar-active-text);
@@ -2226,4 +2226,72 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .float-nav-btn { transition: none; }
+}
+
+/* ---- Floating chapter title bar (shown once the real title scrolls off) ----
+   Fixed across the top of the reader (right of the sidebar on desktop),
+   under the 3px progress bar; text lines up with the 596px text column. */
+.chapter-bar {
+  position: fixed;
+  top: 0;
+  left: 363px;
+  right: 0;
+  z-index: 22;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(15, 27, 51, .06);
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition: transform .2s ease, visibility 0s linear .2s;
+  pointer-events: none;
+}
+.chapter-bar.show {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform .2s ease, visibility 0s;
+}
+.chapter-bar-inner {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: .8rem 2rem;
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+.chapter-bar-kicker {
+  flex: 0 0 auto;
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.chapter-bar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .chapter-bar { left: 0; }
+  /* 4.25rem tall so the text is vertically centred on the "Mục lục" pill
+     (top:1rem, ~2.3rem high), with room kept on the right for it. */
+  .chapter-bar-inner {
+    max-width: none;
+    min-height: 4.25rem;
+    align-items: center;
+    padding: 0 8.25rem 0 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-bar, .chapter-bar.show { transition: none; }
 }

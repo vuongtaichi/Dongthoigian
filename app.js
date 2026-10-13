@@ -1,4 +1,4 @@
-/* build: 2027-float-nav
+/* build: 2027-title-bar
    ==========================================================================
    Nhật Ký Lính Thông Tin — app logic
    Reads the `chapters` array from data.js, builds the sidebar table of
@@ -155,6 +155,7 @@
     }
     var pct = max > 0 ? (top / max) * 100 : 0;
     progressFillEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
+    updateChapterBar();
   }
 
   // Jumps to the top of whichever container is actually scrolling (same
@@ -221,6 +222,43 @@
     nb.title = next ? 'Chương ' + String(idx + 2).padStart(2, '0') + ': ' + next.title : '';
   }
 
+  // ---- floating chapter title: slim bar at the top while scrolling ---------
+  //
+  // Once the chapter's own big title scrolls off the top, a slim bar slides
+  // in with "Chương NN · title"; it hides again when the real title is back
+  // in view. Driven from updateProgress (already wired to both the reader's
+  // and the window's scroll), hidden on the admin pages. Built from JS like
+  // the float nav, so the Artifact build needs no template change.
+  function ensureChapterBar() {
+    var bar = document.getElementById('chapterBar');
+    if (bar) return bar;
+    bar = document.createElement('div');
+    bar.id = 'chapterBar';
+    bar.className = 'chapter-bar';
+    bar.setAttribute('aria-hidden', 'true');   // the real <h2> is the heading
+    bar.innerHTML = '<div class="chapter-bar-inner">' +
+      '<span class="chapter-bar-kicker"></span><span class="chapter-bar-title"></span></div>';
+    (document.querySelector('.app') || document.body).appendChild(bar);
+    return bar;
+  }
+
+  function setChapterBar(idx) {
+    var bar = ensureChapterBar();
+    bar.classList.remove('show');
+    bar.hidden = idx < 0;
+    if (idx < 0) return;
+    bar.querySelector('.chapter-bar-kicker').textContent = 'Chương ' + String(idx + 1).padStart(2, '0');
+    bar.querySelector('.chapter-bar-title').textContent = chapters[idx].title;
+  }
+
+  function updateChapterBar() {
+    var bar = document.getElementById('chapterBar');
+    if (!bar || bar.hidden) return;
+    var title = readerEl.querySelector('.chapter-title');
+    var show = !!title && title.getBoundingClientRect().bottom < bar.offsetHeight;
+    bar.classList.toggle('show', show);
+  }
+
   function renderChapter(id, opts) {
     var push = !!(opts && opts.push);
     // A throwaway placeholder render (chapter 1 shown while the restored
@@ -276,6 +314,7 @@
     readerEl.innerHTML = html;
     readerEl.setAttribute('data-chapter-id', ch.id);
     updateFloatNav(idx);
+    setChapterBar(idx);
     scrollReaderToTop();
     updateProgress();
 
@@ -2113,6 +2152,7 @@
     if (!authUser || !authUser.isAdmin) return;
     readerEl.removeAttribute('data-chapter-id');
     updateFloatNav(-1);
+    setChapterBar(-1);
     readerEl.innerHTML =
       '<article class="chapter admin-inbox">' +
         '<p class="chapter-kicker">Quản trị</p>' +
@@ -2254,6 +2294,7 @@
     _adminUsers = [];
     readerEl.removeAttribute('data-chapter-id');
     updateFloatNav(-1);
+    setChapterBar(-1);
     readerEl.innerHTML =
       '<article class="chapter admin-users">' +
         '<p class="chapter-kicker">Quản trị</p>' +
