@@ -769,7 +769,7 @@ body {
   align-items: center;
   gap: .15rem;
   padding: .2rem;
-  background: var(--note-bg);
+  background: var(--card);
   border: 1px solid var(--note-border);
   border-radius: 999px;
   box-shadow: var(--note-shadow);
@@ -3613,7 +3613,7 @@ body {
   gap: .4rem;
   height: 2.55rem;
   padding: 0 .95rem 0 .8rem;
-  background: var(--note-bg);
+  background: var(--card);
   border: 1px solid var(--note-border);
   border-radius: 999px;
   box-shadow: var(--note-shadow);
