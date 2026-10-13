@@ -3166,13 +3166,16 @@ body {
    (opaque background so chapters slide underneath it). */
 #tocSavedItem {
   position: sticky;
-  top: 0;
+  /* sticky stops at the list's top padding (.toc: .6rem, .4rem on mobile);
+     pull it up by that much so it sits flush against the header border */
+  top: -.6rem;
   z-index: 2;
   background: var(--sidebar-bg);
   border-bottom: 1px solid var(--sidebar-border);
   padding-bottom: .35rem;
   margin-bottom: .35rem;
 }
+@media (max-width: 860px) { #tocSavedItem { top: -.4rem; } }
 
 /* the "Đã lưu" page */
 .saved-page { font-family: var(--font-ui); }
