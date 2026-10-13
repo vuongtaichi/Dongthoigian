@@ -3969,3 +3969,41 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .to-top { transition: none; }
 }
+
+/* ---------- Close buttons on popups: white × in a red circle ----------
+   Sign-in, profile, chat panel and the sign-in reminder all share this look;
+   each keeps its own position/size rules above. */
+.signin-modal-close,
+.profile-modal-close,
+.chat-panel-close,
+.reminder-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #e5484d;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(229, 72, 77, .35);
+  transition: background .15s ease, transform .15s ease;
+}
+.signin-modal-close:hover,
+.profile-modal-close:hover,
+.chat-panel-close:hover,
+.reminder-x:hover {
+  background: #d13438;
+  color: #fff;
+  transform: scale(1.06);
+}
+.signin-modal-close:focus-visible,
+.profile-modal-close:focus-visible,
+.chat-panel-close:focus-visible,
+.reminder-x:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.signin-modal-close svg,
+.profile-modal-close svg,
+.chat-panel-close svg,
+.reminder-x svg { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .signin-modal-close, .profile-modal-close, .chat-panel-close, .reminder-x { transition: none; }
+}

@@ -291,6 +291,11 @@
     nb.title = next ? 'Chương ' + String(idx + 2).padStart(2, '0') + ': ' + next.title : '';
   }
 
+  // White "×" drawn as two strokes, for the red round close buttons on every
+  // popup (sign-in, profile, chat panel, sign-in reminder).
+  var CLOSE_X_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ' +
+    'stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
   // ---- floating chapter title: slim bar at the top while scrolling ---------
   //
   // Once the chapter's own big title scrolls off the top, a slim bar slides
@@ -1400,7 +1405,7 @@
     m.innerHTML =
       '<div class="profile-modal-backdrop" data-action="profile-cancel"></div>' +
       '<div class="profile-modal-card" role="dialog" aria-modal="true" aria-label="Hồ sơ của bạn">' +
-        '<button type="button" class="profile-modal-close" data-action="profile-cancel" aria-label="Đóng" title="Đóng">&times;</button>' +
+        '<button type="button" class="profile-modal-close" data-action="profile-cancel" aria-label="Đóng" title="Đóng">' + CLOSE_X_SVG + '</button>' +
         '<h3 class="profile-modal-title">Hồ sơ của bạn</h3>' +
         '<div class="profile-avatar-preview" id="profileAvatarPreview"></div>' +
         '<label class="profile-field"><span>Tên hiển thị</span>' +
@@ -1571,7 +1576,7 @@
             '<span class="chat-color-popover" id="chatColorPopover" hidden></span>' +
           '</span>' +
           '<span class="chat-panel-title" id="chatPanelTitle">Nhắn tin cho ' + escapeHtml(_chatAdmin.name) + '</span>' +
-          '<button type="button" class="chat-panel-close" data-action="chat-toggle" aria-label="Đóng">&times;</button>' +
+          '<button type="button" class="chat-panel-close" data-action="chat-toggle" aria-label="Đóng">' + CLOSE_X_SVG + '</button>' +
         '</div>' +
         '<div class="chat-panel-body" id="chatPanelBody"></div>' +
       '</div>';
@@ -2847,7 +2852,7 @@
       m.innerHTML =
         '<div class="reminder-backdrop" data-action="reminder-close"></div>' +
         '<div class="reminder-card" role="alertdialog" aria-modal="true" aria-labelledby="reminderTitle" aria-describedby="reminderText">' +
-          '<button type="button" class="reminder-x" data-action="reminder-close" aria-label="Đóng">&times;</button>' +
+          '<button type="button" class="reminder-x" data-action="reminder-close" aria-label="Đóng">' + CLOSE_X_SVG + '</button>' +
           '<span class="reminder-icon" aria-hidden="true">' + BOOKMARK_SVG + '</span>' +
           '<h3 class="reminder-title" id="reminderTitle">Cần đăng nhập</h3>' +
           '<p class="reminder-text" id="reminderText"></p>' +
@@ -3144,7 +3149,7 @@
     m.innerHTML =
       '<div class="signin-modal-backdrop" data-action="signin-close"></div>' +
       '<div class="signin-modal-card" role="dialog" aria-modal="true" aria-label="Đăng nhập / Đăng ký">' +
-        '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">&times;</button>' +
+        '<button type="button" class="signin-modal-close" data-action="signin-close" aria-label="Đóng">' + CLOSE_X_SVG + '</button>' +
         '<div class="signin-hero">' +
           '<img class="signin-logo" src="assets/logo_v2.svg" alt="" />' +
           '<h3 class="signin-modal-title" id="signinTitle">Xin chào</h3>' +
