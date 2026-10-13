@@ -154,7 +154,7 @@ a:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
 }
 code { font-family: inherit; font-size: .9em; padding: .05rem .35rem; border-radius: 6px; background: var(--soft); }
 
-/* "Mục lục": a glass tab on the middle of the right edge (same look as the
+/* "Trở về": a glass tab on the middle of the right edge (same look as the
    main site's back tab) that opens the site with the chapter list showing
    (/?menu — see app.js). It slides out to show its label on hover /
    keyboard focus, and slides in from the edge when the page loads. */
