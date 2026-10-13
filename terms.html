@@ -15,10 +15,23 @@
       --ink-faint: #7a869e;
       --accent: #2951a3;
       --border: #dce3f0;
+      --note-border: #dde3f7;
+      --soft: #e8edf9;
+      --shadow: 0 0 20px rgba(41, 81, 163, .10);
+      --grad: linear-gradient(1deg, #434BD7, #1184CF 99%);
       --font-body: 'Times New Roman', Georgia, 'Iowan Old Style', serif;
       --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #0b1220; --card: #101a2c; --ink: #e4e9f5; --ink-soft: #a3aecb;
+        --ink-faint: #7482a3; --accent: #8ab4ff; --border: #223151; --note-border: #223151;
+        --soft: #16223c; --shadow: 0 8px 28px rgba(0, 0, 0, .35);
+      }
+    }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     body {
       margin: 0;
       background: var(--paper);
@@ -27,94 +40,228 @@
       font-size: 1.15rem;
       line-height: 1.75;
     }
-    .wrap { max-width: 46rem; margin: 0 auto; padding: 3.5rem 1.5rem 6rem; }
-    header {
-      display: flex; align-items: center; gap: .7rem;
-      margin-bottom: 2rem; font-family: var(--font-ui);
-    }
-    header img { width: 2.5rem; height: 2.5rem; flex: 0 0 auto; }
-    header a { color: var(--accent); text-decoration: none; font-size: 1rem; }
-    header a:hover { text-decoration: underline; }
-    h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 .4rem; }
-    h2 { font-family: var(--font-ui); font-size: 1.2rem; margin: 2.4rem 0 .6rem; color: var(--accent); }
-    p, li { margin: .6rem 0; }
-    ul { padding-left: 1.4rem; }
-    .meta { color: var(--ink-faint); font-family: var(--font-ui); font-size: .95rem; margin-top: 0; }
     a { color: var(--accent); }
-    footer {
-      margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
-      font-family: var(--font-ui); font-size: .95rem; color: var(--ink-faint);
+
+    /* ---- hero ---- */
+    .hero {
+      background:
+        radial-gradient(90% 120% at 0% 0%, rgba(17, 132, 207, .35), transparent 60%),
+        linear-gradient(135deg, #0f1b33, #17264a);
+      color: #fff;
+      font-family: var(--font-ui);
     }
-    footer a { color: var(--accent); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    .hero-inner { max-width: 64rem; margin: 0 auto; padding: 1.4rem 1.5rem 3.2rem; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { display: flex; align-items: center; gap: .6rem; color: #fff; text-decoration: none; font-weight: 600; }
+    .brand img { width: 2.3rem; height: 2.3rem; border-radius: 50%; }
+    .back {
+      flex: 0 0 auto;
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .45rem .95rem; border-radius: 999px;
+      background: rgba(255, 255, 255, .12); color: #fff; text-decoration: none; font-size: .92rem;
+      border: 1px solid rgba(255, 255, 255, .18);
+      transition: background .15s ease;
+    }
+    .back:hover { background: rgba(255, 255, 255, .22); }
+    .kicker { margin: 2.6rem 0 .5rem; font-size: .85rem; letter-spacing: .14em; text-transform: uppercase; color: #8ab4ff; font-weight: 600; }
+    h1 { font-family: var(--font-body); font-size: clamp(2rem, 4.5vw, 2.9rem); line-height: 1.15; margin: 0; font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; }
+    .chip {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .3rem .8rem; border-radius: 999px;
+      background: rgba(255, 255, 255, .10); color: #d6e2fb; font-size: .85rem;
+    }
+    .chip svg { width: 1em; height: 1em; }
+
+    /* ---- body: sticky contents + sections ---- */
+    .layout {
+      max-width: 64rem; margin: -1.6rem auto 0; padding: 0 1.5rem 5rem;
+      display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem; align-items: start;
+    }
+    .toc {
+      position: sticky; top: 1.5rem;
+      background: var(--card); border: 1px solid var(--note-border); border-radius: 16px;
+      box-shadow: var(--shadow); padding: 1rem .6rem; font-family: var(--font-ui);
+    }
+    .toc-title { margin: 0 .6rem .5rem; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; }
+    .toc ol { list-style: none; margin: 0; padding: 0; }
+    .toc a {
+      display: flex; gap: .6rem; align-items: baseline;
+      padding: .4rem .6rem; border-radius: 10px;
+      color: var(--ink-soft); text-decoration: none; font-size: .92rem; line-height: 1.4;
+    }
+    .toc a span { color: var(--ink-faint); font-variant-numeric: tabular-nums; font-size: .8rem; }
+    .toc a:hover { background: var(--soft); color: var(--ink); }
+
+    main { display: flex; flex-direction: column; gap: 1rem; }
+    .intro, .section {
+      background: var(--card); border: 1px solid var(--note-border); border-radius: 18px;
+      box-shadow: var(--shadow); padding: 1.5rem 1.7rem;
+    }
+    .intro { font-size: 1.2rem; }
+    .intro p { margin: 0; }
+    .section { scroll-margin-top: 1.5rem; }
+    .section h2 {
+      display: flex; align-items: center; gap: .75rem;
+      font-family: var(--font-ui); font-size: 1.15rem; margin: 0 0 .7rem; color: var(--ink);
+    }
+    .num {
+      flex: 0 0 auto; width: 2rem; height: 2rem; border-radius: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--grad); color: #fff; font-size: .9rem; font-weight: 700;
+    }
+    .section p { margin: .6rem 0; }
+    .section p:last-child { margin-bottom: 0; }
+    .rules { list-style: none; padding: 0; margin: .8rem 0; display: flex; flex-direction: column; gap: .5rem; }
+    .rules li {
+      position: relative; margin: 0; padding: .6rem .9rem .6rem 2.4rem;
+      background: var(--soft); border-radius: 12px;
+    }
+    .rules li::before {
+      content: ''; position: absolute; left: .9rem; top: 1.15em;
+      width: .7rem; height: 2px; border-radius: 2px; background: #e5484d;
+      box-shadow: 0 0 0 0 transparent;
+    }
+    .contact-btn {
+      display: inline-flex; align-items: center; gap: .5rem; margin-top: .4rem;
+      padding: .6rem 1.1rem; border-radius: 999px;
+      background: var(--grad); color: #fff; text-decoration: none;
+      font-family: var(--font-ui); font-size: .95rem; font-weight: 600;
+    }
+    .contact-btn:hover { filter: brightness(1.08); }
+    .contact-btn svg { width: 1.1em; height: 1.1em; }
+
+    footer {
+      max-width: 64rem; margin: 0 auto; padding: 1.5rem 1.5rem 2.5rem;
+      border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: .6rem;
+      font-family: var(--font-ui); font-size: .9rem; color: var(--ink-faint);
+    }
+    footer nav { display: flex; gap: 1rem; }
+    footer a { color: var(--ink-soft); text-decoration: none; }
+    footer a:hover { color: var(--accent); text-decoration: underline; }
+    a:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+
+    @media (max-width: 860px) {
+      body { font-size: 1.08rem; }
+      .hero-inner { padding: 1rem 1rem 2.6rem; }
+      .kicker { margin-top: 2rem; }
+      .layout { grid-template-columns: 1fr; gap: 1rem; padding: 0 1rem 3.5rem; }
+      .toc { position: static; padding: .8rem .5rem; }
+      .toc ol { display: grid; grid-template-columns: 1fr 1fr; }
+      .intro, .section { padding: 1.2rem 1.15rem; border-radius: 16px; }
+      .intro { font-size: 1.1rem; }
+      footer { padding: 1.25rem 1rem 2rem; }
+    }
+    @media (max-width: 560px) {
+      .brand { font-size: .95rem; white-space: nowrap; }
+      .brand img { width: 2rem; height: 2rem; }
+      .back { white-space: nowrap; padding: .4rem .75rem; }
+      .back span { display: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <img src="assets/logo_v2.svg" alt="" />
-      <a href="/">&larr; Về trang chính</a>
-    </header>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="topbar">
+        <a class="brand" href="/"><img src="assets/logo_v2.svg" alt="" />Nhật Ký Lính Thông Tin</a>
+        <a class="back" href="/" aria-label="Về trang chính">&larr;<span> Về trang chính</span></a>
+      </div>
+      <p class="kicker">Pháp lý</p>
+      <h1>Điều khoản sử dụng</h1>
+      <div class="chips">
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>dongthoigian27.vercel.app</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Cập nhật lần cuối: 6 tháng 9, 2026</span>
+      </div>
+    </div>
+  </header>
 
-    <h1>Điều khoản sử dụng</h1>
-    <p class="meta">Trang <strong>Nhật Ký Lính Thông Tin</strong> (dongthoigian27.vercel.app)<br />
-      Cập nhật lần cuối: 6 tháng 9, 2026</p>
+  <div class="layout">
+    <nav class="toc" aria-label="Mục lục">
+      <p class="toc-title">Nội dung</p>
+      <ol>
+        <li><a href="#noi-dung"><span>01</span>Nội dung</a></li>
+        <li><a href="#tai-khoan"><span>02</span>Tài khoản</a></li>
+        <li><a href="#ung-xu"><span>03</span>Quy tắc ứng xử</a></li>
+        <li><a href="#mien-tru"><span>04</span>Miễn trừ trách nhiệm</a></li>
+        <li><a href="#thay-doi"><span>05</span>Thay đổi</a></li>
+        <li><a href="#lien-he"><span>06</span>Liên hệ</a></li>
+      </ol>
+    </nav>
 
-    <p>
-      Bằng việc truy cập trang này, bạn đồng ý với các điều khoản dưới đây. Nếu
-      không đồng ý, xin vui lòng không sử dụng trang.
-    </p>
+    <main>
+      <div class="intro">
+        <p>
+          Bằng việc truy cập trang <strong>Nhật Ký Lính Thông Tin</strong>, bạn đồng ý
+          với các điều khoản dưới đây. Nếu không đồng ý, xin vui lòng không sử dụng trang.
+        </p>
+      </div>
 
-    <h2>1. Nội dung</h2>
-    <p>
-      Trang đăng một cuốn nhật ký cá nhân. Tên đơn vị và các nhân vật xuất hiện
-      trong nhật ký đều đã được thay đổi để đảm bảo sự riêng tư. Nội dung được
-      cung cấp "nguyên trạng" cho mục đích đọc cá nhân, phi thương mại. Vui lòng
-      không sao chép hay đăng lại toàn bộ nội dung ở nơi khác khi chưa được phép.
-    </p>
+      <section class="section" id="noi-dung">
+        <h2><span class="num">1</span>Nội dung</h2>
+        <p>
+          Trang đăng một cuốn nhật ký cá nhân. Tên đơn vị và các nhân vật xuất hiện
+          trong nhật ký đều đã được thay đổi để đảm bảo sự riêng tư. Nội dung được
+          cung cấp "nguyên trạng" cho mục đích đọc cá nhân, phi thương mại. Vui lòng
+          không sao chép hay đăng lại toàn bộ nội dung ở nơi khác khi chưa được phép.
+        </p>
+      </section>
 
-    <h2>2. Tài khoản</h2>
-    <p>
-      Bạn có thể đọc toàn bộ nội dung mà không cần tài khoản. Tài khoản chỉ cần
-      khi bạn muốn bình luận, bày tỏ cảm xúc hoặc nhắn tin. Bạn chịu trách nhiệm
-      giữ an toàn cho thông tin đăng nhập của mình.
-    </p>
+      <section class="section" id="tai-khoan">
+        <h2><span class="num">2</span>Tài khoản</h2>
+        <p>
+          Bạn có thể đọc toàn bộ nội dung mà không cần tài khoản. Tài khoản chỉ cần
+          khi bạn muốn bình luận, bày tỏ cảm xúc hoặc nhắn tin. Bạn chịu trách nhiệm
+          giữ an toàn cho thông tin đăng nhập của mình.
+        </p>
+      </section>
 
-    <h2>3. Quy tắc ứng xử</h2>
-    <p>Khi bình luận hoặc nhắn tin, bạn đồng ý không:</p>
-    <ul>
-      <li>Đăng nội dung bất hợp pháp, quấy rối, thù ghét, spam hoặc lừa đảo;</li>
-      <li>Mạo danh người khác hoặc dùng tên hiển thị chứa "admin" / "quản trị";</li>
-      <li>Tải lên tệp có mã độc hoặc vi phạm bản quyền của người khác.</li>
-    </ul>
-    <p>
-      Người quản trị có quyền ẩn hoặc xoá bình luận, và khoá tài khoản vi phạm,
-      mà không cần báo trước.
-    </p>
+      <section class="section" id="ung-xu">
+        <h2><span class="num">3</span>Quy tắc ứng xử</h2>
+        <p>Khi bình luận hoặc nhắn tin, bạn đồng ý không:</p>
+        <ul class="rules">
+          <li>Đăng nội dung bất hợp pháp, quấy rối, thù ghét, spam hoặc lừa đảo;</li>
+          <li>Mạo danh người khác hoặc dùng tên hiển thị chứa "admin" / "quản trị";</li>
+          <li>Tải lên tệp có mã độc hoặc vi phạm bản quyền của người khác.</li>
+        </ul>
+        <p>
+          Người quản trị có quyền ẩn hoặc xoá bình luận, và khoá tài khoản vi phạm,
+          mà không cần báo trước.
+        </p>
+      </section>
 
-    <h2>4. Miễn trừ trách nhiệm</h2>
-    <p>
-      Trang được cung cấp "nguyên trạng", không có bảo đảm nào về tính sẵn sàng
-      hay không lỗi. Người vận hành không chịu trách nhiệm cho thiệt hại phát sinh
-      từ việc sử dụng trang, trong phạm vi pháp luật cho phép.
-    </p>
+      <section class="section" id="mien-tru">
+        <h2><span class="num">4</span>Miễn trừ trách nhiệm</h2>
+        <p>
+          Trang được cung cấp "nguyên trạng", không có bảo đảm nào về tính sẵn sàng
+          hay không lỗi. Người vận hành không chịu trách nhiệm cho thiệt hại phát sinh
+          từ việc sử dụng trang, trong phạm vi pháp luật cho phép.
+        </p>
+      </section>
 
-    <h2>5. Thay đổi</h2>
-    <p>
-      Các điều khoản này có thể được cập nhật; ngày "Cập nhật lần cuối" ở đầu
-      trang sẽ phản ánh thay đổi.
-    </p>
+      <section class="section" id="thay-doi">
+        <h2><span class="num">5</span>Thay đổi</h2>
+        <p>
+          Các điều khoản này có thể được cập nhật; ngày "Cập nhật lần cuối" ở đầu
+          trang sẽ phản ánh thay đổi.
+        </p>
+      </section>
 
-    <h2>6. Liên hệ</h2>
-    <p>
-      Mọi câu hỏi xin gửi tới
-      <a href="mailto:vuongtaichi@gmail.com">vuongtaichi@gmail.com</a>.
-    </p>
-
-    <footer>
-      <a href="/">Trang chính</a> &nbsp;·&nbsp;
-      <a href="/privacy.html">Chính sách quyền riêng tư</a>
-    </footer>
+      <section class="section" id="lien-he">
+        <h2><span class="num">6</span>Liên hệ</h2>
+        <p>Mọi câu hỏi xin gửi tới:</p>
+        <a class="contact-btn" href="mailto:vuongtaichi@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>vuongtaichi@gmail.com</a>
+      </section>
+    </main>
   </div>
+
+  <footer>
+    <span>&copy; 2027 Nhật Ký Lính Thông Tin</span>
+    <nav>
+      <a href="/">Trang chính</a>
+      <a href="/privacy.html">Chính sách quyền riêng tư</a>
+    </nav>
+  </footer>
 </body>
 </html>
