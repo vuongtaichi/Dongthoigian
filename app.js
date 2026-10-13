@@ -541,22 +541,35 @@
       .replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // Avatar colour palette for the initials circle. A mix of mid-tone and
-  // light/pastel colours; the stored `avatar_hue` is an INDEX into this list
-  // (0..N-1). Light entries (l >= 62) get dark text.
+  // Avatar + chat bubble colours: vivid two-tone gradients (Messenger-style)
+  // followed by a few bright pastel ones. The stored `avatar_hue` /
+  // `bubble_hue` is an INDEX into this list (0..N-1), so keep the length and
+  // only swap entries in place. `fg` is the text colour that reads on it.
+  function grad(a, b) { return 'linear-gradient(135deg, ' + a + ', ' + b + ')'; }
   var AVATAR_PALETTE = [
-    { h: 8,   l: 46 }, { h: 28,  l: 46 }, { h: 145, l: 40 }, { h: 200, l: 44 },
-    { h: 235, l: 50 }, { h: 280, l: 46 }, { h: 330, l: 46 }, { h: 95,  l: 40 },
-    { h: 8,   l: 80 }, { h: 38,  l: 78 }, { h: 95,  l: 76 }, { h: 150, l: 76 },
-    { h: 195, l: 78 }, { h: 250, l: 82 }, { h: 300, l: 80 }, { h: 340, l: 82 }
+    { bg: grad('#2563eb', '#0891b2'), fg: '#fff' },  // ocean
+    { bg: grad('#7c3aed', '#db2777'), fg: '#fff' },  // violet → pink
+    { bg: grad('#e11d48', '#ea580c'), fg: '#fff' },  // sunset
+    { bg: grad('#047857', '#0d9488'), fg: '#fff' },  // emerald
+    { bg: grad('#4f46e5', '#9333ea'), fg: '#fff' },  // indigo
+    { bg: grad('#be185d', '#7c3aed'), fg: '#fff' },  // berry
+    { bg: grad('#0369a1', '#4f46e5'), fg: '#fff' },  // aurora
+    { bg: grad('#1e293b', '#475569'), fg: '#fff' },  // midnight
+    { bg: grad('#c2410c', '#be123c'), fg: '#fff' },  // ember
+    { bg: grad('#0f766e', '#2563eb'), fg: '#fff' },  // lagoon
+    { bg: grad('#a21caf', '#e11d48'), fg: '#fff' },  // magenta
+    { bg: grad('#a3e635', '#facc15'), fg: '#1b2436' },  // lime → lemon
+    { bg: grad('#fdba74', '#fda4af'), fg: '#1b2436' },  // peach
+    { bg: grad('#6ee7b7', '#67e8f9'), fg: '#1b2436' },  // mint
+    { bg: grad('#c4b5fd', '#f9a8d4'), fg: '#1b2436' },  // lavender
+    { bg: grad('#fde68a', '#fca5a5'), fg: '#1b2436' }   // apricot
   ];
 
   // Shared by avatarVars (avatar initials circle) and chat bubble colors —
   // both are just "a color from this palette, by index".
   function paletteColor(idx) {
     var n = AVATAR_PALETTE.length;
-    var c = AVATAR_PALETTE[((idx % n) + n) % n];
-    return { bg: 'hsl(' + c.h + ' 58% ' + c.l + '%)', fg: c.l >= 62 ? '#1b2436' : '#fff' };
+    return AVATAR_PALETTE[((idx % n) + n) % n];
   }
 
   function avatarVars(idx) {
