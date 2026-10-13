@@ -22,8 +22,12 @@
   --accent: #2951a3;
   --accent-strong: #1c3b7a;
   --accent-soft-bg: #e8edf9;
-  /* "Ghi chú" note box at the end of a chapter: light-blue gradient */
-  --note-bg: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 55%, #ecfeff 100%);
+  /* "Ghi chú" note box at the end of a chapter: a near-white card with a
+     faint indigo tint, thin border and soft shadow (see .note) */
+  --note-bg: linear-gradient(135deg, #ffffff 0%, #f3f5ff 100%);
+  --note-border: #dde3f7;
+  --note-shadow: 0 6px 20px rgba(41, 81, 163, .10);
+  --note-label-grad: linear-gradient(90deg, #1184CF, #434BD7);
   /* floating round buttons (chat icon + prev/next): one look in both themes */
   --fab-bg: #2951a3;
   --fab-bg-hover: #1c3b7a;
@@ -64,7 +68,10 @@
     --accent: #8ab4ff;
     --accent-strong: #a9c6ff;
     --accent-soft-bg: #16223c;
-    --note-bg: linear-gradient(135deg, #172a4d 0%, #14304a 55%, #123542 100%);
+    --note-bg: linear-gradient(135deg, #131f38 0%, #17203f 100%);
+    --note-border: #26345a;
+    --note-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+    --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
     --border: #223151;
 
     --sidebar-bg: #060b16;
@@ -91,7 +98,10 @@
   --accent: #8ab4ff;
   --accent-strong: #a9c6ff;
   --accent-soft-bg: #16223c;
-  --note-bg: linear-gradient(135deg, #172a4d 0%, #14304a 55%, #123542 100%);
+  --note-bg: linear-gradient(135deg, #131f38 0%, #17203f 100%);
+  --note-border: #26345a;
+  --note-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  --note-label-grad: linear-gradient(90deg, #7cc4ff, #a5b4fc);
   --border: #223151;
 
   --sidebar-bg: #060b16;
@@ -676,11 +686,25 @@ body {
 }
 
 .note {
+  position: relative;
   margin-top: 2.4rem;
   background: var(--note-bg);
-  border-left: 3px solid var(--accent);
-  border-radius: 4px;
-  padding: 1.3rem 1.5rem 1.4rem;
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  box-shadow: var(--note-shadow);
+  padding: 1.3rem 1.5rem 1.4rem 1.85rem;
+  overflow: hidden;
+}
+
+/* left accent bar: the sign-in .auth-btn blue→indigo gradient */
+.note::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #1184CF, #434BD7);
 }
 
 .note-label {
@@ -691,6 +715,12 @@ body {
   text-transform: uppercase;
   font-weight: 700;
   color: var(--accent);
+  /* gradient text where supported; plain accent colour otherwise */
+  background: var(--note-label-grad);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 
 .note p {
@@ -698,7 +728,7 @@ body {
   font-size: 1.18rem;
   line-height: 1.7;
   font-style: italic;
-  color: var(--ink-soft);
+  color: var(--ink);
   text-align: justify;
   text-justify: inter-word;
 }
