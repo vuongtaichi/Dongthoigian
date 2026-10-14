@@ -53,7 +53,7 @@
   </defs>
   <rect width="400" height="300" fill="url(#bg)"/>
   <!-- whole jacket drawn a little shorter and slimmer, around its centre -->
-  <g transform="translate(200 162) scale(.88 .9) translate(-200 -162)">
+  <g transform="translate(200 162) scale(.88 .8) translate(-200 -162)">
 
   <g filter="url(#shadow)">
     <use href="#sleeveL" fill="url(#camo)"/>
