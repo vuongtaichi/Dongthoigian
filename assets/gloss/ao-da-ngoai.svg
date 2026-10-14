@@ -47,8 +47,9 @@
     </filter>
     <!-- straight-cut field jacket, worn out over the trousers (mid-thigh) -->
     <path id="torso" d="M172 34L134 48Q128 80 134 108L134 284Q200 290 266 284L266 108Q272 80 266 48L228 34Q214 50 200 70Q186 50 172 34Z"/>
-    <path id="sleeveL" d="M134 48Q112 52 104 70Q96 160 92 252Q108 260 124 257Q128 190 138 120Z"/>
-    <path id="sleeveR" d="M266 48Q288 52 296 70Q304 160 308 252Q292 260 276 257Q272 190 262 120Z"/>
+    <!-- sleeves: slim, sloping shoulders (not puffed like the padded áo bông) -->
+    <path id="sleeveL" d="M134 48Q122 56 114 72Q106 160 100 250Q112 257 125 255Q128 190 138 120Z"/>
+    <path id="sleeveR" d="M266 48Q278 56 286 72Q294 160 300 250Q288 257 275 255Q272 190 262 120Z"/>
     <clipPath id="clip"><use href="#torso"/><use href="#sleeveL"/><use href="#sleeveR"/></clipPath>
   </defs>
   <rect width="400" height="300" fill="url(#bg)"/>
@@ -66,7 +67,7 @@
     <rect x="80" y="20" width="240" height="280" fill="url(#light)"/>
     <g fill="none" stroke="#000" stroke-opacity=".32" stroke-width="3" filter="url(#soft)">
       <path d="M136 112q4 70 0 170M264 112q-4 70 0 170"/>
-      <path d="M100 150q8-5 18 0M98 176q9-4 20 2M300 150q-8-5-18 0M302 176q-9-4-20 2"/>
+      <path d="M108 150q7-5 16 0M106 176q8-4 18 2M292 150q-7-5-16 0M294 176q-8-4-18 2"/>
       <path d="M140 196q30 10 60 2q32 10 64-2"/>
       <path d="M150 274q20-8 40-2M212 274q20-8 40-2"/>
     </g>
@@ -79,11 +80,13 @@
   </g>
 
   <!-- cuffs -->
-  <path d="M93 240Q108 248 125 245M307 240Q292 248 275 245" fill="none" stroke="#121a12" stroke-width="1.3"/>
+  <path d="M101 240Q112 247 125 245M299 240Q288 247 275 245" fill="none" stroke="#121a12" stroke-width="1.3"/>
 
   <!-- sleeve patch (wearer's upper left arm): dark shield, yellow border -->
+  <g transform="translate(-8 2)">
   <path d="M281 88l18 2-1 16q-3 9-10 12-8-5-9-14z" fill="#1d2a1d" stroke="#e2c44a" stroke-width="1.6"/>
   <path d="M289.5 95l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.2 1.8.8-3.6-2.7-2.6 3.7-.3z" fill="#e2c44a"/>
+  </g>
 
   <!-- shoulder straps -->
   <g stroke="#121a12" stroke-width="1.3">

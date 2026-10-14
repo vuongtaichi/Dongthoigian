@@ -7,7 +7,7 @@
       <stop offset="0" stop-color="#8a5f2e"/><stop offset=".4" stop-color="#d7ad6c"/><stop offset="1" stop-color="#7a5226"/>
     </linearGradient>
     <linearGradient id="blade" x1="0" x2="1">
-      <stop offset="0" stop-color="#202427"/><stop offset=".45" stop-color="#4c5459"/><stop offset=".55" stop-color="#2e3337"/><stop offset="1" stop-color="#16191b"/>
+      <stop offset="0" stop-color="#3f1a10"/><stop offset=".45" stop-color="#9a4a2e"/><stop offset=".55" stop-color="#6e3020"/><stop offset="1" stop-color="#341509"/>
     </linearGradient>
     <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#555d62"/><stop offset=".5" stop-color="#2b3034"/><stop offset="1" stop-color="#151819"/>
@@ -27,21 +27,21 @@
   </defs>
   <rect width="400" height="300" fill="url(#bg)"/>
 
-  <!-- xẻng: short military shovel, pointed steel blade, wooden handle -->
+  <!-- xẻng: short military shovel, reddish-brown pointed blade, wooden handle -->
   <g transform="translate(128 150) rotate(-28) scale(.7)" filter="url(#shadow)">
     <rect x="-8" y="0" width="16" height="170" rx="7" fill="url(#wood)"/>
     <rect x="-8" y="0" width="16" height="170" rx="7" fill="url(#round)" opacity=".5"/>
     <path d="M-7 -40H7L9 6H-9Z" fill="url(#blade)"/>
     <path d="M-40 -40H40V-112Q40 -132 0 -160Q-40 -132 -40 -112Z" fill="url(#blade)" stroke="#0e1011" stroke-width="1.5"/>
-    <path d="M0 -40V-150" stroke="#5f686e" stroke-width="2" opacity=".7"/>
-    <path d="M-30 -48V-110Q-30 -126 -6 -146" fill="none" stroke="#7b858b" stroke-width="2" opacity=".45"/>
+    <path d="M0 -40V-150" stroke="#c07a55" stroke-width="2" opacity=".6"/>
+    <path d="M-30 -48V-110Q-30 -126 -6 -146" fill="none" stroke="#d39572" stroke-width="2" opacity=".45"/>
   </g>
 
-  <!-- cuốc: pick-mattock, dark steel head, taped handle -->
+  <!-- cuốc: pick-mattock, dark steel head, wooden handle like the shovel's -->
   <g transform="translate(262 158) rotate(22) scale(.82)" filter="url(#shadow)">
-    <rect x="-8" y="-116" width="16" height="250" rx="7" fill="url(#tape)"/>
+    <rect x="-8" y="-116" width="16" height="250" rx="7" fill="url(#wood)"/>
     <rect x="-8" y="-116" width="16" height="250" rx="7" fill="url(#round)" opacity=".6"/>
-    <rect x="-9" y="124" width="18" height="12" rx="5" fill="#1f2a1c"/>
+    <rect x="-9" y="124" width="18" height="12" rx="5" fill="#6e4a22"/>
     <path d="M-96 -96Q-44 -134 0 -132Q46 -134 92 -120L96 -100Q52 -112 12 -110V-104H-12V-110Q-50 -110 -96 -96Z" fill="url(#steel)" stroke="#0e1011" stroke-width="1.5"/>
     <rect x="-14" y="-140" width="28" height="36" rx="4" fill="url(#steel)" stroke="#0e1011" stroke-width="1.5"/>
     <path d="M-84 -102Q-44 -126 -16 -128M18 -128Q50 -126 86 -116" fill="none" stroke="#8b949a" stroke-width="2" opacity=".5"/>
