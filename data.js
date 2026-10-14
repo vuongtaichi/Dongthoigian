@@ -155,7 +155,10 @@ const chapters = [
     intro: [
       "Hôm nay lại thêm 1 lần chuyển nhà nữa, sang khu b2, b3 cũ. Mình với Thiện sang ở cùng phòng với anh Vĩ, cùng với anh thực tập sinh mới đến. Sau vài ngày ở cùng anh Vĩ, thấy hồ sơ giấy tờ đều bị chậm. Nhiều sổ, giáo án anh Quang làm xong nhiều ngày trước nhưng anh Vĩ chưa làm. Hôm nay 13h30 học thể lực nhưng buổi trưa mới bảo mình đi làm giáo án. Anh Vĩ hiền, dễ tính nhưng lượng hồ sơ lớn hơn bên anh Quang nhiều. Anh Vĩ toàn để nước đến chân mới nhảy nên nhiều việc gấp. Chuyện huấn luyện cũng không sát sao và tập trung, cũng không nắm chắc chuyên môn vì anh Vĩ chuyên ngành thông tin. Ít nhất anh Vĩ thoải mái hơn và không để mình thức khuya nhiều."
     ],
-    signature: "Thứ 6, 22:54"
+    signature: "Thứ 6, 22:54",
+    ps: [
+      "Hàng năm sẽ có đợt thực tập của học viên trường quân sự, có thể là thực tập trung đội trưởng hoặc chính trị viên."
+    ]
   },
   {
     id: "ch-15",
@@ -1093,5 +1096,10 @@ const glossary = [
     title: "Bao xe",
     image: "assets/gloss/bao-xe.svg",
     alt: "Bao xe: túi đựng hộp tiếp đạn đeo trước ngực"
+  },
+  {
+    terms: ["thực tập sinh"],
+    title: "Thực tập sinh",
+    text: ["Hàng năm sẽ có đợt thực tập của học viên trường quân sự, có thể là thực tập trung đội trưởng hoặc chính trị viên."]
   }
 ];
