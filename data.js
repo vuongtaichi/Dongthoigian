@@ -1079,7 +1079,7 @@ const glossary = [
     chapters: ["ch-9"],
     where: ["note"],
     title: "Chăn bông",
-    image: "assets/gloss/chan-bong.png",
+    image: "assets/gloss/chan-bong.svg",
     alt: "Chăn bông rằn ri gấp vuông cùng màn trên giường"
   },
   {
