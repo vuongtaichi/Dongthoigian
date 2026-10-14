@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Bao xe: túi đựng hộp tiếp đạn đeo trước ngực, vải rằn ri, dây đeo màu xanh">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f1f1ec"/><stop offset="1" stop-color="#e2e2dc"/>
+    </linearGradient>
+    <!-- camouflage of the rig: dark green, maroon-brown and lime streaks -->
+    <pattern id="camo" width="90" height="80" patternUnits="userSpaceOnUse">
+      <rect width="90" height="80" fill="#21402a"/>
+      <path d="M8 -4C16 10 12 30 18 44 22 54 12 60 8 50 2 34 4 14 8 -4Z" fill="#4a2b27"/>
+      <path d="M46 10C54 24 50 44 58 62 62 72 52 76 48 66 42 48 40 26 46 10Z" fill="#4a2b27"/>
+      <path d="M28 6C34 16 32 30 36 40 38 46 32 48 30 42 26 30 24 16 28 6Z" fill="#8cc63a"/>
+      <path d="M70 34C76 44 74 58 78 70 80 76 74 78 72 72 68 60 66 46 70 34Z" fill="#8cc63a"/>
+      <path d="M2 58C8 64 6 74 10 82 6 84 2 80 0 74Z" fill="#8cc63a"/>
+      <path d="M60 0C66 6 64 16 68 24 64 26 60 22 58 16Z" fill="#111612"/>
+      <path d="M22 54C28 60 26 70 30 78 26 80 22 76 20 70Z" fill="#111612"/>
+    </pattern>
+    <linearGradient id="strap" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#6f7f45"/><stop offset="1" stop-color="#55653a"/>
+    </linearGradient>
+    <linearGradient id="pouch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#1b2418" flood-opacity=".3"/>
+    </filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.5"/></filter>
+    <!-- one buckled flap: olive tab + black side-release buckle -->
+    <g id="buckle">
+      <rect x="-5" y="-2" width="10" height="16" rx="1.5" fill="url(#strap)" stroke="#3b4628" stroke-width=".8"/>
+      <path d="M-6 8H6V20L0 24-6 20Z" fill="#141617" stroke="#000" stroke-width=".6"/>
+      <path d="M-3 12h6M-3 16h6" stroke="#3a3d40" stroke-width="1"/>
+    </g>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+
+  <!-- shoulder straps: two loops going up behind the neck -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">
+    <path d="M134 140Q150 60 190 36Q240 14 300 46Q336 70 340 140" stroke="#3f4b29" stroke-width="15"/>
+    <path d="M134 140Q150 60 190 36Q240 14 300 46Q336 70 340 140" stroke="url(#strap)" stroke-width="12"/>
+    <path d="M176 140Q150 80 110 56Q72 40 58 76Q52 100 62 140" stroke="#3f4b29" stroke-width="15"/>
+    <path d="M176 140Q150 80 110 56Q72 40 58 76Q52 100 62 140" stroke="url(#strap)" stroke-width="12"/>
+  </g>
+  <path d="M134 140Q150 60 190 36Q240 14 300 46Q336 70 340 140M176 140Q150 80 110 56Q72 40 58 76Q52 100 62 140" fill="none" stroke="#a7b57a" stroke-opacity=".5" stroke-dasharray="3 3"/>
+
+  <!-- side straps with a buckle on the right -->
+  <path d="M42 196L4 214" stroke="url(#strap)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M358 196L392 210" stroke="url(#strap)" stroke-width="12"/>
+  <path d="M384 202l10 4-4 12-10-4z" fill="#141617"/>
+
+  <!-- the rig -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="134" width="320" height="120" rx="10" fill="url(#camo)" stroke="#132117" stroke-width="1.5"/>
+  </g>
+
+  <!-- four magazine pouches in the middle -->
+  <g stroke="#132117" stroke-width="1.3">
+    <rect x="112" y="138" width="42" height="112" rx="5" fill="url(#camo)"/>
+    <rect x="156" y="138" width="42" height="112" rx="5" fill="url(#camo)"/>
+    <rect x="202" y="138" width="42" height="112" rx="5" fill="url(#camo)"/>
+    <rect x="246" y="138" width="42" height="112" rx="5" fill="url(#camo)"/>
+  </g>
+  <g fill="url(#pouch)">
+    <rect x="112" y="138" width="42" height="112" rx="5"/><rect x="156" y="138" width="42" height="112" rx="5"/>
+    <rect x="202" y="138" width="42" height="112" rx="5"/><rect x="246" y="138" width="42" height="112" rx="5"/>
+  </g>
+  <!-- their flaps, edged in olive binding -->
+  <g stroke="#55653a" stroke-width="2.5">
+    <path d="M112 138H154V170Q133 178 112 170Z" fill="url(#camo)"/>
+    <path d="M156 138H198V170Q177 178 156 170Z" fill="url(#camo)"/>
+    <path d="M202 138H244V170Q223 178 202 170Z" fill="url(#camo)"/>
+    <path d="M246 138H288V170Q267 178 246 170Z" fill="url(#camo)"/>
+  </g>
+  <g fill="#000" opacity=".3" filter="url(#soft)">
+    <path d="M114 172Q133 180 152 172V178H114Z"/><path d="M158 172Q177 180 196 172V178H158Z"/>
+    <path d="M204 172Q223 180 242 172V178H204Z"/><path d="M248 172Q267 180 286 172V178H248Z"/>
+  </g>
+  <use href="#buckle" x="133" y="166"/><use href="#buckle" x="177" y="166"/>
+  <use href="#buckle" x="223" y="166"/><use href="#buckle" x="267" y="166"/>
+
+  <!-- side pouches, two tiers each side -->
+  <g stroke="#132117" stroke-width="1.3">
+    <rect x="46" y="140" width="62" height="52" rx="5" fill="url(#camo)"/>
+    <rect x="46" y="196" width="62" height="54" rx="5" fill="url(#camo)"/>
+    <rect x="292" y="140" width="62" height="52" rx="5" fill="url(#camo)"/>
+    <rect x="292" y="196" width="62" height="54" rx="5" fill="url(#camo)"/>
+  </g>
+  <g stroke="#55653a" stroke-width="2.5">
+    <path d="M46 140H108V160Q77 166 46 160Z" fill="url(#camo)"/>
+    <path d="M46 196H108V214Q77 220 46 214Z" fill="url(#camo)"/>
+    <path d="M292 140H354V160Q323 166 292 160Z" fill="url(#camo)"/>
+    <path d="M292 196H354V214Q323 220 292 214Z" fill="url(#camo)"/>
+  </g>
+  <use href="#buckle" x="77" y="154"/><use href="#buckle" x="77" y="208"/>
+  <use href="#buckle" x="323" y="154"/><use href="#buckle" x="323" y="208"/>
+
+  <!-- drain grommets along the bottom -->
+  <g fill="#d6d8d2" stroke="#5c605a" stroke-width="1">
+    <circle cx="77" cy="244" r="2.6"/><circle cx="133" cy="244" r="2.6"/><circle cx="177" cy="244" r="2.6"/>
+    <circle cx="223" cy="244" r="2.6"/><circle cx="267" cy="244" r="2.6"/><circle cx="323" cy="244" r="2.6"/>
+  </g>
+</svg>

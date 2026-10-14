@@ -4148,7 +4148,7 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   border: 1px solid var(--note-border);
   background: #eef1ea;
 }
-.gloss-img + p { margin-top: .7rem; }
+.gloss-content p + .gloss-img { margin-top: .8rem; }
 .gloss-list {
   margin: 0;
   padding: 0;

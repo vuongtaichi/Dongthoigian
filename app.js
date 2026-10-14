@@ -170,11 +170,13 @@
     _glossAnchor = anchor;
     anchor.setAttribute('aria-expanded', 'true');
     pop.querySelector('.gloss-title').textContent = g.title;
+    // explanation text first, then the picture (e.g. "nước nóng": the text,
+    // then the boiler), then any numbered list
     var html = '';
+    (g.text || []).forEach(function (t) { html += '<p>' + escapeHtml(t) + '</p>'; });
     if (g.image) {
       html += '<img class="gloss-img" src="' + escapeHtml(g.image) + '" alt="' + escapeHtml(g.alt || g.title) + '">';
     }
-    (g.text || []).forEach(function (t) { html += '<p>' + escapeHtml(t) + '</p>'; });
     if (g.list) {
       html += '<ol class="gloss-list">' + g.list.map(function (t) {
         return '<li>' + escapeHtml(t) + '</li>';

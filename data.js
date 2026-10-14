@@ -1050,7 +1050,9 @@ const glossary = [
     terms: ["nước nóng"],
     chapters: ["ch-7"],
     title: "Nước nóng",
-    text: ["Thường được đun thủ công bằng lò hơi đốt củi."]
+    text: ["Thường được đun thủ công bằng lò hơi đốt củi."],
+    image: "assets/gloss/lo-hoi.svg",
+    alt: "Lò hơi đốt củi, cửa lò đang cháy"
   },
   {
     terms: ["bình tông"],
@@ -1079,5 +1081,17 @@ const glossary = [
     title: "Chăn bông",
     image: "assets/gloss/chan-bong.svg",
     alt: "Chăn bông rằn ri gấp vuông trên giường"
+  },
+  {
+    terms: ["xẻng/cuốc", "cuốc xẻng", "xẻng cuốc", "xẻng", "cuốc"],
+    title: "Xẻng và cuốc",
+    image: "assets/gloss/xeng-cuoc.svg",
+    alt: "Xẻng và cuốc dùng trong huấn luyện"
+  },
+  {
+    terms: ["bao xe"],
+    title: "Bao xe",
+    image: "assets/gloss/bao-xe.svg",
+    alt: "Bao xe: túi đựng hộp tiếp đạn đeo trước ngực"
   }
 ];

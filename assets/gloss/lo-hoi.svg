@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Lò hơi đốt củi: thân thép hình trụ, cửa lò đang cháy">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9c7c0"/><stop offset="1" stop-color="#a9a69e"/>
+    </linearGradient>
+    <pattern id="bricks" width="40" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 0H40M0 10H40M10 0V10M30 10V20" fill="none" stroke="#000" stroke-opacity=".08"/>
+    </pattern>
+    <!-- brushed stainless steel -->
+    <linearGradient id="steel" x1="0" x2="1">
+      <stop offset="0" stop-color="#5f6469"/><stop offset=".18" stop-color="#9aa1a7"/>
+      <stop offset=".34" stop-color="#eef1f3"/><stop offset=".5" stop-color="#b9bfc4"/>
+      <stop offset=".78" stop-color="#8b9196"/><stop offset="1" stop-color="#474c51"/>
+    </linearGradient>
+    <linearGradient id="copper" x1="0" x2="1">
+      <stop offset="0" stop-color="#6e3a22"/><stop offset=".4" stop-color="#b8754a"/><stop offset="1" stop-color="#5e301c"/>
+    </linearGradient>
+    <linearGradient id="concrete" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a7a59d"/><stop offset="1" stop-color="#7d7b74"/>
+    </linearGradient>
+    <linearGradient id="pipe" x1="0" x2="1">
+      <stop offset="0" stop-color="#2f4f86"/><stop offset=".45" stop-color="#6f93d0"/><stop offset="1" stop-color="#22396a"/>
+    </linearGradient>
+    <radialGradient id="fire" cx=".5" cy=".75" r=".7">
+      <stop offset="0" stop-color="#fff6c2"/><stop offset=".3" stop-color="#ffc23a"/>
+      <stop offset=".65" stop-color="#e8551c"/><stop offset="1" stop-color="#5a1408"/>
+    </radialGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ff9a3a" stop-opacity=".55"/><stop offset="1" stop-color="#ff9a3a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+    <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+  </defs>
+
+  <!-- boiler room: brick wall, concrete floor -->
+  <rect width="400" height="300" fill="url(#wall)"/>
+  <rect width="400" height="250" fill="url(#bricks)"/>
+  <rect y="250" width="400" height="50" fill="#5d5b56"/>
+  <rect width="400" height="300" filter="url(#noise)" opacity=".1" style="mix-blend-mode:multiply"/>
+
+  <!-- copper flue going up from the dome -->
+  <path d="M184 0H216L222 30H178Z" fill="url(#copper)"/>
+
+  <!-- cylinder body with its weld seams -->
+  <path d="M146 44Q146 28 200 26Q254 28 254 44V246H146Z" fill="url(#steel)"/>
+  <ellipse cx="200" cy="38" rx="54" ry="12" fill="#d9dde0" opacity=".55"/>
+  <path d="M146 44Q200 56 254 44" fill="none" stroke="#4b5055" stroke-width="1.5"/>
+  <path d="M146 132Q200 140 254 132M146 196Q200 204 254 196" fill="none" stroke="#3f4448" stroke-opacity=".7" stroke-width="1.6"/>
+  <path d="M146 44V246M254 44V246" stroke="#30353a" stroke-width="1.5"/>
+  <!-- name plate -->
+  <rect x="190" y="112" width="24" height="15" fill="#2c3136" stroke="#15181b"/>
+  <path d="M193 117h18M193 121h12" stroke="#a4abb1" stroke-width="1"/>
+
+  <!-- valve on the steam pipe, top left -->
+  <path d="M120 70H146" stroke="#4b5055" stroke-width="7"/>
+  <rect x="124" y="62" width="10" height="16" rx="2" fill="#2a2e32"/>
+  <circle cx="129" cy="52" r="9" fill="none" stroke="#23272b" stroke-width="2.5"/>
+  <path d="M129 43V61M120 52H138M129 61V62" stroke="#23272b" stroke-width="2"/>
+
+  <!-- blue water/pressure pipes, right -->
+  <path d="M254 68H270V240" fill="none" stroke="url(#pipe)" stroke-width="7"/>
+  <rect x="264" y="98" width="13" height="40" rx="3" fill="url(#pipe)" stroke="#1c2f57"/>
+  <circle cx="270" cy="160" r="6" fill="#e6e8ea" stroke="#2a2e32" stroke-width="2"/>
+  <path d="M270 160l3-3" stroke="#c4262c" stroke-width="1.5"/>
+
+  <!-- firebox with an arched opening and the door swung open -->
+  <path d="M168 238V200Q168 182 200 180Q232 182 232 200V238Z" fill="#2a2522"/>
+  <path d="M175 236V203Q175 190 200 188Q225 190 225 203V236Z" fill="url(#fire)"/>
+  <g fill="#ffe08a" opacity=".85">
+    <path d="M184 236q-4-16 6-28q-2 12 6 18q0-14 10-22q-2 16 8 22q4-8 2-16q10 12 4 26z"/>
+  </g>
+  <path d="M182 236l12-6 14 6 12-5" stroke="#3a1a0e" stroke-width="5" stroke-linecap="round"/>
+  <path d="M232 186L254 178V242L232 238Z" fill="#3b3f43" stroke="#1d2023"/>
+  <path d="M240 206v10" stroke="#8d949a" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- concrete base with the ash pit glowing -->
+  <path d="M136 246H264L270 262H130Z" fill="url(#concrete)"/>
+  <rect x="130" y="262" width="140" height="10" fill="#6f6d66"/>
+  <rect x="186" y="250" width="28" height="12" fill="#1e1a17"/>
+  <rect x="190" y="254" width="20" height="6" fill="#e8551c" opacity=".8"/>
+
+  <!-- firelight on the floor and the steel -->
+  <ellipse cx="200" cy="262" rx="90" ry="22" fill="url(#glow)" filter="url(#blur6)"/>
+  <ellipse cx="200" cy="214" rx="48" ry="40" fill="#ff9a3a" opacity=".18" filter="url(#blur6)"/>
+</svg>
