@@ -41,8 +41,12 @@
     <path id="sleeveL" d="M126 40Q106 44 102 58L92 250H136L144 104Q142 64 126 40Z"/>
     <path id="sleeveR" d="M274 40Q294 44 298 58L308 250H264L256 104Q258 64 274 40Z"/>
     <g id="button">
-      <circle r="2.8" fill="url(#btn)"/>
-      <g fill="#050606"><circle cx="-.7" cy="-.7" r=".35"/><circle cx=".7" cy="-.7" r=".35"/><circle cx="-.7" cy=".7" r=".35"/><circle cx=".7" cy=".7" r=".35"/></g>
+      <circle r="4" fill="#000" opacity=".35" transform="translate(.6 .9)"/>
+      <circle r="3.8" fill="url(#btn)"/>
+      <circle r="3.8" fill="none" stroke="#000" stroke-width=".6"/>
+      <circle r="2.6" fill="none" stroke="#5e686d" stroke-opacity=".6" stroke-width=".5"/>
+      <g fill="#050606"><circle cx="-.95" cy="-.95" r=".5"/><circle cx=".95" cy="-.95" r=".5"/><circle cx="-.95" cy=".95" r=".5"/><circle cx=".95" cy=".95" r=".5"/></g>
+      <ellipse cx="-1.4" cy="-1.8" rx="1.2" ry=".6" fill="#fff" opacity=".35"/>
     </g>
   </defs>
 
@@ -58,13 +62,20 @@
 
       <!-- shading: sleeves lying on the body, hem fold, body edges -->
       <g fill="none" stroke="#000" filter="url(#soft)">
-        <path d="M145 106L137 250M255 106L263 250" stroke-opacity=".45" stroke-width="3"/>
-        <path d="M119 60V284M281 60V284" stroke-opacity=".25" stroke-width="3"/>
+        <path d="M146 106L138 250M254 106L262 250" stroke-opacity=".7" stroke-width="5"/>
+        <path d="M119 60V284M281 60V284" stroke-opacity=".3" stroke-width="3"/>
         <path d="M120 270H280" stroke-opacity=".2" stroke-width="4"/>
+        <path d="M104 64Q112 52 126 44M296 64Q288 52 274 44" stroke-opacity=".45" stroke-width="3"/>
       </g>
+      <!-- sleeve edges and the armhole/shoulder seams -->
+      <use href="#sleeveL" fill="none" stroke="#0b130e" stroke-opacity=".75" stroke-width="1.1"/>
+      <use href="#sleeveR" fill="none" stroke="#0b130e" stroke-opacity=".75" stroke-width="1.1"/>
+      <path d="M126 42Q141 66 144 104M274 42Q259 66 256 104" fill="none" stroke="#0b130e" stroke-opacity=".5" stroke-width=".7" stroke-dasharray="2 1.6"/>
+      <path d="M103 60L94 236M297 60L306 236" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" filter="url(#soft)"/>
 
       <!-- cuffs -->
-      <path d="M93 230H135M307 230H265" stroke="#0b130e" stroke-opacity=".5" stroke-width="1"/>
+      <path d="M93 230H135M307 230H265" stroke="#0b130e" stroke-opacity=".8" stroke-width="1.2"/>
+      <path d="M93 232H135M307 232H265" stroke="#000" stroke-opacity=".4" stroke-width="2.5" filter="url(#soft)"/>
       <path d="M93 233H135M307 233H265M93 247H135M307 247H265" stroke="#0b130e" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="2 1.6"/>
 
       <!-- inside of the back collar, then the collar points -->
@@ -72,14 +83,17 @@
       <path d="M176 22Q200 15 224 22L200 46Z" fill="#000" opacity=".35"/>
       <path d="M176 22L200 46 188 82 160 44Q164 30 176 22Z" fill="url(#camo)"/>
       <path d="M224 22L200 46 212 82 240 44Q236 30 224 22Z" fill="url(#camo)"/>
-      <path d="M188 82L160 44M212 82L240 44M176 22Q164 30 160 44M224 22Q236 30 240 44" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="4" filter="url(#soft)"/>
-      <path d="M176 22L200 46 188 82 160 44Q164 30 176 22ZM224 22L200 46 212 82 240 44Q236 30 224 22Z" fill="none" stroke="#0b130e" stroke-opacity=".55" stroke-width=".9"/>
+      <!-- collar: deep shadow under its edges, crisp outline, light along the fold -->
+      <path d="M189 84L161 46M211 84L239 46M176 22Q164 30 160 44M224 22Q236 30 240 44" fill="none" stroke="#000" stroke-opacity=".75" stroke-width="5" filter="url(#soft)"/>
+      <path d="M176 22L200 46 188 82 160 44Q164 30 176 22ZM224 22L200 46 212 82 240 44Q236 30 224 22Z" fill="none" stroke="#0b130e" stroke-opacity=".85" stroke-width="1.2"/>
+      <path d="M176 23L199 46M224 23L201 46" stroke="#fff" stroke-opacity=".3" stroke-width="1.6" filter="url(#soft)"/>
       <path d="M178 26L198 46 189 76M222 26L202 46 211 76" fill="none" stroke="#0b130e" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="2 1.6"/>
 
       <!-- shoulder straps -->
       <path d="M124 48L166 38 168 47 126 57Z" fill="url(#camo)"/>
       <path d="M276 48L234 38 232 47 274 57Z" fill="url(#camo)"/>
-      <path d="M126 57L168 47M274 57L232 47" stroke="#000" stroke-opacity=".4" stroke-width="2.5" filter="url(#soft)"/>
+      <path d="M126 57L168 47M274 57L232 47" stroke="#000" stroke-opacity=".55" stroke-width="3" filter="url(#soft)"/>
+      <path d="M124 48L166 38 168 47 126 57ZM276 48L234 38 232 47 274 57Z" fill="none" stroke="#0b130e" stroke-opacity=".7" stroke-width=".9"/>
 
       <!-- covered placket with its stitching -->
       <path d="M200 46V286" stroke="#0b130e" stroke-opacity=".55" stroke-width="1"/>
@@ -89,18 +103,24 @@
       <!-- chest pockets: body, then the flap with a soft shadow under it -->
       <rect x="148" y="104" width="40" height="52" fill="url(#camo)"/>
       <rect x="214" y="104" width="40" height="52" fill="url(#camo)"/>
-      <path d="M148 156H188M214 156H254M148 104V156M188 104V156M214 104V156M254 104V156" stroke="#0b130e" stroke-opacity=".4" stroke-width=".8"/>
-      <path d="M150 106V154H186V106M216 106V154H252V106" fill="none" stroke="#0b130e" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="2 1.6"/>
-      <path d="M148 121H188M214 121H254" stroke="#000" stroke-opacity=".45" stroke-width="4" filter="url(#soft)"/>
-      <rect x="146" y="104" width="44" height="15" fill="url(#camo)"/>
-      <rect x="212" y="104" width="44" height="15" fill="url(#camo)"/>
-      <path d="M146 119H190M212 119H256" stroke="#0b130e" stroke-opacity=".5" stroke-width=".9"/>
-      <path d="M148 116H188M214 116H254" stroke="#0b130e" stroke-opacity=".35" stroke-width=".6" stroke-dasharray="2 1.6"/>
+      <!-- pocket edges: shadow just outside, crisp outline, stitching -->
+      <path d="M149 157H189V105M215 157H255V105" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="2.5" filter="url(#soft)"/>
+      <path d="M148 104V156H188V104M214 104V156H254V104" fill="none" stroke="#0b130e" stroke-opacity=".8" stroke-width="1.1"/>
+      <path d="M150 106V154H186V106M216 106V154H252V106" fill="none" stroke="#0b130e" stroke-opacity=".5" stroke-width=".6" stroke-dasharray="2 1.6"/>
+      <!-- flaps: a deep shadow underneath, outline, light top edge -->
+      <path d="M148 122H188M214 122H254" stroke="#000" stroke-opacity=".7" stroke-width="5" filter="url(#soft)"/>
+      <rect x="146" y="104" width="44" height="16" fill="url(#camo)"/>
+      <rect x="212" y="104" width="44" height="16" fill="url(#camo)"/>
+      <rect x="146" y="104" width="44" height="16" fill="none" stroke="#0b130e" stroke-opacity=".85" stroke-width="1.1"/>
+      <rect x="212" y="104" width="44" height="16" fill="none" stroke="#0b130e" stroke-opacity=".85" stroke-width="1.1"/>
+      <path d="M147 105.5H189M213 105.5H255" stroke="#fff" stroke-opacity=".3" stroke-width="1.4" filter="url(#soft)"/>
+      <path d="M148 117H188M214 117H254" stroke="#0b130e" stroke-opacity=".5" stroke-width=".6" stroke-dasharray="2 1.6"/>
     </g>
   </g>
 
   <!-- rigid bits on top of the fabric -->
   <use href="#button" x="160" y="43"/><use href="#button" x="240" y="43"/>
+  <use href="#button" x="168" y="113"/><use href="#button" x="234" y="113"/>
   <use href="#button" x="112" y="240"/><use href="#button" x="122" y="240"/>
   <use href="#button" x="278" y="240"/><use href="#button" x="288" y="240"/>
 
