@@ -1,35 +1,142 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Áo dã ngoại quân đội, vải rằn ri xanh">
   <defs>
-    <pattern id="camo" width="110" height="110" patternUnits="userSpaceOnUse">
-      <rect width="110" height="110" fill="#33482c"/>
-      <path d="M4 14q18-10 34 0t26-4 20 14-16 12-30-6-30 6z" fill="#7b8a6a"/>
-      <path d="M50 46q22-6 34 6t-4 18-20-6-16 2-6-14z" fill="#141b14"/>
-      <path d="M8 70q16-8 26 2t20 0 8 14-22 6-26-6z" fill="#5d7449"/>
-      <path d="M70 84q14-4 26 4t-2 14-18-2z" fill="#9aa591"/>
-      <path d="M86 6q16 0 20 10t-12 8-14-8z" fill="#141b14"/>
-      <path d="M24 92q10-6 18 2t-6 12-14-4z" fill="#141b14"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2f4ef"/><stop offset="1" stop-color="#e1e6db"/>
+    </linearGradient>
+    <!-- woodland-style camouflage: green base, grey-green and olive blobs,
+         dark patches and thin black "branches" -->
+    <pattern id="camo" width="160" height="160" patternUnits="userSpaceOnUse">
+      <rect width="160" height="160" fill="#40593a"/>
+      <path d="M10 20C30 4 60 10 70 26 80 40 56 52 40 46 24 40 0 38 10 20Z" fill="#8c9c82"/>
+      <path d="M100 90C120 76 150 84 152 100 154 116 128 120 112 112 98 106 88 100 100 90Z" fill="#8c9c82"/>
+      <path d="M80 10C100 0 130 8 128 24 126 40 100 36 88 32 76 28 70 18 80 10Z" fill="#5f7448"/>
+      <path d="M20 100C36 90 60 96 62 112 64 128 40 134 28 126 16 118 8 108 20 100Z" fill="#5f7448"/>
+      <path d="M60 60C80 50 104 60 100 74 96 88 72 86 62 80 52 74 48 66 60 60Z" fill="#1f2e1c"/>
+      <path d="M130 30C142 26 158 34 156 46 150 56 136 52 130 44Z" fill="#1f2e1c"/>
+      <path d="M0 140C14 132 34 138 32 150 28 160 10 160 0 152Z" fill="#1f2e1c"/>
+      <path d="M70 136C84 128 104 134 100 146 96 156 78 156 70 148Z" fill="#8c9c82"/>
+      <g fill="none" stroke="#111410" stroke-width="3" stroke-linecap="round">
+        <path d="M30 70c10-6 20 0 30-4s14-10 22-4"/>
+        <path d="M110 130c8 6 18 2 26 8s12 2 18-4"/>
+        <path d="M120 60c6-8 16-6 20-14"/>
+        <path d="M14 120c6 4 12 0 16 6"/>
+      </g>
     </pattern>
+    <linearGradient id="light" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".14"/>
+      <stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".75" stop-color="#000" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9dcd4"/><stop offset=".5" stop-color="#9aa096"/><stop offset="1" stop-color="#6c7268"/>
+    </linearGradient>
+    <linearGradient id="web" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34452f"/><stop offset="1" stop-color="#1e2a1c"/>
+    </linearGradient>
+    <filter id="noise" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.8"/></filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#1b2418" flood-opacity=".28"/>
+    </filter>
+    <path id="torso" d="M170 44L130 60Q125 90 132 116L132 270Q200 280 268 270L268 116Q275 90 270 60L230 44Q214 60 200 84Q186 60 170 44Z"/>
+    <path id="sleeveL" d="M130 60Q108 64 100 82Q92 160 84 244Q100 253 118 250Q126 190 136 128Z"/>
+    <path id="sleeveR" d="M270 60Q292 64 300 82Q308 160 316 244Q300 253 282 250Q274 190 264 128Z"/>
+    <clipPath id="clip"><use href="#torso"/><use href="#sleeveL"/><use href="#sleeveR"/></clipPath>
   </defs>
-  <rect width="400" height="300" fill="#eef1ea"/>
-  <g stroke="#162016" stroke-width="2" stroke-linejoin="round">
-    <path d="M130 62L100 80 86 252 120 258 140 122Z" fill="url(#camo)"/>
-    <path d="M270 62L300 80 314 252 280 258 260 122Z" fill="url(#camo)"/>
-    <path d="M86 236l34 6M314 236l-34 6" fill="none"/>
-    <path d="M175 46L130 62 135 112 135 274H265V112L270 62 225 46 200 82Z" fill="url(#camo)"/>
-    <path d="M175 46L200 82 186 94 166 58Z" fill="url(#camo)"/>
-    <path d="M225 46L200 82 214 94 234 58Z" fill="url(#camo)"/>
-    <path d="M200 82V274" fill="none"/>
-    <path d="M140 66l28-8 4 10-28 8zM260 66l-28-8-4 10 28 8z" fill="url(#camo)"/>
-    <rect x="146" y="108" width="42" height="44" rx="3" fill="url(#camo)"/>
-    <rect x="143" y="102" width="48" height="15" rx="4" fill="url(#camo)"/>
-    <rect x="212" y="108" width="42" height="44" rx="3" fill="url(#camo)"/>
-    <rect x="209" y="102" width="48" height="15" rx="4" fill="url(#camo)"/>
-    <rect x="146" y="206" width="44" height="52" rx="3" fill="url(#camo)"/>
-    <rect x="143" y="200" width="50" height="15" rx="4" fill="url(#camo)"/>
-    <rect x="210" y="206" width="44" height="52" rx="3" fill="url(#camo)"/>
-    <rect x="207" y="200" width="50" height="15" rx="4" fill="url(#camo)"/>
-    <rect x="133" y="176" width="134" height="15" fill="#1f2c22"/>
-    <rect x="190" y="173" width="20" height="21" rx="2" fill="#3b4a3d"/>
+  <rect width="400" height="300" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <use href="#sleeveL" fill="url(#camo)"/>
+    <use href="#sleeveR" fill="url(#camo)"/>
+    <use href="#torso" fill="url(#camo)"/>
   </g>
-  <path d="M166 58l8 12M234 58l-8 12" stroke="#b3262b" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- light, folds and fabric texture, clipped to the jacket -->
+  <g clip-path="url(#clip)">
+    <rect x="80" y="30" width="240" height="250" fill="url(#light)"/>
+    <g fill="none" stroke="#000" stroke-opacity=".32" stroke-width="3" filter="url(#soft)">
+      <path d="M134 118q4 60 0 150"/>
+      <path d="M266 118q-4 60 0 150"/>
+      <path d="M92 150q8-5 18 0M90 172q9-4 20 2M300 150q8 5 18 0"/>
+      <path d="M138 200q30 10 60 2q32 10 64-2"/>
+      <path d="M150 262q20-8 40-2M212 262q20-8 40-2"/>
+    </g>
+    <g fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" filter="url(#soft)">
+      <path d="M140 206q28 8 56 0M206 206q28 8 56 0"/>
+      <path d="M104 120q-4 50-8 110"/>
+    </g>
+    <rect x="80" y="30" width="240" height="250" filter="url(#noise)" opacity=".12" style="mix-blend-mode:multiply"/>
+  </g>
+
+  <!-- outlines -->
+  <g fill="none" stroke="#141c13" stroke-width="1.6" stroke-linejoin="round">
+    <use href="#sleeveL"/><use href="#sleeveR"/><use href="#torso"/>
+  </g>
+
+  <!-- cuffs with button tabs -->
+  <g stroke="#141c13" stroke-width="1.4">
+    <path d="M85 232Q101 240 119 238" fill="none"/>
+    <path d="M315 232Q299 240 281 238" fill="none"/>
+    <circle cx="111" cy="244" r="2.4" fill="#2a3326"/><circle cx="289" cy="244" r="2.4" fill="#2a3326"/>
+  </g>
+
+  <!-- neck: inside of the back collar, then the lapels -->
+  <path d="M174 50Q200 40 226 50Q214 62 200 84Q186 62 174 50Z" fill="#1c2619"/>
+  <path d="M170 44Q200 34 230 44L226 51Q200 42 174 51Z" fill="url(#camo)" stroke="#141c13" stroke-width="1.4"/>
+  <g stroke="#141c13" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M170 44Q186 62 200 84L186 99L160 56Z" fill="url(#camo)"/>
+    <path d="M230 44Q214 62 200 84L214 99L240 56Z" fill="url(#camo)"/>
+  </g>
+  <path d="M186 99L160 56M214 99L240 56" stroke="#000" stroke-opacity=".35" stroke-width="3" filter="url(#soft)"/>
+  <!-- red collar tabs -->
+  <path d="M166 62l10-4 8 14-10 4z" fill="#b3262b" stroke="#6e1418"/>
+  <path d="M234 62l-10-4-8 14 10 4z" fill="#b3262b" stroke="#6e1418"/>
+  <circle cx="175" cy="67" r="2" fill="#f0c94a"/><circle cx="225" cy="67" r="2" fill="#f0c94a"/>
+
+  <!-- shoulder straps -->
+  <g stroke="#141c13" stroke-width="1.3">
+    <path d="M140 62l30-8 2 8-30 9z" fill="url(#camo)"/>
+    <path d="M260 62l-30-8-2 8 30 9z" fill="url(#camo)"/>
+    <circle cx="166" cy="59" r="2.3" fill="#2a3326"/><circle cx="234" cy="59" r="2.3" fill="#2a3326"/>
+  </g>
+
+  <!-- front placket -->
+  <path d="M200 84V272" stroke="#141c13" stroke-width="1.6"/>
+  <path d="M206 88V272" stroke="#c9d2bd" stroke-opacity=".45" stroke-dasharray="3 3"/>
+
+  <!-- pockets: flaps with a shadow underneath, stitching, buttons -->
+  <g stroke="#141c13" stroke-width="1.4" stroke-linejoin="round">
+    <rect x="146" y="110" width="42" height="44" rx="3" fill="url(#camo)"/>
+    <rect x="212" y="110" width="42" height="44" rx="3" fill="url(#camo)"/>
+    <rect x="146" y="208" width="44" height="54" rx="3" fill="url(#camo)"/>
+    <rect x="210" y="208" width="44" height="54" rx="3" fill="url(#camo)"/>
+  </g>
+  <g fill="#000" opacity=".3" filter="url(#soft)">
+    <rect x="145" y="114" width="46" height="6"/><rect x="211" y="114" width="46" height="6"/>
+    <rect x="145" y="212" width="48" height="6"/><rect x="209" y="212" width="48" height="6"/>
+  </g>
+  <g stroke="#141c13" stroke-width="1.4" stroke-linejoin="round">
+    <path d="M143 103h48v12l-24 5-24-5z" fill="url(#camo)"/>
+    <path d="M209 103h48v12l-24 5-24-5z" fill="url(#camo)"/>
+    <path d="M143 201h50v12l-25 5-25-5z" fill="url(#camo)"/>
+    <path d="M207 201h50v12l-25 5-25-5z" fill="url(#camo)"/>
+  </g>
+  <g fill="none" stroke="#c9d2bd" stroke-opacity=".5" stroke-dasharray="3 3">
+    <rect x="149" y="113" width="36" height="38" rx="2"/><rect x="215" y="113" width="36" height="38" rx="2"/>
+    <rect x="149" y="211" width="38" height="48" rx="2"/><rect x="213" y="211" width="38" height="48" rx="2"/>
+  </g>
+  <g fill="#2a3326" stroke="#0f140e">
+    <circle cx="167" cy="115" r="2.6"/><circle cx="233" cy="115" r="2.6"/>
+    <circle cx="168" cy="213" r="2.6"/><circle cx="232" cy="213" r="2.6"/>
+  </g>
+
+  <!-- webbing belt with a metal buckle -->
+  <rect x="132" y="178" width="136" height="14" fill="url(#web)" stroke="#121a11"/>
+  <path d="M134 181h132M134 189h132" stroke="#4a5c44" stroke-opacity=".6"/>
+  <rect x="189" y="174" width="22" height="22" rx="3" fill="url(#metal)" stroke="#4a4f47"/>
+  <rect x="194" y="179" width="12" height="12" rx="1.5" fill="url(#web)"/>
 </svg>
