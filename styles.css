@@ -4080,12 +4080,12 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 }
 
 /* ---------- Glossary: marked words + explanation popup ----------
-   Words listed in data.js `glossary` get a dotted underline in the diary
+   Words listed in data.js `glossary` get a solid underline in the diary
    text; tapping one opens .gloss-pop next to it (app.js openGloss /
    positionGloss). The popup uses the modal family look: white card, blue
    gradient strip on top, red-circle ×. */
 .gloss {
-  border-bottom: 1.5px dotted var(--accent);
+  border-bottom: 1.5px solid var(--accent);
   border-radius: 3px;
   cursor: pointer;
   transition: background .15s ease, color .15s ease;
