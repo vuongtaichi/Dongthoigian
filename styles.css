@@ -4143,7 +4143,6 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
   border-radius: 12px;
   border: 1px solid var(--note-border);
   background: #eef1ea;
