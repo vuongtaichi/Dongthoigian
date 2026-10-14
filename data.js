@@ -1056,7 +1056,7 @@ const glossary = [
     terms: ["bình tông"],
     title: "Bình tông",
     image: "assets/gloss/binh-tong.svg",
-    alt: "Bình tông đựng nước, kèm ca nhôm và túi vải rằn ri"
+    alt: "Bình tông đựng nước và nắp nhôm"
   },
   {
     terms: ["áo dã ngoại"],

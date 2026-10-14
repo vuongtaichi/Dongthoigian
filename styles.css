@@ -4124,14 +4124,14 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 }
 .gloss-kicker {
   margin: 0;
-  font-size: .72rem;
+  font-size: .78rem;
   letter-spacing: .12em;
   text-transform: uppercase;
   font-weight: 700;
   color: var(--accent);
 }
-.gloss-title { margin: .15rem 0 .7rem; font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
-.gloss-content p { margin: 0 0 .6rem; font-size: .95rem; line-height: 1.6; }
+.gloss-title { margin: .15rem 0 .7rem; font-size: 1.22rem; font-weight: 700; line-height: 1.3; }
+.gloss-content p { margin: 0 0 .6rem; font-size: 1.05rem; line-height: 1.6; }
 .gloss-content p:last-child { margin-bottom: 0; }
 .gloss-img {
   display: block;
@@ -4158,7 +4158,7 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   padding: .55rem .7rem .6rem 2.6rem;
   background: var(--note-bg);
   border-radius: 12px;
-  font-size: .9rem;
+  font-size: 1rem;
   line-height: 1.55;
   text-align: justify;
 }
