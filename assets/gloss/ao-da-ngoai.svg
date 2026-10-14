@@ -52,6 +52,8 @@
     <clipPath id="clip"><use href="#torso"/><use href="#sleeveL"/><use href="#sleeveR"/></clipPath>
   </defs>
   <rect width="400" height="300" fill="url(#bg)"/>
+  <!-- whole jacket drawn a little shorter and slimmer, around its centre -->
+  <g transform="translate(200 162) scale(.88 .9) translate(-200 -162)">
 
   <g filter="url(#shadow)">
     <use href="#sleeveL" fill="url(#camo)"/>
@@ -141,4 +143,5 @@
     <rect x="149" y="111" width="34" height="34" rx="2"/><rect x="217" y="111" width="34" height="34" rx="2"/>
     <rect x="147" y="221" width="40" height="46" rx="2"/><rect x="213" y="221" width="40" height="46" rx="2"/>
   </g>
+</g>
 </svg>
