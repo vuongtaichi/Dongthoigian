@@ -1028,7 +1028,7 @@ const glossary = [
     terms: ["cò"],
     chapters: ["ch-2"],
     title: "Cò",
-    text: ["Liên lạc."]
+    text: ["Liên lạc - giúp việc cho cấp trên."]
   },
   {
     terms: ["10 lời thề danh dự"],
