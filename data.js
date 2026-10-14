@@ -1064,7 +1064,7 @@ const glossary = [
     terms: ["áo dã ngoại"],
     title: "Áo dã ngoại",
     image: "assets/gloss/ao-da-ngoai.svg",
-    alt: "Áo dã ngoại vải rằn ri"
+    alt: "Áo dã ngoại rằn ri K07 trải phẳng"
   },
   {
     terms: ["áo bông"],
@@ -1080,7 +1080,7 @@ const glossary = [
     where: ["note"],
     title: "Chăn bông",
     image: "assets/gloss/chan-bong.svg",
-    alt: "Chăn bông rằn ri gấp vuông trên giường"
+    alt: "Chăn bông rằn ri gấp vuông cùng màn trên giường"
   },
   {
     terms: ["xẻng/cuốc", "cuốc xẻng", "xẻng cuốc", "xẻng", "cuốc"],
