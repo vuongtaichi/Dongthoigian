@@ -578,13 +578,14 @@
   }
 
   // Dynasty road map (`dynasties: [...]` on an entry). Each item:
-  // { name, from, to, count?, kings?, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
+  // { name, from, to, count?, kings?, years, kind: 'ky'|'thuoc'|'khang', lane?, note?, src, ch? } —
   // years negative = TCN; `years` is the book's own wording, not computed.
   // Top: a proportional strip (from the 2nd item; Hồng Bàng is far too long).
   // Below: a serpentine road with the milestones on its horizontal runs,
   // laid out and drawn by drawRoad().
   // Tapping a strip band or a milestone fills the floating detail card.
   function fmtYear(y) { return y < 0 ? (-y) + ' TCN' : String(y); }
+  function fmtRange(d) { return d.from === d.to ? fmtYear(d.from) : fmtYear(d.from) + ' – ' + fmtYear(d.to); }
   // Serpentine road drawn in real pixels after render (and on resize):
   // horizontal runs joined by rounded U-turns at alternating sides, two
   // milestones per run (at 28% / 72%), each name card above its milestone.
@@ -646,7 +647,7 @@
       return '<li class="road-stop dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
         '<button type="button" class="road-pin" data-dyn="' + i + '" aria-label="' + escapeAttr(d.name) + '">' + (i + 1) + '</button>' +
         '<button type="button" class="road-label" data-dyn="' + i + '">' +
-          '<span class="road-years"><span class="road-num">' + (i + 1) + '</span>' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</span>' +
+          '<span class="road-years"><span class="road-num">' + (i + 1) + '</span>' + fmtRange(d) + '</span>' +
           '<span class="road-name">' + escapeHtml(d.name) + '</span>' +
           (d.count ? '<span class="road-count">' + escapeHtml(d.count) + '</span>' : '') +
         '</button></li>';
@@ -656,6 +657,7 @@
         '<button type="button" class="dyn-filter" data-filter="" aria-pressed="true">Tất cả</button>' +
         '<button type="button" class="dyn-filter" data-filter="ky" aria-pressed="false"><span class="dyn-swatch dyn-ky"></span>Các kỷ khác</button>' +
         '<button type="button" class="dyn-filter" data-filter="thuoc" aria-pressed="false"><span class="dyn-swatch dyn-thuoc"></span>Thời thuộc</button>' +
+        '<button type="button" class="dyn-filter" data-filter="khang" aria-pressed="false"><span class="dyn-swatch dyn-khang"></span>Kháng chiến</button>' +
       '</div>' +
       '<div class="dyn-strip">' + strip + '</div><div class="dyn-axis" aria-hidden="true">' + ticks + '</div>' +
       '<p class="dyn-hint">Chạm vào một dải màu hoặc một cột mốc để xem chi tiết.</p>' +
@@ -686,7 +688,7 @@
     panel.className = 'road-detail dyn-' + d.kind;
     panel.innerHTML =
       '<button type="button" class="road-close" aria-label="Đóng">&times;</button>' +
-      '<p class="road-d-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</p>' +
+      '<p class="road-d-years">' + fmtRange(d) + '</p>' +
       '<h3 class="road-d-name">' + escapeHtml(d.name) + '</h3>' +
       '<p class="road-d-count">' + escapeHtml(d.years) + '</p>' +
       (d.kings ? '<p class="road-d-kings"><strong>Số vua:</strong> ' + escapeHtml(d.kings) + '</p>' : '') +
@@ -738,11 +740,15 @@
     html += '</header>';
 
     html += factsHtml(ch);
-    // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented.
+    // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented,
     if (ch.poem) {
-      html += '<section class="entry-card poem-card"><div class="poem">' + ch.poem.map(function (l, i) {
-        return '<p class="' + (i % 2 ? 'poem-bat' : 'poem-luc') + '">' + escapeHtml(l) + '</p>';
-      }).join('') + '</div></section>';
+      // shown as numbered boxes of 8 lines (4 couplets) each
+      for (var pi = 0; pi < ch.poem.length; pi += 8) {
+        html += '<section class="entry-card poem-card"><span class="poem-num">' + (pi / 8 + 1) + '</span><div class="poem">' +
+          ch.poem.slice(pi, pi + 8).map(function (l, i) {
+            return '<p class="' + (i % 2 ? 'poem-bat' : 'poem-luc') + '">' + escapeHtml(l) + '</p>';
+          }).join('') + '</div></section>';
+      }
       if (!ch.intro) html += noteHtml(ch);
     }
 

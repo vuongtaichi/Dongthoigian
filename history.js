@@ -16,7 +16,7 @@ const suViet = [
     pin: "Tổng quan",
     icon: "chart",
     title: "Các triều đại Việt Nam",
-    roadEnd: "Năm 1945",
+    roadEnd: "Năm 1954",
     intro: [
       "Các thời kỳ đến năm 1675 theo đúng cách Đại Việt sử ký toàn thư chia “kỷ”, với số năm do chính sách ghi ở cuối mỗi kỷ. Toàn thư chép đến năm 1675; các thời kỳ về sau và những chỗ Toàn thư không ghi được bổ sung từ Việt sử toàn thư (Phạm Văn Sơn) và Lịch Sử Việt Nam Bằng Tranh, có ghi nguồn trong từng mục. Số năm có dấu “~” là tính từ năm bắt đầu và kết thúc trong sách, không phải con số sách ghi."
     ],
@@ -79,7 +79,13 @@ const suViet = [
         src: VST + "517" },
       { name: "Nhà Nguyễn", kings: "13 vua, từ Gia Long đến Bảo Đại", count: "~143 năm", from: 1802, to: 1945, years: "Khoảng 143 năm (tính từ 1802 đến 1945)", kind: "ky",
         note: "Quốc hiệu: Việt Nam, Đại Nam (từ Minh Mạng). Kinh đô: Huế. Theo bảng phụ lục của Việt sử toàn thư.",
-        src: VST + "518" }
+        src: VST + "518" },
+      { name: "Cách mạng tháng Tám", from: 1945, to: 1945, years: "Tháng 8 – tháng 9/1945", kind: "khang",
+        note: "Nhật đầu hàng Đồng Minh ngày 13/8/1945. Mặt trận Việt Minh tổ chức các cuộc biểu tình từ ngày 15/8 đến ngày 19/8/1945. Ngày 25/8, vua Bảo Đại thoái vị; chính phủ lâm thời do Hồ Chí Minh làm chủ tịch ra mắt quốc dân ngày 2/9/1945.",
+        src: VST + "490–491; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 32" },
+      { name: "Kháng chiến chống Pháp", count: "~8 năm", from: 1946, to: 1954, years: "Khoảng 8 năm (từ 19/12/1946 đến 7/1954)", kind: "khang",
+        note: "Cuộc xung đột Việt – Pháp nổ ra đêm 19/12/1946. Đường lối kháng chiến: “toàn dân, toàn diện và trường kỳ”. Trận Điện Biên Phủ kết thúc ngày 7/5/1954. Đêm 20/7/1954 ký Hiệp định Genève, lấy vĩ tuyến 17 (sông Bến Hải) làm đường phân ranh quân sự tạm thời.",
+        src: VST + "492, 497; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 325" }
     ]
   },
   {

@@ -1188,7 +1188,30 @@ body {
   color: var(--ink);
 }
 .poem .poem-luc { padding-left: 1.6em; }
-.poem .poem-bat:nth-child(8n) { margin-bottom: .9em; }   /* breathing space every 4 couplets */
+.entry-card.poem-card { position: relative; padding-top: 3.2rem; }
+.poem-card + .poem-card { margin-top: 1rem; }
+.poem-num {
+  position: absolute;
+  top: .9rem;
+  left: 1rem;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1184CF, #434BD7);
+  color: #fff;
+  font: 700 .85rem/1 var(--font-ui);
+}
+/* "khang" = revolutions and wars of resistance (red) */
+.dyn-khang .dyn-swatch, .dyn-swatch.dyn-khang, .dyn-seg.dyn-khang { background: linear-gradient(90deg, #e5484d, #b4232a); }
+.dyn-khang .road-pin { background: linear-gradient(135deg, #ef5b5f, #b4232a); }
+.dyn-khang .road-label { border-top-color: #d6363c; }
+.dyn-khang .road-years { color: #c4262d; }
+.dyn-khang .road-num { background: linear-gradient(135deg, #ef5b5f, #b4232a); }
+.dyn-khang .road-count { background: rgba(229, 72, 77, .12); color: #b4232a; }
+.road-detail.dyn-khang::before { background: linear-gradient(90deg, #ef5b5f, #b4232a); }
+.road-detail.dyn-khang .road-d-years { color: #c4262d; }
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);
