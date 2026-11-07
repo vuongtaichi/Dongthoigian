@@ -582,24 +582,36 @@
   // years negative = TCN; `years` is the book's own wording, not computed.
   // Top: a proportional strip (from the 2nd item; Hồng Bàng is far too long).
   // Below: a winding road, one milestone per item, alternating sides; the
-  // road is one SVG path stretched over the list (10 units per stop).
+  // road is one SVG path behind the list, drawn by drawRoad().
   // Tapping a strip band or a milestone fills the floating detail card.
   function fmtYear(y) { return y < 0 ? (-y) + ' TCN' : String(y); }
   var ROAD_X = [14, 86];   // milestone x (% of width), alternating
-  // Right-angle road: down from each stop to the row boundary, across, then
-  // down into the next stop; corners rounded with short quadratic curves
-  // (rx/ry differ because the SVG is stretched with preserveAspectRatio=none).
-  function roadPath(n) {
-    var x = function (i) { return ROAD_X[i % 2]; }, rx = 4, ry = 2.2;
-    var d = 'M' + x(0) + ',0 L' + x(0) + ',5';
+  // Right-angle road with rounded corners, drawn in real pixels after render
+  // (and on resize) so the corner radius stays larger than half the road
+  // width and both edges of every turn are round.
+  var ROAD_R = 30;
+  function drawRoad() {
+    var track = readerEl.querySelector('.road-track');
+    if (!track) return;
+    var stops = track.querySelectorAll('.road-stop'), n = stops.length;
+    if (!n) return;
+    var W = track.clientWidth, rowH = stops[0].offsetHeight, H = n * rowH;
+    var R = Math.min(ROAD_R, rowH / 2 - 6, W * (ROAD_X[1] - ROAD_X[0]) / 200);
+    var x = function (i) { return W * ROAD_X[i % 2] / 100; };
+    var d = 'M' + x(0) + ',0';
     for (var i = 0; i < n - 1; i++) {
-      var xa = x(i), xb = x(i + 1), ym = i * 10 + 10, dir = xb > xa ? 1 : -1;
-      d += ' L' + xa + ',' + (ym - ry) + ' Q' + xa + ',' + ym + ' ' + (xa + dir * rx) + ',' + ym +
-        ' L' + (xb - dir * rx) + ',' + ym + ' Q' + xb + ',' + ym + ' ' + xb + ',' + (ym + ry) +
-        ' L' + xb + ',' + (ym + 5);
+      var xa = x(i), xb = x(i + 1), ym = (i + 1) * rowH, dir = xb > xa ? 1 : -1;
+      d += ' L' + xa + ',' + (ym - R) +
+        ' A' + R + ',' + R + ' 0 0 ' + (dir > 0 ? 0 : 1) + ' ' + (xa + dir * R) + ',' + ym +
+        ' L' + (xb - dir * R) + ',' + ym +
+        ' A' + R + ',' + R + ' 0 0 ' + (dir > 0 ? 1 : 0) + ' ' + xb + ',' + (ym + R);
     }
-    return d + ' L' + x(n - 1) + ',' + (n * 10);
+    d += ' L' + x(n - 1) + ',' + H;
+    var svg = track.querySelector('.road-svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    Array.prototype.forEach.call(svg.querySelectorAll('path'), function (p) { p.setAttribute('d', d); });
   }
+  window.addEventListener('resize', drawRoad);
   function dynastiesHtml(ch) {
     var D = ch.dynasties;
     if (!D) return '';
@@ -613,7 +625,6 @@
     var ticks = [lo, 500, 1000, 1500].map(function (y) {
       return '<span style="left:' + pct(y) + '%">' + fmtYear(y) + '</span>';
     }).join('');
-    var path = roadPath(D.length), h = D.length * 10;
     var stops = D.map(function (d, i) {
       return '<li class="road-stop road-' + (i % 2 ? 'r' : 'l') + ' dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
         '<button type="button" class="road-pin" data-dyn="' + i + '" aria-label="' + escapeAttr(d.name) + '">' + (i + 1) + '</button>' +
@@ -633,8 +644,8 @@
       '<div class="road">' +
         '<p class="road-end road-start">Khởi đầu</p>' +
         '<div class="road-track">' +
-          '<svg class="road-svg" viewBox="0 0 100 ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
-            '<path class="road-edge" d="' + path + '"/><path class="road-surface" d="' + path + '"/><path class="road-line" d="' + path + '"/>' +
+          '<svg class="road-svg" aria-hidden="true">' +
+            '<path class="road-edge"/><path class="road-surface"/><path class="road-line"/>' +
           '</svg>' +
           '<ol class="road-stops">' + stops + '</ol>' +
         '</div>' +
@@ -754,6 +765,7 @@
     html += '</article>';
 
     readerEl.innerHTML = html;
+    drawRoad();
     readerEl.setAttribute('data-chapter-id', ch.id);
     applyTextScale();   // fill in the new control's % and disabled states
     syncSaveChapterBtn();
