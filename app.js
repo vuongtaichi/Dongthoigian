@@ -596,14 +596,14 @@
     if (!n) return;
     var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     var W = track.clientWidth, rows = Math.ceil(n / 2);
-    track.style.setProperty('--lab-w', Math.round(W * 0.43) + 'px');
+    track.style.setProperty('--lab-w', Math.round(W * 0.40) + 'px');
     // Each row is as tall as its tallest name card + the pin + a gap, so
     // cards never reach the row above. Road y = that row's pin centre.
     var ys = [], y = 0;
     for (var row = 0; row < rows; row++) {
       var hmax = 0;
       for (var k = row * 2; k < Math.min(n, row * 2 + 2); k++) hmax = Math.max(hmax, stops[k].querySelector('.road-label').offsetHeight);
-      y += hmax + 3.6 * rem;
+      y += hmax + 4.6 * rem;   // card + its pin + 1.5rem clear of the pin above
       ys.push(y);
     }
     var H = y + 1.8 * rem, rMax = 0;
@@ -646,7 +646,7 @@
       return '<li class="road-stop dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
         '<button type="button" class="road-pin" data-dyn="' + i + '" aria-label="' + escapeAttr(d.name) + '">' + (i + 1) + '</button>' +
         '<button type="button" class="road-label" data-dyn="' + i + '">' +
-          '<span class="road-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</span>' +
+          '<span class="road-years"><span class="road-num">' + (i + 1) + '</span>' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</span>' +
           '<span class="road-name">' + escapeHtml(d.name) + '</span>' +
           (d.count ? '<span class="road-count">' + escapeHtml(d.count) + '</span>' : '') +
         '</button></li>';

@@ -1078,6 +1078,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .dyn-thuoc .road-years { color: #c27e13; }
+/* the milestone's number, repeated in its card so cards can't be misread */
+.road-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin-right: .35rem;
+  padding: 0 .2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1184CF, #434BD7);
+  color: #fff;
+  font-size: .66rem;
+  vertical-align: 1px;
+}
+.dyn-thuoc .road-num { background: linear-gradient(135deg, #f2bd56, #cf8a1c); }
 .road-name {
   display: block;
   margin-top: .1rem;
