@@ -539,6 +539,30 @@
     document.body.classList.toggle('chapter-bar-on', show);
   }
 
+  // Visual blocks for Sử Việt entries (any entry may use them):
+  //   facts:    [[label, value], ...]  → tile grid under the title
+  //   figure:   { svg, caption }       → inline diagram (svg is our own data)
+  //   timeline: [[time, event], ...]   → vertical timeline card
+  //   source:   "..."                  → "Nguồn:" line at the end
+  function factsHtml(ch) {
+    if (!ch.facts) return '';
+    return '<section class="entry-card facts-card"><dl class="facts">' + ch.facts.map(function (r) {
+      return '<div class="fact"><dt>' + escapeHtml(r[0]) + '</dt><dd>' + escapeHtml(r[1]) + '</dd></div>';
+    }).join('') + '</dl></section>';
+  }
+  function figureHtml(ch) {
+    if (!ch.figure) return '';
+    return '<figure class="entry-card figure-card">' + ch.figure.svg +
+      (ch.figure.caption ? '<figcaption>' + escapeHtml(ch.figure.caption) + '</figcaption>' : '') + '</figure>';
+  }
+  function timelineHtml(ch) {
+    if (!ch.timeline) return '';
+    return '<section class="entry-card timeline-card"><h3 class="block-heading">Dòng thời gian</h3><ol class="timeline">' +
+      ch.timeline.map(function (r) {
+        return '<li><span class="tl-time">' + escapeHtml(r[0]) + '</span><span class="tl-text">' + escapeHtml(r[1]) + '</span></li>';
+      }).join('') + '</ol></section>';
+  }
+
   function renderChapter(id, opts) {
     var push = !!(opts && opts.push);
     // A throwaway placeholder render (chapter 1 shown while the restored
@@ -563,6 +587,8 @@
       '<div class="chapter-tools">' + (sb ? saveChapterBtnHtml() : '') + textSizeControlHtml() + '</div></div>';
     html += '</header>';
 
+    html += factsHtml(ch);
+
     // Simple chapters: a flat "intro" array of paragraphs, in one card.
     if (ch.intro) {
       html += '<section class="entry-card">';
@@ -584,6 +610,9 @@
         if (se.ps) html += '<div class="note"><p class="note-label">Ghi chú</p>' + paragraphsHtml(se.ps, glossFor(ch, 'note')) + '</div>';
       });
     }
+
+    html += figureHtml(ch) + timelineHtml(ch);
+    if (ch.source) html += '<p class="source-line"><strong>Nguồn:</strong> ' + escapeHtml(ch.source) + '</p>';
 
     var prev = chapters[idx - 1];
     var next = chapters[idx + 1];
