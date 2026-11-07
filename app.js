@@ -633,16 +633,18 @@
       }).join('') + '</ul>' : '') +
       (ch.figure.caption ? '<figcaption>' + escapeHtml(ch.figure.caption) + '</figcaption>' : '') + '</figure>';
   }
-  // Timelines are drawn as a comic strip: each event is a panel with a
-  // yellow date caption, an "art" strip (Noto emoji on halftone dots) when
-  // the row has a 3rd element, and the text in body size.
+  // Timelines are a road map of comic panels: a light road down the card,
+  // one pin per event, and a comic panel (yellow date caption, body-size
+  // text) whose figure (the row's 3rd element, a Noto emoji) breaks out of
+  // the panel frame. Panels alternate sides on wide screens.
   function timelineHtml(ch) {
     if (!ch.timeline) return '';
     return '<section class="entry-card timeline-card"><h3 class="block-heading">' + escapeHtml(ch.timelineTitle || 'Dòng thời gian') + '</h3>' +
       '<ol class="comic">' + ch.timeline.map(function (r) {
-        return '<li class="comic-panel"><span class="comic-cap">' + escapeHtml(r[0]) + '</span>' +
-          (r[2] ? '<span class="comic-art"><img src="' + NOTO_EMOJI_BASE + emojiCode(r[2]) + '/emoji.svg" alt="" loading="lazy" draggable="false"></span>' : '') +
-          '<span class="comic-text">' + escapeHtml(r[1]) + '</span></li>';
+        return '<li class="comic-item"><span class="comic-pin" aria-hidden="true"></span><div class="comic-panel">' +
+          (r[2] ? '<img class="comic-fig" src="' + NOTO_EMOJI_BASE + emojiCode(r[2]) + '/emoji.svg" alt="" loading="lazy" draggable="false">' : '') +
+          '<span class="comic-cap">' + escapeHtml(r[0]) + '</span>' +
+          '<span class="comic-text">' + escapeHtml(r[1]) + '</span></div></li>';
       }).join('') + '</ol></section>';
   }
 

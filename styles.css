@@ -4714,51 +4714,62 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .dg-chip-main { background: var(--accent-soft-bg); box-shadow: 0 0 0 1px var(--accent); }
 .dg-chip-marsh { background: var(--accent-soft-bg); }
 
-/* ---- Comic-strip timeline (timelineHtml) ---- */
-.comic {
-  list-style: none;
-  margin: 0;
-  padding: .3rem .2rem .5rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.4rem 1.2rem;
+/* ---- Timeline = road map of comic panels (timelineHtml) ---- */
+.comic { position: relative; list-style: none; margin: 0; padding: 2.8rem 0 .5rem; }
+/* the road: light surface with a soft edge and a dashed centre line */
+.comic::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 26px; margin-left: -13px;
+  border-radius: 13px; background: var(--road-surface); box-shadow: inset 0 0 0 3px var(--road-edge);
 }
-@media (max-width: 560px) { .comic { grid-template-columns: 1fr; } }
+.comic::after {
+  content: ""; position: absolute; top: 10px; bottom: 10px; left: 50%; width: 2px; margin-left: -1px;
+  background: repeating-linear-gradient(to bottom, var(--road-line) 0 8px, transparent 8px 17px);
+}
+.comic-item { position: relative; display: flex; justify-content: flex-start; margin-bottom: 3.2rem; }
+.comic-item:nth-child(even) { justify-content: flex-end; }
+.comic-item:last-child { margin-bottom: 0; }
+/* wide screens: neighbours sit on opposite sides, so let them overlap vertically (zig-zag) */
+@media (min-width: 561px) { .comic-item + .comic-item { margin-top: -5.5rem; } }
+.comic-pin {
+  position: absolute; z-index: 2; left: 50%; top: 1.15rem; width: 1.5rem; height: 1.5rem; margin-left: -.75rem;
+  border-radius: 50%; border: 3px solid var(--card);
+  background: linear-gradient(135deg, #1184CF, #434BD7); box-shadow: 0 3px 8px rgba(15, 27, 51, .3);
+}
 .comic-panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border: 3px solid var(--comic-ink);
-  border-radius: 6px;
-  background: var(--card);
-  box-shadow: 6px 6px 0 var(--comic-ink);
-  overflow: hidden;
+  position: relative; display: flex; flex-direction: column; width: calc(50% - 2.6rem);
+  border: 3px solid var(--comic-ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--comic-ink);
+  background: radial-gradient(circle, var(--comic-dot) 1.4px, transparent 1.6px) 0 0 / 11px 11px, var(--card);
   transform: rotate(-.6deg);
 }
-.comic-panel:nth-child(even) { transform: rotate(.6deg); }
+.comic-item:nth-child(even) .comic-panel { transform: rotate(.6deg); }
+/* ink connector from the panel to the road */
+.comic-panel::before {
+  content: ""; position: absolute; top: 1.55rem; width: 2.6rem; height: 3px; background: var(--comic-ink);
+  right: calc(-2.6rem - 3px);
+}
+.comic-item:nth-child(even) .comic-panel::before { right: auto; left: calc(-2.6rem - 3px); }
+/* the figure breaks out of the frame, on the panel's outer top corner */
+.comic-fig {
+  position: absolute; z-index: 1; top: -2.6rem; left: -1.1rem; width: 5.4rem; height: 5.4rem;
+  filter: drop-shadow(3px 3px 0 var(--comic-ink)) drop-shadow(-1px -1px 0 var(--comic-ink));
+  transform: rotate(-8deg);
+}
+.comic-item:nth-child(even) .comic-fig { left: auto; right: -1.1rem; transform: rotate(8deg); }
 .comic-cap {
-  align-self: flex-start;
-  padding: .25rem .8rem;
-  border-right: 3px solid var(--comic-ink);
-  border-bottom: 3px solid var(--comic-ink);
-  background: #ffe066;
-  color: #1b2436;
-  font: 700 var(--body-fs)/1.4 var(--font-body);
+  align-self: flex-end; max-width: calc(100% - 4.4rem); padding: .25rem .8rem;   /* leave room for the figure */
+  border-left: 3px solid var(--comic-ink); border-bottom: 3px solid var(--comic-ink);
+  background: #ffe066; color: #1b2436; font: 700 var(--body-fs)/1.4 var(--font-body);
 }
-.comic-art {
-  display: grid;
-  place-items: center;
-  height: 7rem;
-  border-bottom: 3px solid var(--comic-ink);
-  background:
-    radial-gradient(circle, var(--comic-dot) 1.6px, transparent 1.8px) 0 0 / 10px 10px,
-    linear-gradient(135deg, var(--accent-soft-bg), var(--card));
-}
-.comic-art img { width: 4.6rem; height: 4.6rem; filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, .18)); }
-.comic-text {
-  padding: .8rem 1rem 1rem;
-  font: 400 var(--body-fs)/1.7 var(--font-body);
-  color: var(--ink);
+.comic-item:nth-child(even) .comic-cap { align-self: flex-start; border-left: 0; border-right: 3px solid var(--comic-ink); }
+.comic-text { padding: 1rem 1rem 1.1rem; font: 400 var(--body-fs)/1.7 var(--font-body); color: var(--ink); }
+/* phones: road on the left, every panel to its right, figure on the right corner */
+@media (max-width: 560px) {
+  .comic::before, .comic::after, .comic-pin { left: 1.05rem; }
+  .comic-item, .comic-item:nth-child(even) { justify-content: flex-end; }
+  .comic-panel, .comic-item:nth-child(even) .comic-panel { width: calc(100% - 3.2rem); }
+  .comic-panel::before, .comic-item:nth-child(even) .comic-panel::before { right: auto; left: calc(-1.15rem - 3px); width: 1.15rem; }
+  .comic-fig, .comic-item:nth-child(even) .comic-fig { left: auto; right: -.5rem; width: 4.6rem; height: 4.6rem; top: -2.3rem; }
+  .comic-cap, .comic-item:nth-child(even) .comic-cap { align-self: flex-start; border-left: 0; border-right: 3px solid var(--comic-ink); }
 }
 :root { --comic-ink: #1b2436; --comic-dot: rgba(41, 81, 163, .22); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --comic-ink: #cdd7ee; --comic-dot: rgba(138, 180, 255, .2); } }
