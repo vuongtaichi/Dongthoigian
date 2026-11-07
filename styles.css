@@ -1212,13 +1212,25 @@ body {
 .dyn-khang .road-count { background: rgba(229, 72, 77, .12); color: #b4232a; }
 .road-detail.dyn-khang::before { background: linear-gradient(90deg, #ef5b5f, #b4232a); }
 .road-detail.dyn-khang .road-d-years { color: #c4262d; }
-/* family-tree figures: theme-aware boxes, lines and text */
+/* Figures (inline SVG in history.js): theme-aware, body serif font. */
 .figure-card .ft-box { fill: var(--note-bg); stroke: var(--note-border); stroke-width: 1.2; }
 .figure-card .ft-main { fill: var(--accent-soft-bg); stroke: var(--accent); }
 .figure-card .ft-lines path { fill: none; stroke: var(--accent); stroke-width: 1.5; }
-.figure-card svg text { fill: var(--ink); font: 600 11.5px var(--font-ui); text-anchor: middle; }
-.figure-card svg text.ft-small { fill: var(--ink-soft); font-weight: 400; font-size: 10px; }
+.figure-card .ft-dash path { stroke-dasharray: 5 5; stroke-width: 2; }
+.figure-card .ft-g1 { stop-color: #1184CF; }
+.figure-card .ft-g2 { stop-color: #434BD7; }
+.figure-card .ft-track { fill: var(--note-bg); stroke: var(--note-border); }
+.figure-card .ft-dot { fill: #434BD7; }
+.figure-card .ft-spiral { fill: none; stroke-width: 7; stroke-linecap: round; }
+.figure-card svg text { fill: var(--ink); font: 400 15px var(--font-body); text-anchor: middle; }   /* same face as the body text */
+.figure-card svg text.ft-name { font-weight: 700; }
+.figure-card svg text.ft-small { fill: var(--ink-soft); font-size: 13px; }
+.figure-card svg text.ft-strong { fill: var(--accent); font-weight: 700; }
+.figure-card svg text.ft-big { font-size: 19px; font-weight: 700; fill: var(--accent); }
+.figure-card svg text.ft-left-start { text-anchor: start; }
 .figure-card svg text.ft-left { text-anchor: end; }
+.figure-card svg text.ft-right { text-anchor: end; }
+.figure-card svg text.ft-on-bar, .figure-card svg text.ft-on-dark { fill: #fff; }
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);
