@@ -1241,6 +1241,12 @@ body {
 .figure-card svg text.ft-left-start { text-anchor: start; }
 .figure-card svg text.ft-left, .figure-card svg text.ft-right { text-anchor: end; }
 .figure-card svg text.ft-on-bar, .figure-card svg text.ft-on-dark { fill: #fff; }
+.figure-card .ft-water { fill: #1184CF; fill-opacity: .2; }
+.figure-card .ft-ground { fill: var(--ink-faint); fill-opacity: .35; }
+.figure-card .ft-stake { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.figure-card .ft-stake-tip { fill: var(--ink); }
+.figure-card .ft-ship { fill: var(--ink-soft); }
+.figure-card .ft-mast { stroke: var(--ink-soft); stroke-width: 2; }
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);
@@ -4614,3 +4620,92 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .gloss, .gloss-pop { transition: none; animation: none; }
 }
+
+/* ---- One text size for all chapter content ----
+   --body-fs is the paragraph size (.entry-body p); timeline, fact tiles,
+   block headings, captions, sources and diagrams all use it, so nothing in
+   the reading column is smaller than the body text. */
+:root { --body-fs: calc(1.3rem * var(--text-scale, 1)); }
+@media (max-width: 560px) { :root { --body-fs: calc(1.18rem * var(--text-scale, 1)); } }
+.block-heading, .tl-time, .tl-text, .fact dt, .fact dd, .figure-card figcaption, .dg-caption, .source-line,
+.dg-card b, .dg-card span, .dg-result b, .dg-result span, .dg-legend b, .dg-legend span,
+.dg-bar-head b, .dg-bar-head span, .dg-val, .dg-num, .dg-link span {
+  font-family: var(--font-body);
+  font-size: var(--body-fs);
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.block-heading { font-weight: 700; color: var(--accent); margin-bottom: .8rem; }
+.tl-time { font-weight: 700; color: var(--accent); }
+.tl-text { line-height: 1.8; }
+.fact dt { font-weight: 400; color: var(--accent); }
+.fact dd { font-weight: 700; }
+.figure-card figcaption, .dg-caption, .source-line { color: var(--ink-soft); }
+.dg-caption { margin: 1rem 0 0; text-align: center; }
+
+/* ---- HTML diagrams (diagramHtml): modern shadowed cards ---- */
+.dg-card {
+  display: flex;
+  flex-direction: column;
+  padding: .7rem 1rem;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 4px 14px rgba(15, 27, 51, .10);
+  color: var(--ink);
+  text-align: center;
+}
+.dg-card span, .dg-result span, .dg-legend li > span:last-child, .dg-bar-head span { color: var(--ink-soft); }
+.dg-card.dg-main { background: var(--accent-soft-bg); }
+.dg-result {
+  display: flex;
+  flex-direction: column;
+  padding: .8rem 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  box-shadow: 0 8px 20px rgba(67, 75, 215, .3);
+  text-align: center;
+}
+.dg-result b, .dg-result span { color: #fff !important; }
+.dg-arrow { width: 3px; height: 1.6rem; margin: .5rem auto; border-radius: 2px; background: var(--accent); opacity: .45; }
+.dg-steps { list-style: none; margin: 0; padding: 0; position: relative; }
+.dg-steps li { display: flex; align-items: center; gap: .9rem; position: relative; margin-bottom: 1rem; }
+.dg-steps li:last-child { margin-bottom: 0; }
+.dg-steps li:not(:last-child)::after {
+  content: ""; position: absolute; left: 1.15rem; top: 2.3rem; bottom: -1.2rem; width: 3px;
+  margin-left: -1.5px; background: var(--accent); opacity: .3;
+}
+.dg-steps .dg-card { flex: 1; text-align: left; }
+.dg-num {
+  flex: 0 0 auto; display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 50%;
+  background: linear-gradient(135deg, #1184CF, #434BD7); color: #fff; font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(67, 75, 215, .35); position: relative; z-index: 1;
+}
+.dg-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.dg-bars { display: grid; gap: 1rem; }
+.dg-bar-head { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.dg-track { position: relative; height: 1.9rem; margin-top: .3rem; border-radius: 999px; background: var(--note-bg); }
+.dg-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1184CF, #434BD7); }
+.dg-val { position: absolute; top: 50%; right: .8rem; transform: translateY(-50%); font-weight: 700; color: var(--accent); }
+.dg-stack { display: flex; height: 2.2rem; border-radius: 999px; overflow: hidden; box-shadow: 0 4px 14px rgba(15, 27, 51, .10); }
+.dg-seg { height: 100%; }
+.dg-s1 { background: #7cc4ff; } .dg-s2 { background: #1184CF; } .dg-s3 { background: #434BD7; }
+.dg-legend { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.dg-legend li { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+.dg-chip { flex: 0 0 auto; width: 1rem; height: 1rem; border-radius: 4px; align-self: center; }
+.dg-hub { display: grid; gap: 1rem; }
+.dg-center { border-radius: 24px; padding: 1rem 1.2rem; }
+.dg-flow { display: grid; gap: .9rem; }
+.dg-flow-row { display: grid; grid-template-columns: minmax(0, 1fr) 1.6rem minmax(0, 1.25fr); align-items: center; gap: .4rem; }
+.dg-to { height: 3px; border-radius: 2px; background: var(--accent); opacity: .5; position: relative; }
+.dg-to::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6.5px solid transparent; border-left: 9px solid var(--accent); border-right: 0; }
+.dg-tree .dg-row { display: flex; justify-content: center; gap: .75rem; }
+.dg-tree .dg-row > .dg-card { flex: 1 1 0; max-width: 18rem; }
+.dg-link { display: flex; flex-direction: column; align-items: center; padding: .35rem 0; }
+.dg-link::before { content: ""; width: 3px; height: 1.1rem; border-radius: 2px; background: var(--accent); opacity: .45; }
+.dg-link span { color: var(--ink-soft); font-style: italic; padding: .15rem 0; text-align: center; }
+.dg-link span::after { content: ""; display: block; width: 3px; height: .8rem; margin: .2rem auto 0; border-radius: 2px; background: var(--accent); opacity: .45; }
+.figure-legend { margin-top: 1rem; text-align: left; }
+.dg-chip-grad { background: linear-gradient(135deg, #1184CF, #434BD7); }
+.dg-chip-main { background: var(--accent-soft-bg); box-shadow: 0 0 0 1px var(--accent); }
+.dg-chip-marsh { background: var(--accent-soft-bg); }

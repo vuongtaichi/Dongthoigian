@@ -564,9 +564,71 @@
       return '<div class="fact"><dt>' + escapeHtml(r[0]) + '</dt><dd>' + escapeHtml(r[1]) + '</dd></div>';
     }).join('') + '</dl></section>';
   }
+  // HTML diagrams (`diagram: {type, title?, ...}` on an entry). Built from
+  // real text so every word is body-sized on every screen (SVG text would
+  // shrink with the image). Types:
+  //   steps: items [[title, sub]]            numbered vertical cards
+  //   grid:  items [[title, sub]], result    2-column cards, then a gradient result
+  //   bars:  items [[label, value, sub]], unit   proportional bars
+  //   stack: items [[label, value, sub]], unit   one bar split into segments
+  //   hub:   center [title, sub], items      gradient centre card + item cards
+  //   flow:  rows [[[from], [to, sub]]], result   "from → to" rows
+  //   tree:  rows [{label?, items: [[title, sub, main?]]}], result
+  function dgCard(it, cls) {
+    return '<div class="dg-card' + (cls ? ' ' + cls : '') + '"><b>' + escapeHtml(it[0]) + '</b>' +
+      (it[1] ? '<span>' + escapeHtml(it[1]) + '</span>' : '') + '</div>';
+  }
+  function dgResult(r) {
+    return r ? '<div class="dg-arrow" aria-hidden="true"></div><div class="dg-result"><b>' + escapeHtml(r[0]) + '</b>' +
+      (r[1] ? '<span>' + escapeHtml(r[1]) + '</span>' : '') + '</div>' : '';
+  }
+  function diagramHtml(ch) {
+    var d = ch.diagram;
+    if (!d) return '';
+    var h = d.title ? '<h3 class="block-heading">' + escapeHtml(d.title) + '</h3>' : '';
+    if (d.type === 'steps') {
+      h += '<ol class="dg-steps">' + d.items.map(function (it, i) {
+        return '<li><span class="dg-num">' + (i + 1) + '</span>' + dgCard(it) + '</li>';
+      }).join('') + '</ol>';
+    } else if (d.type === 'grid') {
+      h += '<div class="dg-grid">' + d.items.map(function (it) { return dgCard(it); }).join('') + '</div>' + dgResult(d.result);
+    } else if (d.type === 'bars') {
+      var max = Math.max.apply(null, d.items.map(function (it) { return it[1]; }));
+      h += '<div class="dg-bars">' + d.items.map(function (it) {
+        return '<div class="dg-bar-row"><div class="dg-bar-head"><b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[2] || '') + '</span></div>' +
+          '<div class="dg-track"><div class="dg-fill" style="width:' + Math.max(2, it[1] / max * 100).toFixed(1) + '%"></div>' +
+          '<span class="dg-val">' + it[1] + ' ' + escapeHtml(d.unit || '') + '</span></div></div>';
+      }).join('') + '</div>';
+    } else if (d.type === 'stack') {
+      var tot = d.items.reduce(function (a, it) { return a + it[1]; }, 0);
+      h += '<div class="dg-stack">' + d.items.map(function (it, i) {
+        return '<span class="dg-seg dg-s' + (i + 1) + '" style="width:' + (it[1] / tot * 100).toFixed(2) + '%"></span>';
+      }).join('') + '</div><ul class="dg-legend">' + d.items.map(function (it, i) {
+        return '<li><span class="dg-chip dg-s' + (i + 1) + '"></span><b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[2] || '') + ' · ' + it[1] + ' ' + escapeHtml(d.unit || '') + '</span></li>';
+      }).join('') + '</ul>';
+    } else if (d.type === 'hub') {
+      h += '<div class="dg-hub"><div class="dg-result dg-center"><b>' + escapeHtml(d.center[0]) + '</b>' +
+        (d.center[1] ? '<span>' + escapeHtml(d.center[1]) + '</span>' : '') + '</div>' +
+        '<div class="dg-grid dg-spokes">' + d.items.map(function (it) { return dgCard(it); }).join('') + '</div></div>';
+    } else if (d.type === 'flow') {
+      h += '<div class="dg-flow">' + d.rows.map(function (r) {
+        return '<div class="dg-flow-row">' + dgCard(r[0]) + '<span class="dg-to" aria-hidden="true"></span>' + dgCard(r[1], 'dg-main') + '</div>';
+      }).join('') + '</div>' + dgResult(d.result);
+    } else if (d.type === 'tree') {
+      h += '<div class="dg-tree">' + d.rows.map(function (r, i) {
+        return (i ? '<div class="dg-link">' + (r.label ? '<span>' + escapeHtml(r.label) + '</span>' : '') + '</div>' : '') +
+          '<div class="dg-row">' + r.items.map(function (it) { return dgCard(it, it[2] ? 'dg-main' : ''); }).join('') + '</div>';
+      }).join('') + '</div>' + dgResult(d.result);
+    }
+    return '<section class="entry-card dg-card-wrap">' + h +
+      (d.caption ? '<p class="dg-caption">' + escapeHtml(d.caption) + '</p>' : '') + '</section>';
+  }
   function figureHtml(ch) {
     if (!ch.figure) return '';
     return '<figure class="entry-card figure-card">' + ch.figure.svg +
+      (ch.figure.legend ? '<ul class="dg-legend figure-legend">' + ch.figure.legend.map(function (it) {
+        return '<li>' + (it[2] ? '<span class="dg-chip ' + it[2] + '"></span>' : '') + '<b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[1] || '') + '</span></li>';
+      }).join('') + '</ul>' : '') +
       (ch.figure.caption ? '<figcaption>' + escapeHtml(ch.figure.caption) + '</figcaption>' : '') + '</figure>';
   }
   function timelineHtml(ch) {
@@ -749,7 +811,7 @@
       html += '</section>';
       // the note gets its own box below the text card; pages with a poem,
       // figure or timeline put it after those instead (see below)
-      if (!ch.poem && !ch.figure && !ch.timeline) html += noteHtml(ch);
+      if (!ch.poem && !ch.figure && !ch.diagram && !ch.timeline) html += noteHtml(ch);
     }
 
     // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented,
@@ -777,8 +839,8 @@
       });
     }
 
-    html += dynastiesHtml(ch) + figureHtml(ch) + timelineHtml(ch);
-    if (ch.intro && !ch.poem && (ch.figure || ch.timeline)) html += noteHtml(ch);
+    html += dynastiesHtml(ch) + diagramHtml(ch) + figureHtml(ch) + timelineHtml(ch);
+    if (ch.intro && !ch.poem && (ch.figure || ch.diagram || ch.timeline)) html += noteHtml(ch);
     if (ch.source) html += '<p class="source-line"><strong>Nguồn:</strong> ' + escapeHtml(ch.source) + '</p>';
 
     var prev = chapters[idx - 1];
