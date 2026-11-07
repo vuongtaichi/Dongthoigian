@@ -7,7 +7,23 @@
    file to add/change diary content — see data.js for that.
    ========================================================================== */
 
-(function () {
+(function (chapters) {
+  // Two topics share one reader. `chapters` (the parameter) always points at
+  // the ACTIVE topic's list; setTopic() swaps it. Ids are unique across both
+  // (diary "ch-N", history "su-N"), so topicOf(id) knows where an id lives.
+  var TOPICS = [
+    { title: 'Nhật Ký Lính Thông Tin', tab: 'Nhật ký quân ngũ', list: chapters },
+    { title: 'Sử Việt', tab: 'Sử Việt', list: (typeof suViet !== 'undefined') ? suViet : [] }
+  ];
+  var _topic = 0;
+  function topicOf(id) {
+    for (var t = 0; t < TOPICS.length; t++) {
+      if (TOPICS[t].list.some(function (c) { return c.id === id; })) return t;
+    }
+    return -1;
+  }
+  function listOf(id) { var t = topicOf(id); return t === -1 ? chapters : TOPICS[t].list; }
+
   var readerEl = document.getElementById('reader');
   var tocEl = document.getElementById('toc');
   var sidebarEl = document.getElementById('sidebar');
@@ -105,7 +121,7 @@
     }
     return value;
   }
-  chapters.forEach(function (ch, i) { chapters[i] = normalizeDeep(ch); });
+  TOPICS.forEach(function (t) { t.list.forEach(function (ch, i) { t.list[i] = normalizeDeep(ch); }); });
 
   // `gl` (optional, from glossFor) marks glossary words in the text.
   function paragraphsHtml(arr, gl) {
@@ -273,17 +289,19 @@
     return parts.join(' ␟ ').toLowerCase();
   }
 
-  chapters.forEach(function (ch, idx) { ch._search = chapterSearchText(ch, idx); });
+  TOPICS.forEach(function (t) { t.list.forEach(function (ch, idx) { ch._search = chapterSearchText(ch, idx); }); });
 
+  // Both topics' items are built once; applySearch() shows only the active
+  // topic's, so the pinned items and view counts survive a topic switch.
   function buildTOC() {
-    tocEl.innerHTML = chapters.map(function (ch, i) {
+    tocEl.innerHTML = TOPICS.map(function (t, ti) { return t.list.map(function (ch, i) {
       var num = String(i + 1).padStart(2, '0');
-      return '<li><button class="toc-item" data-id="' + ch.id + '" data-index="' + i + '">' +
+      return '<li><button class="toc-item" data-id="' + ch.id + '" data-index="' + i + '" data-topic="' + ti + '">' +
         '<span class="toc-num">' + num + '</span>' +
         '<span class="toc-text"><span class="toc-title">' + escapeHtml(ch.title) + '</span></span>' +
         '<span class="toc-views" data-id="' + ch.id + '" hidden></span>' +
         '</button></li>';
-    }).join('') + '<li class="toc-empty" id="tocEmpty" style="display:none;">Không tìm thấy chương nào phù hợp.</li>';
+    }).join(''); }).join('') + '<li class="toc-empty" id="tocEmpty" style="display:none;">Không tìm thấy chương nào phù hợp.</li>';
 
     Array.prototype.forEach.call(tocEl.querySelectorAll('.toc-item'), function (btn) {
       btn.addEventListener('click', function () {
@@ -300,7 +318,7 @@
       if (!res || res.error || !Array.isArray(res.data)) return;
       var byId = {};
       res.data.forEach(function (row) { byId[row.chapter_id] = row.n; });
-      chapters.forEach(function (ch) { setTocViewCount(ch.id, byId[ch.id] || 0); });
+      TOPICS.forEach(function (t) { t.list.forEach(function (ch) { setTocViewCount(ch.id, byId[ch.id] || 0); }); });
     });
   }
 
@@ -529,6 +547,8 @@
     // would clobber the saved admin-inbox route before refresh() gets a
     // chance to redirect into it.
     var silent = !!(opts && opts.silent);
+    var t = topicOf(id);
+    if (t !== -1 && t !== _topic) setTopic(t);
     var idx = chapters.findIndex(function (c) { return c.id === id; });
     if (idx === -1) idx = 0;
     var ch = chapters[idx];
@@ -603,7 +623,7 @@
       btn.classList.toggle('active', btn.getAttribute('data-id') === ch.id);
     });
 
-    if (!silent) { saveLastChapter(ch.id); _lastReadChapterId = ch.id; }
+    if (!silent) { saveLastChapter(ch.id); _lastReadChapterId = ch.id; TOPICS[_topic].lastId = ch.id; }
 
     // A dragged chat button only lasts as long as you stay on one page —
     // reading a different chapter (or a reload) puts it back in its default
@@ -2926,11 +2946,11 @@
   var _lastReadChapterId = null;   // chapter shown before "Đã lưu" (its back tab returns here)
 
   function chapterIndexById(id) {
-    return chapters.findIndex(function (c) { return c.id === id; });
+    return listOf(id).findIndex(function (c) { return c.id === id; });
   }
   function chapterLabel(id) {
     var i = chapterIndexById(id);
-    return i === -1 ? '' : 'Chương ' + String(i + 1).padStart(2, '0') + ' · ' + chapters[i].title;
+    return i === -1 ? '' : 'Chương ' + String(i + 1).padStart(2, '0') + ' · ' + listOf(id)[i].title;
   }
   function savedChapterRow(chapterId) {
     for (var i = 0; i < _savedItems.length; i++) {
@@ -3210,7 +3230,7 @@
       return '<li class="saved-card saved-chapter">' +
           '<button type="button" class="saved-open" data-action="saved-open" data-chapter="' + escapeAttr(r.chapter_id) + '">' +
             '<span class="saved-ch-num">' + String(i + 1).padStart(2, '0') + '</span>' +
-            '<span class="saved-ch-title">' + escapeHtml(chapters[i].title) + '</span>' +
+            '<span class="saved-ch-title">' + escapeHtml(listOf(r.chapter_id)[i].title) + '</span>' +
             '<span class="saved-time">' + escapeHtml(relTime(r.created_at)) + '</span>' +
           '</button>' + delBtn(r) +
         '</li>';
@@ -4110,7 +4130,8 @@
       slot.className = 'masthead-auth';
       slot.id = 'mastheadAuth';
       slot.hidden = true;
-      var anchor = masthead.querySelector('.masthead-brand')
+      var anchor = masthead.querySelector('.topic-tabs')
+                || masthead.querySelector('.masthead-brand')
                 || masthead.querySelector('.masthead-title');
       if (anchor && anchor.parentNode === masthead) masthead.insertBefore(slot, anchor.nextSibling);
       else if (anchor) anchor.insertAdjacentElement('afterend', slot);
@@ -4325,7 +4346,8 @@
     Array.prototype.forEach.call(items, function (btn) {
       if (!btn.hasAttribute('data-index')) return;   // the pinned "Hộp thư" admin item isn't a chapter
       var idx = Number(btn.getAttribute('data-index'));
-      var match = !q || chapters[idx]._search.indexOf(q) !== -1;
+      var match = Number(btn.getAttribute('data-topic')) === _topic &&
+        (!q || chapters[idx]._search.indexOf(q) !== -1);
       btn.classList.toggle('hidden', !match);
       if (match) visibleCount++;
     });
@@ -4394,9 +4416,37 @@
   window.addEventListener('resize', updateProgress);
   window.addEventListener('resize', reclampChatWidget);
 
-  if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
+  // Topic tabs (#topicTabs in index.html): switch the sidebar list, masthead
+  // title and count. Clicking a tab opens the last entry read in that topic.
+  var topicTabsEl = document.getElementById('topicTabs');
+  var mastheadTitleEl = document.querySelector('.masthead-title');
+  function setTopic(t) {
+    _topic = t;
+    chapters = TOPICS[t].list;
+    if (mastheadTitleEl) mastheadTitleEl.textContent = TOPICS[t].title;
+    if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
+    if (topicTabsEl) Array.prototype.forEach.call(topicTabsEl.children, function (b, i) {
+      b.setAttribute('aria-selected', String(i === t));
+    });
+    applySearch();
+  }
+  if (topicTabsEl) {
+    topicTabsEl.innerHTML = TOPICS.map(function (t, i) {
+      return '<button type="button" class="topic-tab" role="tab" aria-selected="false" data-topic="' + i + '">' +
+        escapeHtml(t.tab) + '</button>';
+    }).join('');
+    topicTabsEl.addEventListener('click', function (ev) {
+      var b = ev.target.closest('.topic-tab');
+      if (!b) return;
+      var t = Number(b.getAttribute('data-topic'));
+      if (t === _topic || !TOPICS[t].list.length) return;
+      var last = TOPICS[t].lastId || TOPICS[t].list[0].id;
+      renderChapter(last, { push: true });
+    });
+  }
 
   buildTOC();
+  setTopic(0);
   var startId = routeHash() || loadLastChapter() || chapters[0].id;
   // Admin status isn't known yet at this point (it resolves async via
   // Supabase) — show chapter 1 for now and let refresh()'s pending-route
@@ -4424,4 +4474,4 @@
     if (window.innerWidth <= 860) openDrawer();
     else if (searchEl) searchEl.focus({ preventScroll: true });
   })();
-})();
+})(chapters);

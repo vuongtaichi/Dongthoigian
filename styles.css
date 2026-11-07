@@ -248,6 +248,36 @@ body {
   text-wrap: balance;
 }
 
+/* Topic switch (Nhật ký quân ngũ | Sử Việt): a two-segment pill under the
+   brand; the active segment uses the sidebar's active-row colour. */
+.topic-tabs {
+  display: flex;
+  gap: 3px;
+  margin-top: .9rem;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--sidebar-bg-elevated);
+  border: 1px solid var(--sidebar-border);
+}
+.topic-tab {
+  flex: 1 1 0;
+  min-height: 2.1rem;
+  padding: .3rem .6rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sidebar-text-dim);
+  font: 600 .92rem/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.topic-tab:hover { color: var(--sidebar-text); }
+.topic-tab[aria-selected="true"] {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+}
+.topic-tab:focus-visible { outline: 2px solid var(--sidebar-accent); outline-offset: 1px; }
+
 .masthead-count {
   margin: .5rem 0 0;
   font-family: var(--font-ui);
@@ -1162,6 +1192,8 @@ body {
   .masthead-brand { gap: .5rem; flex: 1 0 100%; }
   .masthead-logo { width: 2rem; height: 2rem; }
   .masthead-title { font-size: 1.1rem; }
+  .topic-tabs { flex: 1 0 100%; margin-top: .65rem; }
+  .topic-tab { min-height: 1.9rem; padding: .25rem .4rem; font-size: .86rem; white-space: nowrap; }
   .masthead-count { order: 2; margin: .55rem 0 0 auto; font-size: .82rem; line-height: 1.2; }
   .masthead-auth { order: 1; margin-top: .55rem; font-size: .95rem; min-width: 0; }
   .search-box { order: 3; flex: 1 0 100%; }
