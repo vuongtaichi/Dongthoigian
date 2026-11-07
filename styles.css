@@ -1212,6 +1212,13 @@ body {
 .dyn-khang .road-count { background: rgba(229, 72, 77, .12); color: #b4232a; }
 .road-detail.dyn-khang::before { background: linear-gradient(90deg, #ef5b5f, #b4232a); }
 .road-detail.dyn-khang .road-d-years { color: #c4262d; }
+/* family-tree figures: theme-aware boxes, lines and text */
+.figure-card .ft-box { fill: var(--note-bg); stroke: var(--note-border); stroke-width: 1.2; }
+.figure-card .ft-main { fill: var(--accent-soft-bg); stroke: var(--accent); }
+.figure-card .ft-lines path { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.figure-card svg text { fill: var(--ink); font: 600 11.5px var(--font-ui); text-anchor: middle; }
+.figure-card svg text.ft-small { fill: var(--ink-soft); font-weight: 400; font-size: 10px; }
+.figure-card svg text.ft-left { text-anchor: end; }
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);

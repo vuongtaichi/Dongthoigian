@@ -89,10 +89,19 @@ const suViet = [
       { name: "Kháng chiến toàn quốc chống Pháp", count: "~8 năm", from: 1946, to: 1954, years: "Khoảng 8 năm (từ 19/12/1946 đến 7/1954)", kind: "khang",
         note: "Cuộc xung đột Việt – Pháp nổ ra đêm 19/12/1946. Đường lối kháng chiến: “toàn dân, toàn diện và trường kỳ”. Trận Điện Biên Phủ kết thúc ngày 7/5/1954. Đêm 20/7/1954 ký Hiệp định Genève, lấy vĩ tuyến 17 (sông Bến Hải) làm đường phân ranh quân sự tạm thời.",
         src: VST + "492, 497; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 325" },
-      { name: "Kháng chiến chống Mỹ, cứu nước", count: "~21 năm", from: 1954, to: 1975, years: "21 năm chia cắt đất nước (1954 – 1975)", kind: "khang",
+      { name: "Kháng chiến chống Mỹ, cứu nước", count: "~21 năm", from: 1954, to: 1975, years: "21 năm chia cắt đất nước (1954 – 1975)", kind: "khang", lane: "top",
         note: "Hiệp định Genève (20/7/1954) lấy vĩ tuyến 17 làm đường phân ranh quân sự tạm thời. Mùa Xuân 1975 diễn ra cuộc Tổng tiến công và nổi dậy; ngày 25/3/1975 Bộ Chính trị nhận định “thời cơ chiến lược lớn đã tới”. Thắng lợi năm 1975 chấm dứt 21 năm chia cắt đất nước.",
         src: VST + "497; tulieuvankien.dangcongsan.vn (“Chiến dịch Hồ Chí Minh (26/4 – 30/4/1975)”); baotanglichsu.vn (“Chiến dịch Hồ Chí Minh lịch sử”); nhandan.vn (“50 năm Ngày giải phóng miền Nam, thống nhất đất nước”)" },
-      { name: "Giải phóng miền Nam, thống nhất đất nước", from: 1975, to: 1975, years: "Chiến dịch Hồ Chí Minh: 26/4 – 30/4/1975", kind: "khang",
+      { name: "Đồng khởi", lane: "bot", from: 1960, to: 1960, years: "Từ ngày 17/1/1960, bắt đầu ở Bến Tre", kind: "khang",
+        note: "Ngày 17/1/1960, cuộc khởi nghĩa Bến Tre bùng nổ, bắt đầu từ ba xã Định Thủy, Phước Hiệp và Bình Khánh (huyện Mỏ Cày). Chỉ trong một tuần (17 – 24/1/1960), nhân dân 47 xã thuộc các huyện Mỏ Cày, Giồng Trôm, Châu Thành, Ba Tri, Thạnh Phú nhất tề nổi dậy, bức rút, bức hàng 37 đồn. Phong trào Đồng khởi đã đập tan một mảng lớn chính quyền cơ sở ở nhiều vùng nông thôn.",
+        src: "nhandan.vn (“Phong trào Đồng khởi năm 1960”, Viện Lịch sử quân sự Việt Nam)" },
+      { name: "Tổng tiến công và nổi dậy Tết Mậu Thân", lane: "bot", from: 1968, to: 1968, years: "Tết Mậu Thân, năm 1968", kind: "khang",
+        note: "Đảng Lao động Việt Nam quyết định tiến hành cuộc Tổng tiến công và nổi dậy Tết Mậu Thân 1968 nhằm giành thắng lợi quyết định. Cuộc Tổng tiến công và nổi dậy của quân và dân miền Nam đã tạo ra một bước ngoặt chiến lược trong cuộc kháng chiến chống Mỹ, cứu nước.",
+        src: "tulieuvankien.dangcongsan.vn (sách “Tổng tiến công và nổi dậy Mậu Thân 1968 – Giá trị lịch sử”, NXB Chính trị quốc gia Sự thật, 2014)" },
+      { name: "Hiệp định Paris", lane: "bot", from: 1973, to: 1973, years: "Ký tắt 21/1/1973 · ký chính thức 27/1/1973", kind: "khang",
+        note: "Hội nghị bốn bên ở Paris kéo dài 4 năm 9 tháng (13/5/1968 – 27/1/1973), qua 202 phiên họp chung công khai và 24 cuộc tiếp xúc riêng. Bốn bên ký: Việt Nam Dân chủ Cộng hòa, Hoa Kỳ, Cộng hòa miền Nam Việt Nam, Việt Nam Cộng hòa. Hoa Kỳ cam kết tôn trọng độc lập, chủ quyền, thống nhất và toàn vẹn lãnh thổ của Việt Nam và rút hết quân; các bên ngừng bắn tại chỗ, trao trả tù binh và dân thường bị bắt.",
+        src: "baotanglichsu.vn (“Cách đây 41 năm (27/1/1973 – 27/1/2014), Hiệp định Paris được ký kết”)" },
+      { name: "Giải phóng miền Nam, thống nhất đất nước", lane: "bot", from: 1975, to: 1975, years: "Chiến dịch Hồ Chí Minh: 26/4 – 30/4/1975", kind: "khang",
         note: "Chiều 26/4/1975, Chiến dịch Hồ Chí Minh nổ súng mở màn. 11 giờ 30 phút ngày 30/4/1975, lá cờ cách mạng tung bay trên nóc Dinh Độc Lập; Tổng thống chính quyền Sài Gòn Dương Văn Minh tuyên bố đầu hàng không điều kiện. Ngày 1/5/1975, toàn bộ lãnh thổ trên đất liền miền Nam hoàn toàn giải phóng. Chiến thắng kết thúc cuộc kháng chiến chống Mỹ, cứu nước, thống nhất đất nước.",
         src: "tulieuvankien.dangcongsan.vn (“Chiến dịch Hồ Chí Minh (26/4 – 30/4/1975)”); baotanglichsu.vn (“Chiến dịch Hồ Chí Minh lịch sử”); nhandan.vn (“50 năm Ngày giải phóng miền Nam, thống nhất đất nước”)" }
     ]
@@ -352,14 +361,25 @@ const suViet = [
   {
     id: "su-1",
     title: "Kỷ Hồng Bàng thị",
+    facts: [["Thời gian", "2879 – 258 TCN (niên đại suy đoán)"], ["Quốc hiệu", "Xích Quỷ, rồi Văn Lang"], ["Kinh đô", "Phong Châu"], ["Chia nước", "15 bộ"]],
     intro: [
-      "Đại Việt sử ký toàn thư mở đầu phần Ngoại kỷ bằng Kỷ Hồng Bàng thị, thời đại mà sử cũ chép theo truyền thuyết. Theo đó, cháu bốn đời của Viêm Đế họ Thần Nông là Đế Minh đi tuần phương Nam, lấy con gái Vụ Tiên, sinh ra Lộc Tục. Lộc Tục được phong làm vua phương Nam, xưng là Kinh Dương Vương, đặt tên nước là Xích Quỷ.",
-      "Kinh Dương Vương lấy con gái Động Đình Quân, sinh ra Sùng Lãm, tức Lạc Long Quân. Lạc Long Quân lấy Âu Cơ, sinh một bọc trăm trứng, nở ra trăm người con trai. Về sau hai người chia con: năm mươi con theo cha xuống biển, năm mươi con theo mẹ lên núi. Người con trưởng được tôn làm vua, xưng là Hùng Vương, đóng đô ở Phong Châu, đặt tên nước là Văn Lang, chia nước làm mười lăm bộ.",
-      "Toàn thư chép nhà Hùng truyền mười tám đời, đến đời Hùng Vương cuối cùng thì mất nước vào tay Thục Phán. Ngay từ thời xưa, các sử gia đã ghi nhận phần này mang nhiều yếu tố truyền thuyết, khó lấy làm sử liệu chắc chắn. Dù vậy, câu chuyện con Rồng cháu Tiên vẫn là cội nguồn tinh thần của người Việt, và giỗ Tổ Hùng Vương mùng mười tháng ba âm lịch vẫn được gìn giữ đến ngày nay."
+      "Toàn thư chép: Đế Minh, cháu ba đời của Viêm Đế họ Thần Nông, sinh ra Đế Nghi. Sau Đế Minh đi tuần phương Nam, đến Ngũ Lĩnh, lấy con gái Vụ Tiên, sinh ra Lộc Tục. Đế Minh muốn cho Lộc Tục nối ngôi, nhưng Lộc Tục cố nhường cho anh. Đế Minh bèn lập Đế Nghi cai quản phương Bắc, phong Lộc Tục làm Kinh Dương Vương cai quản phương Nam, gọi là nước Xích Quỷ.",
+      "Kinh Dương Vương lấy con gái Động Đình Quân, sinh ra Lạc Long Quân (tên húy Sùng Lãm). Lạc Long Quân lấy Âu Cơ, con gái Đế Lai, sinh ra trăm con trai (tục truyền sinh trăm trứng), là tổ của Bách Việt. Vì “ta là giống rồng, nàng là giống tiên”, hai người từ biệt nhau: 50 con theo mẹ về núi, 50 con theo cha về miền Nam; con trưởng được phong làm Hùng Vương, nối ngôi vua.",
+      "Hùng Vương đóng đô ở Phong Châu, đặt quốc hiệu là Văn Lang, chia nước làm 15 bộ. Tướng văn gọi là Lạc Hầu, tướng võ là Lạc Tướng; con trai vua gọi là Quan Lang, con gái là Mị Nương; quan coi việc là Bồ Chính, cha truyền con nối. Vua các đời đều gọi là Hùng Vương."
+    ],
+    figure: { svg: '<svg viewBox="0 0 360 330" width="360" height="330" role="img" aria-label="Phả hệ từ Đế Minh đến Hùng Vương theo Toàn thư"><g class="ft-lines"><path d="M180 38 V54 M90 54 H270 M90 54 V64 M270 54 V64 M270 96 V120 M150 136 H200 M180 136 V166 M180 198 V214 M90 214 H270 M90 214 V226 M270 214 V226 M180 214 V276"/></g><rect class="ft-box" x="125" y="8" width="110" height="30" rx="8"/><text x="180" y="28">Đế Minh</text><rect class="ft-box" x="25" y="64" width="130" height="32" rx="8"/><text x="90" y="85">Đế Nghi · phương Bắc</text><rect class="ft-box ft-main" x="172" y="64" width="184" height="32" rx="8"/><text x="264" y="85">Kinh Dương Vương · Xích Quỷ</text><text class="ft-small ft-left" x="263" y="112">lấy con gái Động Đình Quân</text><rect class="ft-box ft-main" x="200" y="120" width="140" height="32" rx="8"/><text x="270" y="141">Lạc Long Quân</text><rect class="ft-box" x="20" y="120" width="130" height="32" rx="8"/><text x="85" y="141">Âu Cơ (con Đế Lai)</text><text class="ft-small" x="175" y="130">kết hôn</text><rect class="ft-box" x="115" y="166" width="130" height="32" rx="8"/><text x="180" y="187">Trăm người con trai</text><rect class="ft-box" x="20" y="226" width="140" height="32" rx="8"/><text x="90" y="247">50 con theo mẹ về núi</text><rect class="ft-box" x="195" y="226" width="160" height="32" rx="8"/><text x="275" y="247">50 con theo cha về miền Nam</text><rect class="ft-box ft-main" x="100" y="276" width="160" height="40" rx="8"/><text x="180" y="293">Con trưởng: Hùng Vương</text><text class="ft-small" x="180" y="309">nước Văn Lang</text></svg>', caption: "Phả hệ theo Toàn thư, Ngoại kỷ, quyển I" },
+    timelineTitle: "Những chuyện Toàn thư chép",
+    timeline: [
+      ["Thời Hùng Vương", "Dân bắt cá thường bị thuồng luồng làm hại; vua bảo lấy mực vẽ hình thủy quái lên mình. Tục vẽ mình của người Bách Việt có lẽ bắt đầu từ đấy."],
+      ["Đời Hùng Vương thứ 6", "Đứa trẻ ở hương Phù Đổng xin gươm và ngựa, đánh tan giặc ở chân núi Vũ Ninh rồi phi ngựa lên trời. Về sau Lý Thái Tổ phong là Xung Thiên Thần Vương."],
+      ["Thời Thành Vương nhà Chu (1063–1026 TCN)", "Nước Việt lần đầu sang thăm nhà Chu, xưng là Việt Thường thị, hiến chim trĩ trắng."],
+      ["Cuối thời Hùng Vương", "Sơn Tinh và Thủy Tinh cầu hôn Mị Nương; Sơn Tinh đem sính lễ đến trước nên được gả. Thủy Tinh dâng nước đánh núi Tản Viên nhưng không thể xâm phạm được."],
+      ["258 TCN", "Thục Vương cầu hôn không được, dặn con cháu diệt Văn Lang; đến đời cháu là Thục Phán đánh lấy nước. Kỷ Hồng Bàng thị kết thúc, tất cả 2.622 năm."]
     ],
     ps: [
-      "Bản nháp mẫu: nội dung sẽ được đối chiếu lại với nguyên văn Toàn thư trước khi đăng chính thức.",
-      "Nguồn: Đại Việt sử ký toàn thư, Ngoại kỷ, quyển I (Kỷ Hồng Bàng thị); Lịch Sử Việt Nam Bằng Tranh, tập 2–4 (Huyền sử đời Hùng)."
-    ]
+      "Chính Toàn thư ghi lời sử thần Ngô Sĩ Liên rằng chuyện Sơn Tinh, Thủy Tinh “rất là quái đản”, chỉ “tạm thuật lại chuyện cũ để truyền lại sự nghi ngờ”.",
+      "Chú thích của bản dịch: mốc 2879 TCN chỉ là niên đại suy đoán, nhằm đặt Kinh Dương Vương ngang với Đế Nghi."
+    ],
+    source: "Đại Việt sử ký toàn thư, Ngoại kỷ, quyển I, Kỷ Hồng Bàng thị (bản PDF, tr. 3–6)."
   }
 ];

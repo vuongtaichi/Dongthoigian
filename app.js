@@ -747,7 +747,9 @@
       html += '<div class="entry-body">' + paragraphsHtml(ch.intro, glossFor(ch, 'body')) + '</div>';
       if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
       html += '</section>';
-      if (!ch.poem) html += noteHtml(ch);   // the note gets its own box below the text card (poems: below the poem)
+      // the note gets its own box below the text card; pages with a poem,
+      // figure or timeline put it after those instead (see below)
+      if (!ch.poem && !ch.figure && !ch.timeline) html += noteHtml(ch);
     }
 
     // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented,
@@ -776,6 +778,7 @@
     }
 
     html += dynastiesHtml(ch) + figureHtml(ch) + timelineHtml(ch);
+    if (ch.intro && !ch.poem && (ch.figure || ch.timeline)) html += noteHtml(ch);
     if (ch.source) html += '<p class="source-line"><strong>Nguồn:</strong> ' + escapeHtml(ch.source) + '</p>';
 
     var prev = chapters[idx - 1];
