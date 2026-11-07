@@ -911,8 +911,8 @@ body {
 .tl-text {
   display: block;
   margin-top: .15rem;
-  font-size: calc(1.15rem * var(--text-scale, 1));
-  line-height: 1.6;
+  font-size: calc(1.3rem * var(--text-scale, 1));   /* same as .entry-body p */
+  line-height: 1.8;
   color: var(--ink);
 }
 .figure-card { margin-left: 0; margin-right: 0; text-align: center; }
@@ -1212,24 +1212,34 @@ body {
 .dyn-khang .road-count { background: rgba(229, 72, 77, .12); color: #b4232a; }
 .road-detail.dyn-khang::before { background: linear-gradient(90deg, #ef5b5f, #b4232a); }
 .road-detail.dyn-khang .road-d-years { color: #c4262d; }
-/* Figures (inline SVG in history.js): theme-aware, body serif font. */
-.figure-card .ft-box { fill: var(--note-bg); stroke: var(--note-border); stroke-width: 1.2; }
-.figure-card .ft-main { fill: var(--accent-soft-bg); stroke: var(--accent); }
-.figure-card .ft-lines path { fill: none; stroke: var(--accent); stroke-width: 1.5; }
-.figure-card .ft-dash path { stroke-dasharray: 5 5; stroke-width: 2; }
+/* Figures (inline SVG in history.js): theme-aware, body serif font.
+   Modern look: borderless cards with soft shadows, thick rounded
+   connectors, gradient shapes with a glow. */
+.figure-card .ft-box { fill: var(--card); stroke: none; filter: drop-shadow(0 4px 10px rgba(15, 27, 51, .12)); }
+.figure-card .ft-main { fill: var(--accent-soft-bg); }
+.figure-card .ft-lines path { fill: none; stroke: var(--accent); stroke-opacity: .45; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.figure-card .ft-dash path { stroke-dasharray: 1 7; stroke-width: 3.5; stroke-opacity: .7; }
 .figure-card .ft-g1 { stop-color: #1184CF; }
 .figure-card .ft-g2 { stop-color: #434BD7; }
-.figure-card .ft-track { fill: var(--note-bg); stroke: var(--note-border); }
+.figure-card [fill^="url(#g"] { filter: drop-shadow(0 6px 14px rgba(67, 75, 215, .35)); }
+.figure-card .ft-track { fill: var(--note-bg); }
 .figure-card .ft-dot { fill: #434BD7; }
-.figure-card .ft-spiral { fill: none; stroke-width: 7; stroke-linecap: round; }
+.figure-card .ft-spiral { fill: none; stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 4px 10px rgba(67, 75, 215, .3)); }
+.figure-card .ft-marsh { fill: var(--accent-soft-bg); }
+.figure-card .ft-reeds path { stroke: var(--accent); stroke-opacity: .45; stroke-width: 2.5; stroke-linecap: round; }
+.figure-card .ft-arrow { fill: var(--accent); }
+.figure-card .ft-pill { fill: var(--note-bg); }
+.figure-card .ft-s1 { fill: #7cc4ff; }
+.figure-card .ft-s2 { fill: #1184CF; }
+.figure-card .ft-s3 { fill: #434BD7; }
+.figure-card .ft-frame { fill: none; }
 .figure-card svg text { fill: var(--ink); font: 400 15px var(--font-body); text-anchor: middle; }   /* same face as the body text */
 .figure-card svg text.ft-name { font-weight: 700; }
 .figure-card svg text.ft-small { fill: var(--ink-soft); font-size: 13px; }
 .figure-card svg text.ft-strong { fill: var(--accent); font-weight: 700; }
 .figure-card svg text.ft-big { font-size: 19px; font-weight: 700; fill: var(--accent); }
 .figure-card svg text.ft-left-start { text-anchor: start; }
-.figure-card svg text.ft-left { text-anchor: end; }
-.figure-card svg text.ft-right { text-anchor: end; }
+.figure-card svg text.ft-left, .figure-card svg text.ft-right { text-anchor: end; }
 .figure-card svg text.ft-on-bar, .figure-card svg text.ft-on-dark { fill: #fff; }
 .source-line {
   margin: 1.2rem .25rem 0;
@@ -1481,7 +1491,7 @@ body {
 
 /* mobile: body text at the "Ghi chú" note size (.note p); larger nav card text */
 @media (max-width: 860px) {
-  .entry-body p { font-size: calc(1.18rem * var(--text-scale, 1)); }
+  .entry-body p, .tl-text { font-size: calc(1.18rem * var(--text-scale, 1)); }
   .nav-btn { padding: 1rem 1.1rem; }
   .nav-btn .nav-dir { font-size: .8rem; }
   .nav-btn .nav-title { font-size: 1.12rem; }
