@@ -578,7 +578,7 @@
   }
 
   // Dynasty road map (`dynasties: [...]` on an entry). Each item:
-  // { name, from, to, count?, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
+  // { name, from, to, count?, kings?, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
   // years negative = TCN; `years` is the book's own wording, not computed.
   // Top: a proportional strip (from the 2nd item; Hồng Bàng is far too long).
   // Below: a serpentine road with the milestones on its horizontal runs,
@@ -689,6 +689,7 @@
       '<p class="road-d-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</p>' +
       '<h3 class="road-d-name">' + escapeHtml(d.name) + '</h3>' +
       '<p class="road-d-count">' + escapeHtml(d.years) + '</p>' +
+      (d.kings ? '<p class="road-d-kings"><strong>Số vua:</strong> ' + escapeHtml(d.kings) + '</p>' : '') +
       (d.note ? '<p class="road-d-note">' + escapeHtml(d.note) + '</p>' : '') +
       '<p class="dyn-src">Nguồn: ' + escapeHtml(d.src) + '</p>' +
       (d.ch ? '<button type="button" class="dyn-open" data-open="' + escapeAttr(d.ch) + '">Đọc chương →</button>' : '');
