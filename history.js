@@ -16,7 +16,7 @@ const suViet = [
     pin: "Tổng quan",
     icon: "chart",
     title: "Các triều đại Việt Nam",
-    roadEnd: "Năm 1954",
+    roadEnd: "30/4/1975 · Thống nhất",
     intro: [
       "Các thời kỳ đến năm 1675 theo đúng cách Đại Việt sử ký toàn thư chia “kỷ”, với số năm do chính sách ghi ở cuối mỗi kỷ. Toàn thư chép đến năm 1675; các thời kỳ về sau và những chỗ Toàn thư không ghi được bổ sung từ Việt sử toàn thư (Phạm Văn Sơn) và Lịch Sử Việt Nam Bằng Tranh, có ghi nguồn trong từng mục. Số năm có dấu “~” là tính từ năm bắt đầu và kết thúc trong sách, không phải con số sách ghi."
     ],
@@ -88,7 +88,13 @@ const suViet = [
         src: VST + "490–491; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 32" },
       { name: "Kháng chiến toàn quốc chống Pháp", count: "~8 năm", from: 1946, to: 1954, years: "Khoảng 8 năm (từ 19/12/1946 đến 7/1954)", kind: "khang",
         note: "Cuộc xung đột Việt – Pháp nổ ra đêm 19/12/1946. Đường lối kháng chiến: “toàn dân, toàn diện và trường kỳ”. Trận Điện Biên Phủ kết thúc ngày 7/5/1954. Đêm 20/7/1954 ký Hiệp định Genève, lấy vĩ tuyến 17 (sông Bến Hải) làm đường phân ranh quân sự tạm thời.",
-        src: VST + "492, 497; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 325" }
+        src: VST + "492, 497; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 325" },
+      { name: "Kháng chiến chống Mỹ, cứu nước", count: "~21 năm", from: 1954, to: 1975, years: "21 năm chia cắt đất nước (1954 – 1975)", kind: "khang",
+        note: "Hiệp định Genève (20/7/1954) lấy vĩ tuyến 17 làm đường phân ranh quân sự tạm thời. Mùa Xuân 1975 diễn ra cuộc Tổng tiến công và nổi dậy; ngày 25/3/1975 Bộ Chính trị nhận định “thời cơ chiến lược lớn đã tới”. Thắng lợi năm 1975 chấm dứt 21 năm chia cắt đất nước.",
+        src: VST + "497; tulieuvankien.dangcongsan.vn (“Chiến dịch Hồ Chí Minh (26/4 – 30/4/1975)”); baotanglichsu.vn (“Chiến dịch Hồ Chí Minh lịch sử”); nhandan.vn (“50 năm Ngày giải phóng miền Nam, thống nhất đất nước”)" },
+      { name: "Giải phóng miền Nam, thống nhất đất nước", from: 1975, to: 1975, years: "Chiến dịch Hồ Chí Minh: 26/4 – 30/4/1975", kind: "khang",
+        note: "Chiều 26/4/1975, Chiến dịch Hồ Chí Minh nổ súng mở màn. 11 giờ 30 phút ngày 30/4/1975, lá cờ cách mạng tung bay trên nóc Dinh Độc Lập; Tổng thống chính quyền Sài Gòn Dương Văn Minh tuyên bố đầu hàng không điều kiện. Ngày 1/5/1975, toàn bộ lãnh thổ trên đất liền miền Nam hoàn toàn giải phóng. Chiến thắng kết thúc cuộc kháng chiến chống Mỹ, cứu nước, thống nhất đất nước.",
+        src: "tulieuvankien.dangcongsan.vn (“Chiến dịch Hồ Chí Minh (26/4 – 30/4/1975)”); baotanglichsu.vn (“Chiến dịch Hồ Chí Minh lịch sử”); nhandan.vn (“50 năm Ngày giải phóng miền Nam, thống nhất đất nước”)" }
     ]
   },
   {
@@ -96,7 +102,17 @@ const suViet = [
     pin: "Thơ",
     icon: "poem",
     title: "Lịch sử nước ta",
-    facts: [["Tác giả", "Hồ Chí Minh"], ["Thể thơ", "Lục bát, 206 câu"]],
+    facts: [
+      ["Tác giả", "Hồ Chí Minh"],
+      ["Sáng tác", "Cuối 1941 · Pác Bó"],
+      ["Xuất bản", "Tháng 2/1942"],
+      ["Thể thơ", "Lục bát"],
+      ["Bản gốc", "Bảo tàng Lịch sử quốc gia"]
+    ],
+    intro: [
+      "Bài thơ được lãnh tụ Nguyễn Ái Quốc (Chủ tịch Hồ Chí Minh) viết cuối năm 1941 tại Pác Bó, Cao Bằng, và được Việt Minh tuyên truyền Bộ xuất bản lần thứ nhất vào tháng 2/1942. Ngày 1/2/1942, báo Việt Nam độc lập số 117 đăng bài “Nên học sử ta” của Nguyễn Ái Quốc giới thiệu tác phẩm. Bản in lần thứ nhất in typo trên giấy dó, khổ 13 × 10 cm, gồm 14 trang văn vần và 6 trang ký họa chân dung các anh hùng dân tộc; tác phẩm in lần thứ hai năm 1947. Bản in lần thứ nhất hiện lưu giữ tại Bảo tàng Lịch sử quốc gia.",
+      "Văn bản dưới đây gồm 206 câu, theo Thư viện sách Hồ Chí Minh TP.HCM; Bảo tàng Lịch sử quốc gia cho biết bản in trong Hồ Chí Minh toàn tập, tập 3 (2011) gồm 208 câu."
+    ],
     poem: [
       "Dân ta phải biết sử ta",
       "Cho tường gốc tích nước nhà Việt Nam",
@@ -331,7 +347,7 @@ const suViet = [
       ["1941", "Nam Kỳ khởi nghĩa (ban biên tập chú: thực ra Khởi nghĩa Nam Kỳ xảy ra vào ngày 23/11/1940)"],
       ["1945", "Việt Nam độc lập (ban biên tập chú: năm 1945 là tác giả đoán trước)"]
     ],
-    source: "Văn bản bài thơ theo Thư viện sách Hồ Chí Minh TP.HCM (thuviensachhochiminh.tphcm.gov.vn, LichSuNuocTa.pdf); chú thích của tác giả và “Những năm quan trọng” theo bản in trên stbook.vn. Tài liệu gốc lưu tại Bảo tàng Cách mạng Việt Nam."
+    source: "Thời gian sáng tác, xuất bản và thông tin bản gốc theo Bảo tàng Lịch sử quốc gia (baotanglichsu.vn, bài “Tác phẩm Lịch sử nước ta năm 1942 lưu giữ tại Bảo tàng Lịch sử quốc gia”, 17/5/2023). Văn bản bài thơ theo Thư viện sách Hồ Chí Minh TP.HCM (thuviensachhochiminh.tphcm.gov.vn, LichSuNuocTa.pdf); chú thích của tác giả và “Những năm quan trọng” theo bản in trên stbook.vn. Tài liệu gốc lưu tại Bảo tàng Cách mạng Việt Nam."
   },
   {
     id: "su-1",

@@ -740,6 +740,16 @@
     html += '</header>';
 
     html += factsHtml(ch);
+
+    // Simple chapters: a flat "intro" array of paragraphs, in one card.
+    if (ch.intro) {
+      html += '<section class="entry-card">';
+      html += '<div class="entry-body">' + paragraphsHtml(ch.intro, glossFor(ch, 'body')) + '</div>';
+      if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
+      html += '</section>';
+      if (!ch.poem) html += noteHtml(ch);   // the note gets its own box below the text card (poems: below the poem)
+    }
+
     // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented,
     if (ch.poem) {
       // shown as numbered boxes of 8 lines (4 couplets) each
@@ -749,16 +759,7 @@
             return '<p class="' + (i % 2 ? 'poem-bat' : 'poem-luc') + '">' + escapeHtml(l) + '</p>';
           }).join('') + '</div></section>';
       }
-      if (!ch.intro) html += noteHtml(ch);
-    }
-
-    // Simple chapters: a flat "intro" array of paragraphs, in one card.
-    if (ch.intro) {
-      html += '<section class="entry-card">';
-      html += '<div class="entry-body">' + paragraphsHtml(ch.intro, glossFor(ch, 'body')) + '</div>';
-      if (ch.signature) html += '<p class="signature">' + escapeHtml(ch.signature) + '</p>';
-      html += '</section>';
-      html += noteHtml(ch);   // the note gets its own box below the text card
+      html += noteHtml(ch);
     }
 
     // Composite chapters: several dated sub-entries, one numbered card each.
