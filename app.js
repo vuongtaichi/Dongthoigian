@@ -586,12 +586,17 @@
   // Tapping a strip band or a milestone fills the floating detail card.
   function fmtYear(y) { return y < 0 ? (-y) + ' TCN' : String(y); }
   var ROAD_X = [14, 86];   // milestone x (% of width), alternating
+  // Right-angle road: down from each stop to the row boundary, across, then
+  // down into the next stop; corners rounded with short quadratic curves
+  // (rx/ry differ because the SVG is stretched with preserveAspectRatio=none).
   function roadPath(n) {
-    var x = function (i) { return ROAD_X[i % 2]; };
+    var x = function (i) { return ROAD_X[i % 2]; }, rx = 4, ry = 2.2;
     var d = 'M' + x(0) + ',0 L' + x(0) + ',5';
     for (var i = 0; i < n - 1; i++) {
-      var y0 = i * 10 + 5, y1 = y0 + 10;
-      d += ' C' + x(i) + ',' + (y0 + 6) + ' ' + x(i + 1) + ',' + (y1 - 6) + ' ' + x(i + 1) + ',' + y1;
+      var xa = x(i), xb = x(i + 1), ym = i * 10 + 10, dir = xb > xa ? 1 : -1;
+      d += ' L' + xa + ',' + (ym - ry) + ' Q' + xa + ',' + ym + ' ' + (xa + dir * rx) + ',' + ym +
+        ' L' + (xb - dir * rx) + ',' + ym + ' Q' + xb + ',' + ym + ' ' + xb + ',' + (ym + ry) +
+        ' L' + xb + ',' + (ym + 5);
     }
     return d + ' L' + x(n - 1) + ',' + (n * 10);
   }
@@ -629,8 +634,6 @@
         '<p class="road-end road-start">Khởi đầu</p>' +
         '<div class="road-track">' +
           '<svg class="road-svg" viewBox="0 0 100 ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
-            '<defs><linearGradient id="roadGrad" x1="0" y1="0" x2="0" y2="1">' +
-              '<stop offset="0" stop-color="#1184CF"/><stop offset="1" stop-color="#434BD7"/></linearGradient></defs>' +
             '<path class="road-edge" d="' + path + '"/><path class="road-surface" d="' + path + '"/><path class="road-line" d="' + path + '"/>' +
           '</svg>' +
           '<ol class="road-stops">' + stops + '</ol>' +

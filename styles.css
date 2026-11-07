@@ -981,7 +981,7 @@ body {
 }
 .dyn-axis span:first-child { transform: none; }
 .dyn-hint { margin: .6rem 0 1rem; font: .82rem/1.4 var(--font-ui); color: var(--ink-faint); }
-/* The road: an SVG path (brand gradient + soft glow + dashed centre line)
+/* The road: a light right-angle SVG path (pale surface, soft edge, dashed centre line)
    stretched behind the stops (each stop is --road-row tall = 10 SVG units).
    Milestones alternate left/right; labels are small floating cards. */
 .road { --road-row: 6.2rem; margin-top: .6rem; }
@@ -1001,9 +1001,12 @@ body {
 .road-track { position: relative; margin: .2rem 0; }
 .road-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .road-svg path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
-.road-edge { stroke: rgba(17, 132, 207, .14); stroke-width: 30px; }
-.road-surface { stroke: url(#roadGrad); stroke-width: 14px; opacity: .9; }
-.road-line { stroke: rgba(255, 255, 255, .85); stroke-width: 2px; stroke-dasharray: 6 10; }
+.road-edge { stroke: var(--road-edge); stroke-width: 24px; stroke-linejoin: round; }
+.road-surface { stroke: var(--road-surface); stroke-width: 18px; stroke-linejoin: round; }
+.road-line { stroke: var(--road-line); stroke-width: 2px; stroke-dasharray: 6 9; }
+:root { --road-edge: #dfe6f5; --road-surface: #f1f4fb; --road-line: #c3cee6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --road-edge: #1e2b48; --road-surface: #172238; --road-line: #34466f; } }
+:root[data-theme="dark"] { --road-edge: #1e2b48; --road-surface: #172238; --road-line: #34466f; }
 .road-stops { position: relative; list-style: none; margin: 0; padding: 0; }
 .road-stop { position: relative; height: var(--road-row); transition: opacity .2s; }
 .road-stop.dim { opacity: .2; }
