@@ -631,11 +631,16 @@
       }).join('') + '</ul>' : '') +
       (ch.figure.caption ? '<figcaption>' + escapeHtml(ch.figure.caption) + '</figcaption>' : '') + '</figure>';
   }
+  // Timelines are drawn as a comic strip: each event is a panel with a
+  // yellow date caption, an "art" strip (Noto emoji on halftone dots) when
+  // the row has a 3rd element, and the text in body size.
   function timelineHtml(ch) {
     if (!ch.timeline) return '';
-    return '<section class="entry-card timeline-card"><h3 class="block-heading">' + escapeHtml(ch.timelineTitle || 'Dòng thời gian') + '</h3><ol class="timeline">' +
-      ch.timeline.map(function (r) {
-        return '<li><span class="tl-time">' + escapeHtml(r[0]) + '</span><span class="tl-text">' + escapeHtml(r[1]) + '</span></li>';
+    return '<section class="entry-card timeline-card"><h3 class="block-heading">' + escapeHtml(ch.timelineTitle || 'Dòng thời gian') + '</h3>' +
+      '<ol class="comic">' + ch.timeline.map(function (r) {
+        return '<li class="comic-panel"><span class="comic-cap">' + escapeHtml(r[0]) + '</span>' +
+          (r[2] ? '<span class="comic-art"><img src="' + NOTO_EMOJI_BASE + emojiCode(r[2]) + '/emoji.svg" alt="" loading="lazy" draggable="false"></span>' : '') +
+          '<span class="comic-text">' + escapeHtml(r[1]) + '</span></li>';
       }).join('') + '</ol></section>';
   }
 
