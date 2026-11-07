@@ -578,38 +578,55 @@
   }
 
   // Dynasty road map (`dynasties: [...]` on an entry). Each item:
-  // { name, from, to, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
+  // { name, from, to, count?, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
   // years negative = TCN; `years` is the book's own wording, not computed.
   // Top: a proportional strip (from the 2nd item; Hồng Bàng is far too long).
-  // Below: a winding road, one milestone per item, alternating sides; the
-  // road is one SVG path behind the list, drawn by drawRoad().
+  // Below: a serpentine road with the milestones on its horizontal runs,
+  // laid out and drawn by drawRoad().
   // Tapping a strip band or a milestone fills the floating detail card.
   function fmtYear(y) { return y < 0 ? (-y) + ' TCN' : String(y); }
-  var ROAD_X = [14, 86];   // milestone x (% of width), alternating
-  // Right-angle road with rounded corners, drawn in real pixels after render
-  // (and on resize) so the corner radius stays larger than half the road
-  // width and both edges of every turn are round.
-  var ROAD_R = 30;
+  // Serpentine road drawn in real pixels after render (and on resize):
+  // horizontal runs joined by rounded U-turns at alternating sides, two
+  // milestones per run (at 28% / 72%), each name card above its milestone.
+  // Stops are absolutely positioned here; the SVG path follows them.
   function drawRoad() {
     var track = readerEl.querySelector('.road-track');
     if (!track) return;
     var stops = track.querySelectorAll('.road-stop'), n = stops.length;
     if (!n) return;
-    var W = track.clientWidth, rowH = stops[0].offsetHeight, H = n * rowH;
-    var R = Math.min(ROAD_R, rowH / 2 - 6, W * (ROAD_X[1] - ROAD_X[0]) / 200);
-    var x = function (i) { return W * ROAD_X[i % 2] / 100; };
-    var d = 'M' + x(0) + ',0';
-    for (var i = 0; i < n - 1; i++) {
-      var xa = x(i), xb = x(i + 1), ym = (i + 1) * rowH, dir = xb > xa ? 1 : -1;
-      d += ' L' + xa + ',' + (ym - R) +
-        ' A' + R + ',' + R + ' 0 0 ' + (dir > 0 ? 0 : 1) + ' ' + (xa + dir * R) + ',' + ym +
-        ' L' + (xb - dir * R) + ',' + ym +
-        ' A' + R + ',' + R + ' 0 0 ' + (dir > 0 ? 1 : 0) + ' ' + xb + ',' + (ym + R);
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var W = track.clientWidth, rows = Math.ceil(n / 2);
+    track.style.setProperty('--lab-w', Math.round(W * 0.43) + 'px');
+    // Each row is as tall as its tallest name card + the pin + a gap, so
+    // cards never reach the row above. Road y = that row's pin centre.
+    var ys = [], y = 0;
+    for (var row = 0; row < rows; row++) {
+      var hmax = 0;
+      for (var k = row * 2; k < Math.min(n, row * 2 + 2); k++) hmax = Math.max(hmax, stops[k].querySelector('.road-label').offsetHeight);
+      y += hmax + 3.6 * rem;
+      ys.push(y);
     }
-    d += ' L' + x(n - 1) + ',' + H;
+    var H = y + 1.8 * rem, rMax = 0;
+    for (row = 0; row < rows - 1; row++) rMax = Math.max(rMax, (ys[row + 1] - ys[row]) / 2);
+    var m = Math.min(rMax + 10, W * 0.24), edge = Math.min(m, W * 0.05);
+    track.style.height = H + 'px';
+    Array.prototype.forEach.call(stops, function (li, k) {
+      var row = Math.floor(k / 2), ltr = row % 2 === 0, slot = k % 2;
+      li.style.left = (W * ((ltr ? !slot : slot) ? 0.28 : 0.72)) + 'px';
+      li.style.top = ys[row] + 'px';
+    });
+    var d = 'M' + edge + ',' + ys[0];
+    for (row = 0; row < rows; row++) {
+      var ltr = row % 2 === 0;
+      if (row === rows - 1) { d += ' L' + (ltr ? W - edge : edge) + ',' + ys[row]; break; }
+      var r = (ys[row + 1] - ys[row]) / 2, x = ltr ? W - m : m;
+      d += ' L' + x + ',' + ys[row] + ' A' + r + ',' + r + ' 0 0 ' + (ltr ? 1 : 0) + ' ' + x + ',' + ys[row + 1];
+    }
     var svg = track.querySelector('.road-svg');
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     Array.prototype.forEach.call(svg.querySelectorAll('path'), function (p) { p.setAttribute('d', d); });
+    var end = track.parentNode.querySelector('.road-end:not(.road-start)');
+    if (end) end.classList.toggle('road-end-l', rows % 2 === 0);
   }
   window.addEventListener('resize', drawRoad);
   function dynastiesHtml(ch) {
@@ -626,11 +643,12 @@
       return '<span style="left:' + pct(y) + '%">' + fmtYear(y) + '</span>';
     }).join('');
     var stops = D.map(function (d, i) {
-      return '<li class="road-stop road-' + (i % 2 ? 'r' : 'l') + ' dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
+      return '<li class="road-stop dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
         '<button type="button" class="road-pin" data-dyn="' + i + '" aria-label="' + escapeAttr(d.name) + '">' + (i + 1) + '</button>' +
         '<button type="button" class="road-label" data-dyn="' + i + '">' +
           '<span class="road-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</span>' +
           '<span class="road-name">' + escapeHtml(d.name) + '</span>' +
+          (d.count ? '<span class="road-count">' + escapeHtml(d.count) + '</span>' : '') +
         '</button></li>';
     }).join('');
     return '<section class="entry-card dyn-card">' +

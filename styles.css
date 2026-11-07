@@ -981,13 +981,13 @@ body {
 }
 .dyn-axis span:first-child { transform: none; }
 .dyn-hint { margin: .6rem 0 1rem; font: .82rem/1.4 var(--font-ui); color: var(--ink-faint); }
-/* The road: a light right-angle SVG path (pale surface, soft edge, dashed centre line)
-   stretched behind the stops (each stop is --road-row tall = 10 SVG units).
-   Milestones alternate left/right; labels are small floating cards. */
-.road { --road-row: 6.2rem; margin-top: .6rem; }
+/* The road: a light serpentine SVG path (pale surface, soft edge, dashed centre
+   line) drawn by drawRoad(); milestones sit on its horizontal runs with a
+   name card above each. */
+.road { margin-top: .6rem; }
 .road-end {
   width: max-content;
-  margin: 0 0 0 calc(14% - 2.6rem);
+  margin: 0 0 0 .5rem;
   padding: .3rem .85rem;
   border-radius: 999px;
   background: linear-gradient(1deg, #434BD7, #1184CF 99%);
@@ -997,7 +997,8 @@ body {
   text-transform: uppercase;
   box-shadow: 0 4px 14px rgba(17, 132, 207, .3);
 }
-.road-end:not(.road-start) { margin: 0 calc(14% - 2.6rem) 0 auto; }
+.road-end:not(.road-start) { margin: 0 .5rem 0 auto; }
+.road-end.road-end-l { margin: 0 auto 0 .5rem; }
 .road-track { position: relative; margin: .2rem 0; }
 .road-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .road-svg path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
@@ -1007,27 +1008,25 @@ body {
 :root { --road-edge: #dfe6f5; --road-surface: #f1f4fb; --road-line: #c3cee6; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --road-edge: #1e2b48; --road-surface: #172238; --road-line: #34466f; } }
 :root[data-theme="dark"] { --road-edge: #1e2b48; --road-surface: #172238; --road-line: #34466f; }
-.road-stops { position: relative; list-style: none; margin: 0; padding: 0; }
-.road-stop { position: relative; height: var(--road-row); transition: opacity .2s; }
+.road-stops { position: absolute; inset: 0; list-style: none; margin: 0; padding: 0; }
+/* drawRoad() sets each stop's left/top to its milestone's centre on the road. */
+.road-stop { position: absolute; width: 0; height: 0; transition: opacity .2s; }
 .road-stop.dim { opacity: .2; }
 .road-pin {
   position: absolute;
-  top: 50%;
-  left: 14%;
   z-index: 1;
-  width: 2.6rem;
-  height: 2.6rem;
-  margin: -1.3rem 0 0 -1.3rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: -1.25rem 0 0 -1.25rem;
   padding: 0;
   border: 3px solid var(--card);
   border-radius: 50%;
   color: #fff;
-  font: 800 .9rem/1 var(--font-ui);
+  font: 800 .88rem/1 var(--font-ui);
   box-shadow: 0 6px 16px rgba(15, 27, 51, .28);
   cursor: pointer;
   transition: transform .2s, box-shadow .2s;
 }
-.road-r .road-pin { left: 86%; }
 .dyn-ky .road-pin { background: linear-gradient(135deg, #1184CF, #434BD7); }
 .dyn-thuoc .road-pin { background: linear-gradient(135deg, #f2bd56, #cf8a1c); }
 .road-pin:hover { transform: scale(1.1); }
@@ -1035,34 +1034,46 @@ body {
   transform: scale(1.2);
   box-shadow: 0 0 0 5px rgba(17, 132, 207, .22), 0 8px 20px rgba(15, 27, 51, .3);
 }
+/* Name card: centred above its milestone, max ~42% of the road width. */
 .road-label {
   position: absolute;
-  top: 50%;
-  left: calc(14% + 2rem);
-  max-width: calc(86% - 2.6rem);
-  transform: translateY(-50%);
-  padding: .5rem .85rem .55rem;
+  bottom: 1.85rem;
+  left: 0;
+  width: max-content;
+  max-width: var(--lab-w, 9rem);
+  transform: translateX(-50%);
+  padding: .45rem .75rem .5rem;
   border: 1px solid var(--note-border);
-  border-radius: 14px;
+  border-top: 3px solid #1184CF;
+  border-radius: 12px;
   background: var(--card);
   box-shadow: var(--note-shadow);
   color: var(--ink);
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: transform .2s, border-color .2s, box-shadow .2s;
 }
-.road-r .road-label { left: auto; right: calc(14% + 2rem); text-align: right; }
-.road-l .road-label { border-left: 4px solid #1184CF; }
-.road-r .road-label { border-right: 4px solid #1184CF; }
-.dyn-thuoc .road-label { border-left-color: #e0a43a; border-right-color: #e0a43a; }
-.road-l.dyn-thuoc .road-label { border-right-color: var(--note-border); }
-.road-r.dyn-thuoc .road-label { border-left-color: var(--note-border); }
-.road-label:hover { transform: translateY(calc(-50% - 2px)); }
+.dyn-thuoc .road-label { border-top-color: #e0a43a; }
+/* small tail pointing down at the card's own milestone */
+.road-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border-right: 1px solid var(--note-border);
+  border-bottom: 1px solid var(--note-border);
+  transform: translateX(-50%) rotate(45deg);
+}
+.road-stop.active .road-label::after { border-color: var(--accent); }
+.road-label:hover { transform: translate(-50%, -2px); }
 .road-stop.active .road-label { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft-bg), var(--note-shadow); }
 .road-years {
   display: block;
-  font: 700 .72rem/1.3 var(--font-ui);
-  letter-spacing: .05em;
+  font: 700 .7rem/1.3 var(--font-ui);
+  letter-spacing: .04em;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
@@ -1070,8 +1081,19 @@ body {
 .road-name {
   display: block;
   margin-top: .1rem;
-  font: 700 calc(1.05rem * var(--text-scale, 1))/1.25 var(--font-body);
+  font: 700 calc(1rem * var(--text-scale, 1))/1.25 var(--font-body);
 }
+.road-count {
+  display: inline-block;
+  margin-top: .3rem;
+  padding: .05rem .5rem;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  font: 700 .7rem/1.5 var(--font-ui);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.dyn-thuoc .road-count { background: rgba(224, 164, 58, .15); color: #b8730c; }
 /* Detail: a frosted bottom sheet over the reading column, above the
    floating nav circles / chat button on phones. */
 .road-detail {
