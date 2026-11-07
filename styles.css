@@ -1179,6 +1179,16 @@ body {
   cursor: pointer;
 }
 
+/* Poem (lục bát): centred column, lục lines indented like the printed book. */
+.poem { width: max-content; max-width: 100%; margin: 0 auto; }
+.poem p {
+  margin: 0;
+  font-size: calc(1.22rem * var(--text-scale, 1));
+  line-height: 1.85;
+  color: var(--ink);
+}
+.poem .poem-luc { padding-left: 1.6em; }
+.poem .poem-bat:nth-child(8n) { margin-bottom: .9em; }   /* breathing space every 4 couplets */
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);

@@ -571,7 +571,7 @@
   }
   function timelineHtml(ch) {
     if (!ch.timeline) return '';
-    return '<section class="entry-card timeline-card"><h3 class="block-heading">Dòng thời gian</h3><ol class="timeline">' +
+    return '<section class="entry-card timeline-card"><h3 class="block-heading">' + escapeHtml(ch.timelineTitle || 'Dòng thời gian') + '</h3><ol class="timeline">' +
       ch.timeline.map(function (r) {
         return '<li><span class="tl-time">' + escapeHtml(r[0]) + '</span><span class="tl-text">' + escapeHtml(r[1]) + '</span></li>';
       }).join('') + '</ol></section>';
@@ -667,7 +667,7 @@
           '</svg>' +
           '<ol class="road-stops">' + stops + '</ol>' +
         '</div>' +
-        '<p class="road-end">Toàn thư dừng ở năm 1675</p>' +
+        '<p class="road-end">' + escapeHtml(ch.roadEnd || 'Kết thúc') + '</p>' +
       '</div>' +
       '<div class="road-detail" hidden></div>' +
     '</section>';
@@ -738,6 +738,13 @@
     html += '</header>';
 
     html += factsHtml(ch);
+    // Poems (`poem: [lines]`, lục bát): one line per row, lục lines indented.
+    if (ch.poem) {
+      html += '<section class="entry-card poem-card"><div class="poem">' + ch.poem.map(function (l, i) {
+        return '<p class="' + (i % 2 ? 'poem-bat' : 'poem-luc') + '">' + escapeHtml(l) + '</p>';
+      }).join('') + '</div></section>';
+      if (!ch.intro) html += noteHtml(ch);
+    }
 
     // Simple chapters: a flat "intro" array of paragraphs, in one card.
     if (ch.intro) {
@@ -4604,7 +4611,7 @@
     _topic = t;
     chapters = TOPICS[t].list;
     if (mastheadTitleEl) mastheadTitleEl.textContent = TOPICS[t].title;
-    if (mastheadCountEl) mastheadCountEl.textContent = chapters.length + ' chương';
+    if (mastheadCountEl) mastheadCountEl.textContent = chapters.filter(function (c) { return !c.pin; }).length + ' chương';
     if (topicTabsEl) Array.prototype.forEach.call(topicTabsEl.children, function (b, i) {
       b.setAttribute('aria-selected', String(i === t));
     });
