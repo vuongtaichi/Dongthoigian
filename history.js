@@ -77,13 +77,16 @@ const suViet = [
       { name: "Nhà Tây Sơn", kings: "3 vua: Nguyễn Nhạc (Thái Đức), Nguyễn Huệ (Quang Trung), Nguyễn Quang Toản (Cảnh Thịnh)", count: "~24 năm", from: 1778, to: 1802, years: "Khoảng 24 năm (tính từ 1778 đến 1802)", kind: "ky", lane: "top",
         note: "Kinh đô: Phú Xuân (Huế). Theo bảng phụ lục của Việt sử toàn thư.",
         src: VST + "517" },
-      { name: "Nhà Nguyễn", kings: "13 vua, từ Gia Long đến Bảo Đại", count: "~143 năm", from: 1802, to: 1945, years: "Khoảng 143 năm (tính từ 1802 đến 1945)", kind: "ky",
+      { name: "Nhà Nguyễn", kings: "13 vua, từ Gia Long đến Bảo Đại", count: "~143 năm", from: 1802, to: 1945, years: "Khoảng 143 năm (tính từ 1802 đến 1945)", kind: "ky", lane: "top",
         note: "Quốc hiệu: Việt Nam, Đại Nam (từ Minh Mạng). Kinh đô: Huế. Theo bảng phụ lục của Việt sử toàn thư.",
         src: VST + "518" },
+      { name: "Chống Pháp xâm lược (trước 1945)", count: "~87 năm", from: 1858, to: 1945, years: "Khoảng 87 năm (từ 1858 đến 1945)", kind: "khang", lane: "bot",
+        note: "Năm 1858 (Tự Đức năm thứ 11), thực dân Pháp nổ súng tấn công Đà Nẵng, bắt đầu cuộc chiến tranh xâm lược. Khi nhà vua rời kinh thành ra hịch hiệu triệu thần dân kháng chiến, các cuộc khởi nghĩa Cần Vương nổi lên khắp nơi: Phan Đình Phùng ở Nghệ Tĩnh, Đinh Công Tráng ở Ba Đình, Nguyễn Thiện Thuật ở Bắc Kỳ, Hoàng Hoa Thám ở vùng Yên Thế… Năm 1930, Việt Nam Quốc dân Đảng khởi nghĩa ở Yên Bái ngày 10/2 nhưng thất bại; cùng năm có khởi nghĩa ở Nghệ An. Năm 1940 nổ ra khởi nghĩa Bắc Sơn, Đô Lương và Nam Kỳ (23/11/1940).",
+        src: "Chú thích của ban biên tập bài thơ Lịch sử nước ta (bản in stbook.vn, tr. 18, 24) và bảng Những năm quan trọng; " + VST + "468, 487" },
       { name: "Cách mạng tháng Tám", from: 1945, to: 1945, years: "Tháng 8 – tháng 9/1945", kind: "khang",
         note: "Nhật đầu hàng Đồng Minh ngày 13/8/1945. Mặt trận Việt Minh tổ chức các cuộc biểu tình từ ngày 15/8 đến ngày 19/8/1945. Ngày 25/8, vua Bảo Đại thoái vị; chính phủ lâm thời do Hồ Chí Minh làm chủ tịch ra mắt quốc dân ngày 2/9/1945.",
         src: VST + "490–491; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 32" },
-      { name: "Kháng chiến chống Pháp", count: "~8 năm", from: 1946, to: 1954, years: "Khoảng 8 năm (từ 19/12/1946 đến 7/1954)", kind: "khang",
+      { name: "Kháng chiến toàn quốc chống Pháp", count: "~8 năm", from: 1946, to: 1954, years: "Khoảng 8 năm (từ 19/12/1946 đến 7/1954)", kind: "khang",
         note: "Cuộc xung đột Việt – Pháp nổ ra đêm 19/12/1946. Đường lối kháng chiến: “toàn dân, toàn diện và trường kỳ”. Trận Điện Biên Phủ kết thúc ngày 7/5/1954. Đêm 20/7/1954 ký Hiệp định Genève, lấy vĩ tuyến 17 (sông Bến Hải) làm đường phân ranh quân sự tạm thời.",
         src: VST + "492, 497; Võ Nguyên Giáp, Điện Biên Phủ – Điểm hẹn lịch sử (bản PDF), tr. 325" }
     ]
