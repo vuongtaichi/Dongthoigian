@@ -869,11 +869,12 @@
     return '<span class="avatar-wrap">' + avatarHtml(name, url, id, cls, idx) +
       flagHtml(country, 'avatar-flag') + '</span>';
   }
-  // id → country for the given profile ids, merged into `into`. Quietly does
-  // nothing until the profiles.country column exists.
+  // id → country for the given profile ids, merged into `into`. Admin pages
+  // only: the column isn't readable directly, so this goes through the
+  // admin_countries RPC and quietly does nothing for anyone else.
   function loadCountries(ids, into, done) {
     if (!sb || !ids.length) { if (done) done(); return; }
-    sb.from('profiles').select('id, country').in('id', ids).then(function (res) {
+    sb.rpc('admin_countries', { p_ids: ids }).then(function (res) {
       if (res && !res.error && res.data) {
         res.data.forEach(function (r) { if (r.country) into[r.id] = String(r.country).toUpperCase(); });
       }
@@ -1611,7 +1612,8 @@
 
   var ADMIN_EMAIL = 'dongthoigian2727@gmail.com';
   function nameLooksLikeAdmin(name, email) {
-    return /admin|quản trị/i.test(name) && (email || '').toLowerCase() !== ADMIN_EMAIL;
+    // same rule as enforce_display_name in comments-setup.sql ("badminton" is fine)
+    return /\badmin\b|qu[aả]n tr[iị]/i.test(name.normalize('NFC')) &&(email || '').toLowerCase() !== ADMIN_EMAIL;
   }
 
   function onProfileSave() {
@@ -2462,8 +2464,8 @@
   // for authors + reactors.
   function loadInboxThreads() {
     if (!sb || !authUser || !authUser.isAdmin) return;
-    sb.from('messages').select('thread_user_id, sender_id, body, created_at, deleted')
-      .order('created_at', { ascending: false }).limit(500)
+    // newest message of every thread, newest first (admin-only RPC)
+    sb.rpc('admin_inbox_threads')
       .then(function (res) {
         var rows = (res && res.data) || [];
         var seen = {};
@@ -3703,7 +3705,8 @@
       .select('*')
       .eq('chapter_id', chapterId)
       .eq('approved', true)
-      .order('created_at', { ascending: true })
+      // newest 600 (so a busy chapter never hides new comments), reversed below
+      .order('created_at', { ascending: false })
       .limit(600)
       .then(function (res) {
         if (token !== engToken) return;
@@ -3714,7 +3717,7 @@
           list2.innerHTML = '<li class="comment-empty">Không tải được bình luận.</li>';
           return;
         }
-        var rows = res.data || [];
+        var rows = (res.data || []).reverse();
         if (titleEl) setCommentsTitle(titleEl, rows.length);
         if (!rows.length) {
           list2.innerHTML = '<li class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</li>';

@@ -69,8 +69,12 @@
 
   <!-- Comments + reactions backend (Supabase). The widgets only appear once
        supabase-config.js has real credentials filled in; otherwise the site
-       behaves exactly as before. Not included in the Claude Artifact build. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+       behaves exactly as before. Not included in the Claude Artifact build.
+       Pinned to one exact file + integrity hash: to upgrade, change the
+       version and recompute the sha384 of the new file. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"
+          integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK"
+          crossorigin="anonymous"></script>
   <script src="supabase-config.js"></script>
 
   <!-- app.js renders the sidebar + reader and wires up navigation -->
