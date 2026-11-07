@@ -922,6 +922,221 @@ body {
   font: .85rem/1.4 var(--font-ui);
   color: var(--ink-soft);
 }
+/* Dynasty overview (dynastiesHtml): blue = a dynasty's own "kỷ",
+   amber = "thời thuộc" periods. */
+:root { --dyn-ky: linear-gradient(90deg, #1184CF, #434BD7); --dyn-thuoc: #d9a441; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dyn-ky: linear-gradient(90deg, #4aa3e8, #7b83f0); --dyn-thuoc: #c9973c; } }
+:root[data-theme="dark"] { --dyn-ky: linear-gradient(90deg, #4aa3e8, #7b83f0); --dyn-thuoc: #c9973c; }
+.dyn-swatch {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: .8rem;
+  height: .8rem;
+  border-radius: 4px;
+}
+.dyn-ky .dyn-swatch, .dyn-swatch.dyn-ky, .dyn-seg.dyn-ky { background: var(--dyn-ky); }
+.dyn-thuoc .dyn-swatch, .dyn-swatch.dyn-thuoc, .dyn-seg.dyn-thuoc { background: var(--dyn-thuoc); }
+.dyn-filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.1rem; }
+.dyn-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .85rem;
+  border: 1px solid var(--note-border);
+  border-radius: 999px;
+  background: var(--note-bg);
+  color: var(--ink-soft);
+  font: 600 .85rem/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.dyn-filter[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft-bg); }
+.dyn-strip {
+  position: relative;
+  height: 2.2rem;
+  border-radius: 10px;
+  background: var(--note-bg);
+  overflow: hidden;
+}
+.dyn-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--card);
+  cursor: pointer;
+  transition: opacity .15s, transform .15s;
+}
+.dyn-seg.dyn-top { bottom: 50%; }   /* overlapping periods share the strip */
+.dyn-seg.dyn-bot { top: 50%; }
+.dyn-seg.dim { opacity: .18; }
+.dyn-seg.active { transform: scaleY(1.0); box-shadow: inset 0 0 0 3px var(--ink); z-index: 1; }
+.dyn-axis { position: relative; height: 1.3rem; margin: .3rem 0 0; }
+.dyn-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+  font: .72rem/1.2 var(--font-ui);
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.dyn-axis span:first-child { transform: none; }
+.dyn-hint { margin: .6rem 0 1rem; font: .82rem/1.4 var(--font-ui); color: var(--ink-faint); }
+/* The road: an SVG path (brand gradient + soft glow + dashed centre line)
+   stretched behind the stops (each stop is --road-row tall = 10 SVG units).
+   Milestones alternate left/right; labels are small floating cards. */
+.road { --road-row: 6.2rem; margin-top: .6rem; }
+.road-end {
+  width: max-content;
+  margin: 0 0 0 calc(14% - 2.6rem);
+  padding: .3rem .85rem;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font: 700 .72rem/1.3 var(--font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(17, 132, 207, .3);
+}
+.road-end:not(.road-start) { margin: 0 calc(14% - 2.6rem) 0 auto; }
+.road-track { position: relative; margin: .2rem 0; }
+.road-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.road-svg path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.road-edge { stroke: rgba(17, 132, 207, .14); stroke-width: 30px; }
+.road-surface { stroke: url(#roadGrad); stroke-width: 14px; opacity: .9; }
+.road-line { stroke: rgba(255, 255, 255, .85); stroke-width: 2px; stroke-dasharray: 6 10; }
+.road-stops { position: relative; list-style: none; margin: 0; padding: 0; }
+.road-stop { position: relative; height: var(--road-row); transition: opacity .2s; }
+.road-stop.dim { opacity: .2; }
+.road-pin {
+  position: absolute;
+  top: 50%;
+  left: 14%;
+  z-index: 1;
+  width: 2.6rem;
+  height: 2.6rem;
+  margin: -1.3rem 0 0 -1.3rem;
+  padding: 0;
+  border: 3px solid var(--card);
+  border-radius: 50%;
+  color: #fff;
+  font: 800 .9rem/1 var(--font-ui);
+  box-shadow: 0 6px 16px rgba(15, 27, 51, .28);
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+.road-r .road-pin { left: 86%; }
+.dyn-ky .road-pin { background: linear-gradient(135deg, #1184CF, #434BD7); }
+.dyn-thuoc .road-pin { background: linear-gradient(135deg, #f2bd56, #cf8a1c); }
+.road-pin:hover { transform: scale(1.1); }
+.road-stop.active .road-pin {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 5px rgba(17, 132, 207, .22), 0 8px 20px rgba(15, 27, 51, .3);
+}
+.road-label {
+  position: absolute;
+  top: 50%;
+  left: calc(14% + 2rem);
+  max-width: calc(86% - 2.6rem);
+  transform: translateY(-50%);
+  padding: .5rem .85rem .55rem;
+  border: 1px solid var(--note-border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--note-shadow);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.road-r .road-label { left: auto; right: calc(14% + 2rem); text-align: right; }
+.road-l .road-label { border-left: 4px solid #1184CF; }
+.road-r .road-label { border-right: 4px solid #1184CF; }
+.dyn-thuoc .road-label { border-left-color: #e0a43a; border-right-color: #e0a43a; }
+.road-l.dyn-thuoc .road-label { border-right-color: var(--note-border); }
+.road-r.dyn-thuoc .road-label { border-left-color: var(--note-border); }
+.road-label:hover { transform: translateY(calc(-50% - 2px)); }
+.road-stop.active .road-label { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft-bg), var(--note-shadow); }
+.road-years {
+  display: block;
+  font: 700 .72rem/1.3 var(--font-ui);
+  letter-spacing: .05em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.dyn-thuoc .road-years { color: #c27e13; }
+.road-name {
+  display: block;
+  margin-top: .1rem;
+  font: 700 calc(1.05rem * var(--text-scale, 1))/1.25 var(--font-body);
+}
+/* Detail: a frosted bottom sheet over the reading column, above the
+   floating nav circles / chat button on phones. */
+.road-detail {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  z-index: 60;
+  width: min(36rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  padding: 1rem 1.15rem 1.1rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--note-border);
+  box-shadow: var(--panel-shadow);
+  animation: road-up .22s ease-out;
+}
+.road-detail::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(90deg, #1184CF, #434BD7);
+}
+.road-detail.dyn-thuoc::before { background: linear-gradient(90deg, #f2bd56, #cf8a1c); }
+@keyframes road-up { from { opacity: 0; transform: translate(-50%, 1rem); } }
+@media (min-width: 861px) { .road-detail { left: calc(50% + 181px); } }   /* centre on the reader, not under the sidebar */
+@media (max-width: 860px) { .road-detail { bottom: 5.6rem; } }
+.road-close {
+  float: right;
+  width: 2rem;
+  height: 2rem;
+  margin: -.3rem -.4rem 0 .5rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--note-bg);
+  color: var(--ink-soft);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.road-d-years { margin: 0; font: 700 .78rem/1.3 var(--font-ui); letter-spacing: .06em; color: var(--accent); }
+.road-detail.dyn-thuoc .road-d-years { color: #c27e13; }
+.road-d-name { margin: .15rem 0 .35rem; font: 700 1.3rem/1.25 var(--font-body); color: var(--ink); }
+.road-d-count {
+  display: inline-block;
+  margin: 0 0 .5rem;
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  background: var(--accent-soft-bg);
+  font: 600 .82rem/1.4 var(--font-ui);
+  color: var(--accent);
+}
+.road-d-note { margin: 0 0 .5rem; font-size: calc(1.05rem * var(--text-scale, 1)); line-height: 1.55; color: var(--ink); }
+.dyn-src { margin: 0; font: .78rem/1.4 var(--font-ui); color: var(--ink-faint); }
+.dyn-open {
+  margin-top: .6rem;
+  padding: .35rem .9rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(1deg, #434BD7, #1184CF 99%);
+  color: #fff;
+  font: 600 .85rem/1.2 var(--font-ui);
+  cursor: pointer;
+}
+
 .source-line {
   margin: 1.2rem .25rem 0;
   font: .85rem/1.5 var(--font-ui);

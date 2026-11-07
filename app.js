@@ -279,25 +279,39 @@
   // Flat searchable text blob per chapter, built once — chapter number and
   // title only (not body content). Both "1" and the zero-padded "01" shown
   // in the sidebar are indexed, so typing either form matches.
-  function chapterSearchText(ch, idx) {
-    var num = String(idx + 1);
-    var padded = num.padStart(2, '0');
-    var parts = [num, padded, 'chương ' + num, 'chương ' + padded, ch.title];
+  function chapterSearchText(ch) {
+    var padded = ch._num;
+    var num = String(Number(padded));
+    var parts = padded ? [num, padded, 'chương ' + num, 'chương ' + padded, ch.title] : [ch.pin, ch.title];
     if (ch.subentries) {
       ch.subentries.forEach(function (se) { parts.push(se.heading); });
     }
     return parts.join(' ␟ ').toLowerCase();
   }
 
-  TOPICS.forEach(function (t) { t.list.forEach(function (ch, idx) { ch._search = chapterSearchText(ch, idx); }); });
+  // Entries with `pin: "label"` (Sử Việt's overview pages) sit above chapter
+  // 01 unnumbered, showing the label instead of "Chương NN"; `_num` is the
+  // zero-padded chapter number of every other entry.
+  TOPICS.forEach(function (t) {
+    var n = 0;
+    t.list.forEach(function (ch) {
+      ch._num = ch.pin ? '' : String(++n).padStart(2, '0');
+      ch._search = chapterSearchText(ch);
+    });
+  });
+  function kickerOf(ch) { return ch.pin || 'Chương ' + ch._num; }
+  var PIN_ICONS = {
+    chart: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M3 5h8v3H3zm5 5.5h9v3H8zm6 5.5h7v3h-7z"/></svg>',
+    poem: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.7 3.3a4 4 0 0 0-5.6 0L6 12.4V18h5.6l9.1-9.1a4 4 0 0 0 0-5.6zM10.8 16H8v-2.8l6-6L16.8 10zM4 20h16v2H4z"/></svg>'
+  };
 
   // Both topics' items are built once; applySearch() shows only the active
   // topic's, so the pinned items and view counts survive a topic switch.
   function buildTOC() {
     tocEl.innerHTML = TOPICS.map(function (t, ti) { return t.list.map(function (ch, i) {
-      var num = String(i + 1).padStart(2, '0');
       return '<li><button class="toc-item" data-id="' + ch.id + '" data-index="' + i + '" data-topic="' + ti + '">' +
-        '<span class="toc-num">' + num + '</span>' +
+        (ch.pin ? '<span class="toc-num toc-num-icon" aria-hidden="true">' + (PIN_ICONS[ch.icon] || '') + '</span>'
+                : '<span class="toc-num">' + ch._num + '</span>') +
         '<span class="toc-text"><span class="toc-title">' + escapeHtml(ch.title) + '</span></span>' +
         '<span class="toc-views" data-id="' + ch.id + '" hidden></span>' +
         '</button></li>';
@@ -437,8 +451,8 @@
     var nb = nav.querySelector('.next');
     pb.disabled = !prev;
     nb.disabled = !next;
-    pb.title = prev ? 'Chương ' + String(idx).padStart(2, '0') + ': ' + prev.title : '';
-    nb.title = next ? 'Chương ' + String(idx + 2).padStart(2, '0') + ': ' + next.title : '';
+    pb.title = prev ? kickerOf(prev) + ': ' + prev.title : '';
+    nb.title = next ? kickerOf(next) + ': ' + next.title : '';
   }
 
   // White "×" drawn as two strokes, for the red round close buttons on every
@@ -523,7 +537,7 @@
     document.body.classList.remove('chapter-bar-on');
     bar.hidden = idx < 0;
     if (idx < 0) return;
-    bar.querySelector('.chapter-bar-kicker').textContent = 'Chương ' + String(idx + 1).padStart(2, '0');
+    bar.querySelector('.chapter-bar-kicker').textContent = kickerOf(chapters[idx]);
     bar.querySelector('.chapter-bar-title').textContent = chapters[idx].title;
   }
 
@@ -563,6 +577,109 @@
       }).join('') + '</ol></section>';
   }
 
+  // Dynasty road map (`dynasties: [...]` on an entry). Each item:
+  // { name, from, to, years, kind: 'ky'|'thuoc', lane?, note?, src, ch? } —
+  // years negative = TCN; `years` is the book's own wording, not computed.
+  // Top: a proportional strip (from the 2nd item; Hồng Bàng is far too long).
+  // Below: a winding road, one milestone per item, alternating sides; the
+  // road is one SVG path stretched over the list (10 units per stop).
+  // Tapping a strip band or a milestone fills the floating detail card.
+  function fmtYear(y) { return y < 0 ? (-y) + ' TCN' : String(y); }
+  var ROAD_X = [14, 86];   // milestone x (% of width), alternating
+  function roadPath(n) {
+    var x = function (i) { return ROAD_X[i % 2]; };
+    var d = 'M' + x(0) + ',0 L' + x(0) + ',5';
+    for (var i = 0; i < n - 1; i++) {
+      var y0 = i * 10 + 5, y1 = y0 + 10;
+      d += ' C' + x(i) + ',' + (y0 + 6) + ' ' + x(i + 1) + ',' + (y1 - 6) + ' ' + x(i + 1) + ',' + y1;
+    }
+    return d + ' L' + x(n - 1) + ',' + (n * 10);
+  }
+  function dynastiesHtml(ch) {
+    var D = ch.dynasties;
+    if (!D) return '';
+    var lo = D[1].from, hi = D[D.length - 1].to, span = hi - lo;
+    var pct = function (y) { return ((y - lo) / span * 100).toFixed(2); };
+    var strip = D.slice(1).map(function (d, k) {
+      return '<button type="button" class="dyn-seg dyn-' + d.kind + (d.lane ? ' dyn-' + d.lane : '') + '" data-dyn="' + (k + 1) + '" ' +
+        'style="left:' + pct(d.from) + '%;width:' + Math.max(0.6, (d.to - d.from + 1) / span * 100).toFixed(2) + '%" ' +
+        'aria-label="' + escapeAttr(d.name + ', ' + fmtYear(d.from) + '–' + fmtYear(d.to)) + '"></button>';
+    }).join('');
+    var ticks = [lo, 500, 1000, 1500].map(function (y) {
+      return '<span style="left:' + pct(y) + '%">' + fmtYear(y) + '</span>';
+    }).join('');
+    var path = roadPath(D.length), h = D.length * 10;
+    var stops = D.map(function (d, i) {
+      return '<li class="road-stop road-' + (i % 2 ? 'r' : 'l') + ' dyn-' + d.kind + '" data-kind="' + d.kind + '">' +
+        '<button type="button" class="road-pin" data-dyn="' + i + '" aria-label="' + escapeAttr(d.name) + '">' + (i + 1) + '</button>' +
+        '<button type="button" class="road-label" data-dyn="' + i + '">' +
+          '<span class="road-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</span>' +
+          '<span class="road-name">' + escapeHtml(d.name) + '</span>' +
+        '</button></li>';
+    }).join('');
+    return '<section class="entry-card dyn-card">' +
+      '<div class="dyn-filters" role="group" aria-label="Lọc">' +
+        '<button type="button" class="dyn-filter" data-filter="" aria-pressed="true">Tất cả</button>' +
+        '<button type="button" class="dyn-filter" data-filter="ky" aria-pressed="false"><span class="dyn-swatch dyn-ky"></span>Các kỷ khác</button>' +
+        '<button type="button" class="dyn-filter" data-filter="thuoc" aria-pressed="false"><span class="dyn-swatch dyn-thuoc"></span>Thời thuộc</button>' +
+      '</div>' +
+      '<div class="dyn-strip">' + strip + '</div><div class="dyn-axis" aria-hidden="true">' + ticks + '</div>' +
+      '<p class="dyn-hint">Chạm vào một dải màu hoặc một cột mốc để xem chi tiết.</p>' +
+      '<div class="road">' +
+        '<p class="road-end road-start">Khởi đầu</p>' +
+        '<div class="road-track">' +
+          '<svg class="road-svg" viewBox="0 0 100 ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+            '<defs><linearGradient id="roadGrad" x1="0" y1="0" x2="0" y2="1">' +
+              '<stop offset="0" stop-color="#1184CF"/><stop offset="1" stop-color="#434BD7"/></linearGradient></defs>' +
+            '<path class="road-edge" d="' + path + '"/><path class="road-surface" d="' + path + '"/><path class="road-line" d="' + path + '"/>' +
+          '</svg>' +
+          '<ol class="road-stops">' + stops + '</ol>' +
+        '</div>' +
+        '<p class="road-end">Toàn thư dừng ở năm 1675</p>' +
+      '</div>' +
+      '<div class="road-detail" hidden></div>' +
+    '</section>';
+  }
+  function openDyn(i, scrollToStop) {
+    var card = readerEl.querySelector('.dyn-card');
+    if (!card) return;
+    var ch = chapters.filter(function (c) { return c.dynasties; })[0];
+    var d = ch && ch.dynasties[i];
+    var panel = card.querySelector('.road-detail');
+    var same = !panel.hidden && panel.getAttribute('data-dyn') === String(i);
+    Array.prototype.forEach.call(card.querySelectorAll('.road-stop'), function (li, k) { li.classList.toggle('active', !same && k === Number(i)); });
+    Array.prototype.forEach.call(card.querySelectorAll('.dyn-seg'), function (s) { s.classList.toggle('active', !same && s.getAttribute('data-dyn') === String(i)); });
+    if (same || !d) { panel.hidden = true; return; }
+    panel.setAttribute('data-dyn', String(i));
+    panel.className = 'road-detail dyn-' + d.kind;
+    panel.innerHTML =
+      '<button type="button" class="road-close" aria-label="Đóng">&times;</button>' +
+      '<p class="road-d-years">' + fmtYear(d.from) + ' – ' + fmtYear(d.to) + '</p>' +
+      '<h3 class="road-d-name">' + escapeHtml(d.name) + '</h3>' +
+      '<p class="road-d-count">' + escapeHtml(d.years) + '</p>' +
+      (d.note ? '<p class="road-d-note">' + escapeHtml(d.note) + '</p>' : '') +
+      '<p class="dyn-src">Nguồn: ' + escapeHtml(d.src) + '</p>' +
+      (d.ch ? '<button type="button" class="dyn-open" data-open="' + escapeAttr(d.ch) + '">Đọc chương →</button>' : '');
+    panel.hidden = false;
+    var stop = card.querySelectorAll('.road-stop')[i];
+    if (scrollToStop && stop) stop.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  readerEl.addEventListener('click', function (ev) {
+    var t = ev.target.closest && ev.target.closest('.dyn-seg, .road-pin, .road-label, .dyn-filter, .dyn-open, .road-close');
+    if (!t) return;
+    if (t.classList.contains('dyn-open')) { renderChapter(t.getAttribute('data-open'), { push: true }); return; }
+    if (t.classList.contains('road-close')) { openDyn(t.parentNode.getAttribute('data-dyn')); return; }
+    if (t.classList.contains('dyn-filter')) {
+      var f = t.getAttribute('data-filter'), card = t.closest('.dyn-card');
+      Array.prototype.forEach.call(card.querySelectorAll('.dyn-filter'), function (b) { b.setAttribute('aria-pressed', String(b === t)); });
+      Array.prototype.forEach.call(card.querySelectorAll('.road-stop, .dyn-seg'), function (el) {
+        el.classList.toggle('dim', !!f && !el.classList.contains('dyn-' + f));
+      });
+      return;
+    }
+    openDyn(t.getAttribute('data-dyn'), t.classList.contains('dyn-seg'));
+  });
+
   function renderChapter(id, opts) {
     var push = !!(opts && opts.push);
     // A throwaway placeholder render (chapter 1 shown while the restored
@@ -581,7 +698,7 @@
     // card and each note in its own box below it.
     var html = '<article class="chapter chapter-read">';
     html += '<header class="chapter-hero">';
-    html += '<p class="chapter-kicker">Chương ' + String(idx + 1).padStart(2, '0') + '</p>';
+    html += '<p class="chapter-kicker">' + escapeHtml(kickerOf(ch)) + '</p>';
     html += '<h2 class="chapter-title">' + escapeHtml(ch.title) + '</h2>';
     html += '<div class="chapter-lead"><hr class="chapter-lead-rule">' +
       '<div class="chapter-tools">' + (sb ? saveChapterBtnHtml() : '') + textSizeControlHtml() + '</div></div>';
@@ -611,7 +728,7 @@
       });
     }
 
-    html += figureHtml(ch) + timelineHtml(ch);
+    html += dynastiesHtml(ch) + figureHtml(ch) + timelineHtml(ch);
     if (ch.source) html += '<p class="source-line"><strong>Nguồn:</strong> ' + escapeHtml(ch.source) + '</p>';
 
     var prev = chapters[idx - 1];
@@ -619,11 +736,11 @@
     html += '<nav class="chapter-nav">';
     html += '<button class="nav-btn prev" id="prevBtn"' + (prev ? '' : ' disabled') + '>';
     if (prev) html += '<span class="nav-arrow" aria-hidden="true">' + NAV_ARROW_LEFT + '</span>' +
-      '<span class="nav-text"><span class="nav-dir">Chương trước · ' + String(idx).padStart(2, '0') + '</span>' +
+      '<span class="nav-text"><span class="nav-dir">' + (prev.pin ? 'Trước · ' + escapeHtml(prev.pin) : 'Chương trước · ' + prev._num) + '</span>' +
       '<span class="nav-title">' + escapeHtml(prev.title) + '</span></span>';
     html += '</button>';
     html += '<button class="nav-btn next" id="nextBtn"' + (next ? '' : ' disabled') + '>';
-    if (next) html += '<span class="nav-text"><span class="nav-dir">Chương tiếp · ' + String(idx + 2).padStart(2, '0') + '</span>' +
+    if (next) html += '<span class="nav-text"><span class="nav-dir">' + (next.pin ? 'Tiếp · ' + escapeHtml(next.pin) : 'Chương tiếp · ' + next._num) + '</span>' +
       '<span class="nav-title">' + escapeHtml(next.title) + '</span></span>' +
       '<span class="nav-arrow" aria-hidden="true">' + NAV_ARROW_RIGHT + '</span>';
     html += '</button>';
@@ -2979,7 +3096,7 @@
   }
   function chapterLabel(id) {
     var i = chapterIndexById(id);
-    return i === -1 ? '' : 'Chương ' + String(i + 1).padStart(2, '0') + ' · ' + listOf(id)[i].title;
+    return i === -1 ? '' : kickerOf(listOf(id)[i]) + ' · ' + listOf(id)[i].title;
   }
   function savedChapterRow(chapterId) {
     for (var i = 0; i < _savedItems.length; i++) {
@@ -3258,7 +3375,7 @@
       var i = chapterIndexById(r.chapter_id);
       return '<li class="saved-card saved-chapter">' +
           '<button type="button" class="saved-open" data-action="saved-open" data-chapter="' + escapeAttr(r.chapter_id) + '">' +
-            '<span class="saved-ch-num">' + String(i + 1).padStart(2, '0') + '</span>' +
+            '<span class="saved-ch-num">' + (listOf(r.chapter_id)[i]._num || '•') + '</span>' +
             '<span class="saved-ch-title">' + escapeHtml(listOf(r.chapter_id)[i].title) + '</span>' +
             '<span class="saved-time">' + escapeHtml(relTime(r.created_at)) + '</span>' +
           '</button>' + delBtn(r) +
