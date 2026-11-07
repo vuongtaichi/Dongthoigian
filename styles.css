@@ -4686,7 +4686,11 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .dg-bar-head { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
 .dg-track { position: relative; height: 1.9rem; margin-top: .3rem; border-radius: 999px; background: var(--note-bg); }
 .dg-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1184CF, #434BD7); }
-.dg-val { position: absolute; top: 50%; right: .8rem; transform: translateY(-50%); font-weight: 700; color: var(--accent); }
+.dg-track { display: flex; align-items: center; gap: .6rem; }
+.dg-fill { display: flex; align-items: center; justify-content: flex-end; flex: 0 0 auto; }
+.dg-val { font-weight: 700; white-space: nowrap; }
+.dg-val.dg-in { padding-right: .9rem; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+.dg-val.dg-out { color: var(--accent); }
 .dg-stack { display: flex; height: 2.2rem; border-radius: 999px; overflow: hidden; box-shadow: 0 4px 14px rgba(15, 27, 51, .10); }
 .dg-seg { height: 100%; }
 .dg-s1 { background: #7cc4ff; } .dg-s2 { background: #1184CF; } .dg-s3 { background: #434BD7; }

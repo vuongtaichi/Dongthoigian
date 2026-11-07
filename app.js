@@ -596,8 +596,10 @@
       var max = Math.max.apply(null, d.items.map(function (it) { return it[1]; }));
       h += '<div class="dg-bars">' + d.items.map(function (it) {
         return '<div class="dg-bar-row"><div class="dg-bar-head"><b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[2] || '') + '</span></div>' +
-          '<div class="dg-track"><div class="dg-fill" style="width:' + Math.max(2, it[1] / max * 100).toFixed(1) + '%"></div>' +
-          '<span class="dg-val">' + it[1] + ' ' + escapeHtml(d.unit || '') + '</span></div></div>';
+          // value label: white inside the bar when it fits, accent-coloured just after it otherwise
+          '<div class="dg-track"><div class="dg-fill" style="width:' + Math.max(2, it[1] / max * 100).toFixed(1) + '%">' +
+          (it[1] / max >= .3 ? '<span class="dg-val dg-in">' + it[1] + ' ' + escapeHtml(d.unit || '') + '</span>' : '') + '</div>' +
+          (it[1] / max < .3 ? '<span class="dg-val dg-out">' + it[1] + ' ' + escapeHtml(d.unit || '') + '</span>' : '') + '</div></div>';
       }).join('') + '</div>';
     } else if (d.type === 'stack') {
       var tot = d.items.reduce(function (a, it) { return a + it[1]; }, 0);
