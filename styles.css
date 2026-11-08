@@ -4715,7 +4715,7 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .dg-chip-marsh { background: var(--accent-soft-bg); }
 
 /* ---- Timeline = road map of comic panels (timelineHtml) ---- */
-.comic { position: relative; list-style: none; margin: 0; padding: 2.8rem 0 .5rem; }
+.comic { position: relative; list-style: none; margin: 0; padding: 1rem 0 .5rem; }
 /* the road: light surface with a soft edge and a dashed centre line */
 .comic::before {
   content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 26px; margin-left: -13px;
@@ -4748,15 +4748,11 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   right: calc(-2.6rem - 3px);
 }
 .comic-item:nth-child(even) .comic-panel::before { right: auto; left: calc(-2.6rem - 3px); }
-/* the figure breaks out of the frame, on the panel's outer top corner */
-.comic-fig {
-  position: absolute; z-index: 1; top: -2.6rem; left: -1.1rem; width: 5.4rem; height: 5.4rem;
-  filter: drop-shadow(3px 3px 0 var(--comic-ink)) drop-shadow(-1px -1px 0 var(--comic-ink));
-  transform: rotate(-8deg);
-}
-.comic-item:nth-child(even) .comic-fig { left: auto; right: -1.1rem; transform: rotate(8deg); }
+/* the comic vignette, drawn inside the panel under the date caption */
+.comic-art { display: block; margin: .7rem .8rem 0; border: 2.5px solid var(--comic-ink); border-radius: 3px; overflow: hidden; background: #f3e7cc; }
+.comic-art svg { display: block; width: 100%; height: auto; }
 .comic-cap {
-  align-self: flex-end; max-width: calc(100% - 4.4rem); padding: .25rem .8rem;   /* leave room for the figure */
+  align-self: flex-end; padding: .25rem .8rem;
   border-left: 3px solid var(--comic-ink); border-bottom: 3px solid var(--comic-ink);
   background: #ffe066; color: #1b2436; font: 700 var(--body-fs)/1.4 var(--font-body);
 }
@@ -4768,7 +4764,6 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   .comic-item, .comic-item:nth-child(even) { justify-content: flex-end; }
   .comic-panel, .comic-item:nth-child(even) .comic-panel { width: calc(100% - 3.2rem); }
   .comic-panel::before, .comic-item:nth-child(even) .comic-panel::before { right: auto; left: calc(-1.15rem - 3px); width: 1.15rem; }
-  .comic-fig, .comic-item:nth-child(even) .comic-fig { left: auto; right: -.5rem; width: 4.6rem; height: 4.6rem; top: -2.3rem; }
   .comic-cap, .comic-item:nth-child(even) .comic-cap { align-self: flex-start; border-left: 0; border-right: 3px solid var(--comic-ink); }
 }
 :root { --comic-ink: #1b2436; --comic-dot: rgba(41, 81, 163, .22); }
