@@ -643,10 +643,12 @@
     if (!ch.timeline) return '';
     return '<section class="entry-card timeline-card"><h3 class="block-heading">' + escapeHtml(ch.timelineTitle || 'Dòng thời gian') + '</h3>' +
       '<ol class="comic">' + ch.timeline.map(function (r) {
-        return '<li class="comic-item"><span class="comic-pin" aria-hidden="true"></span><div class="comic-panel">' +
+        // r = [date, text, artKey, img?]: img is a painted picture (assets/su/tl/…); else the drawn vignette for artKey
+        var art = r[3] ? '<img src="' + escapeHtml(r[3]) + '" alt="" loading="lazy" decoding="async" width="1200" height="675">'
+          : (r[2] && typeof suArt !== 'undefined' && suArt[r[2]] ? suArt[r[2]] : '');
+        return '<li class="comic-item"><span class="comic-pin" aria-hidden="true"></span><div class="comic-panel' + (art ? ' has-art' : '') + '">' +
+          (art ? '<span class="comic-art">' + art + '</span>' : '') +
           '<span class="comic-cap">' + escapeHtml(r[0]) + '</span>' +
-          // the row's 3rd element names a comic vignette in history-art.js (suArt), drawn inside the panel
-          (r[2] && typeof suArt !== 'undefined' && suArt[r[2]] ? '<span class="comic-art">' + suArt[r[2]] + '</span>' : '') +
           '<span class="comic-text">' + escapeHtml(r[1]) + '</span></div></li>';
       }).join('') + '</ol></section>';
   }

@@ -371,11 +371,11 @@ const suViet = [
     diagram: {"type": "tree", "title": "Phả hệ theo Toàn thư", "rows": [{"items": [["Đế Minh", "cháu ba đời của Viêm Đế"]]}, {"items": [["Đế Nghi", "cai quản phương Bắc"], ["Kinh Dương Vương", "cai quản phương Nam, nước Xích Quỷ", 1]]}, {"label": "lấy con gái Động Đình Quân", "items": [["Lạc Long Quân", "tên húy Sùng Lãm", 1]]}, {"label": "lấy Âu Cơ, con gái Đế Lai", "items": [["Trăm người con trai", "tục truyền sinh trăm trứng"]]}, {"label": "chia con", "items": [["50 con theo mẹ", "về núi"], ["50 con theo cha", "về miền Nam"]]}], "result": ["Con trưởng: Hùng Vương", "nước Văn Lang"]},
     timelineTitle: "Những chuyện Toàn thư chép",
     timeline: [
-      ["Thời Hùng Vương", "Dân bắt cá thường bị thuồng luồng làm hại; vua bảo lấy mực vẽ hình thủy quái lên mình. Tục vẽ mình của người Bách Việt có lẽ bắt đầu từ đấy.", "dragon"],
-      ["Đời Hùng Vương thứ 6", "Đứa trẻ ở hương Phù Đổng xin gươm và ngựa, đánh tan giặc ở chân núi Vũ Ninh rồi phi ngựa lên trời. Về sau Lý Thái Tổ phong là Xung Thiên Thần Vương.", "horse"],
-      ["Thời Thành Vương nhà Chu (1063–1026 TCN)", "Nước Việt lần đầu sang thăm nhà Chu, xưng là Việt Thường thị, hiến chim trĩ trắng.", "envoy"],
-      ["Cuối thời Hùng Vương", "Sơn Tinh và Thủy Tinh cầu hôn Mị Nương; Sơn Tinh đem sính lễ đến trước nên được gả. Thủy Tinh dâng nước đánh núi Tản Viên nhưng không thể xâm phạm được.", "flood"],
-      ["258 TCN", "Thục Vương cầu hôn không được, dặn con cháu diệt Văn Lang; đến đời cháu là Thục Phán đánh lấy nước. Kỷ Hồng Bàng thị kết thúc, tất cả 2.622 năm.", "archers"]
+      ["Thời Hùng Vương", "Dân bắt cá thường bị thuồng luồng làm hại; vua bảo lấy mực vẽ hình thủy quái lên mình. Tục vẽ mình của người Bách Việt có lẽ bắt đầu từ đấy.", "dragon", "assets/su/tl/su-1-t1.webp"],
+      ["Đời Hùng Vương thứ 6", "Đứa trẻ ở hương Phù Đổng xin gươm và ngựa, đánh tan giặc ở chân núi Vũ Ninh rồi phi ngựa lên trời. Về sau Lý Thái Tổ phong là Xung Thiên Thần Vương.", "horse", "assets/su/tl/su-1-t2.webp"],
+      ["Thời Thành Vương nhà Chu (1063–1026 TCN)", "Nước Việt lần đầu sang thăm nhà Chu, xưng là Việt Thường thị, hiến chim trĩ trắng.", "envoy", "assets/su/tl/su-1-t3.webp"],
+      ["Cuối thời Hùng Vương", "Sơn Tinh và Thủy Tinh cầu hôn Mị Nương; Sơn Tinh đem sính lễ đến trước nên được gả. Thủy Tinh dâng nước đánh núi Tản Viên nhưng không thể xâm phạm được.", "flood", "assets/su/tl/su-1-t4.webp"],
+      ["258 TCN", "Thục Vương cầu hôn không được, dặn con cháu diệt Văn Lang; đến đời cháu là Thục Phán đánh lấy nước. Kỷ Hồng Bàng thị kết thúc, tất cả 2.622 năm.", "archers", "assets/su/tl/su-1-t5.webp"]
     ],
     ps: [
       "Chính Toàn thư ghi lời sử thần Ngô Sĩ Liên rằng chuyện Sơn Tinh, Thủy Tinh “rất là quái đản”, chỉ “tạm thuật lại chuyện cũ để truyền lại sự nghi ngờ”.",
