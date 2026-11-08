@@ -4774,3 +4774,14 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 :root { --comic-ink: #1b2436; --comic-dot: rgba(41, 81, 163, .22); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --comic-ink: #cdd7ee; --comic-dot: rgba(138, 180, 255, .2); } }
 :root[data-theme="dark"] { --comic-ink: #cdd7ee; --comic-dot: rgba(138, 180, 255, .2); }
+
+/* Story illustrations (figure.illustration): a full-width comic page frame */
+.figure-card.is-illustration svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 3px solid var(--comic-ink);
+  border-radius: 4px;
+  box-shadow: 6px 6px 0 var(--comic-ink);
+}
+.figure-card.is-illustration figcaption { margin-top: 1.2rem; text-align: justify; color: var(--ink); }

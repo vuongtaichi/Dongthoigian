@@ -627,7 +627,7 @@
   }
   function figureHtml(ch) {
     if (!ch.figure) return '';
-    return '<figure class="entry-card figure-card">' + ch.figure.svg +
+    return '<figure class="entry-card figure-card' + (ch.figure.illustration ? ' is-illustration' : '') + '">' + ch.figure.svg +
       (ch.figure.legend ? '<ul class="dg-legend figure-legend">' + ch.figure.legend.map(function (it) {
         return '<li>' + (it[2] ? '<span class="dg-chip ' + it[2] + '"></span>' : '') + '<b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[1] || '') + '</span></li>';
       }).join('') + '</ul>' : '') +
