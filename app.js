@@ -848,7 +848,8 @@
       });
     }
 
-    html += dynastiesHtml(ch) + diagramHtml(ch) + figureHtml(ch) + timelineHtml(ch);
+    // a story illustration comes first (like a page of a picture book), then the diagram
+    html += dynastiesHtml(ch) + (ch.figure && ch.figure.illustration ? figureHtml(ch) + diagramHtml(ch) : diagramHtml(ch) + figureHtml(ch)) + timelineHtml(ch);
     if (ch.intro && !ch.poem && (ch.figure || ch.diagram || ch.timeline)) html += noteHtml(ch);
     if (ch.source) html += '<p class="source-line"><strong>Nguồn:</strong> ' + escapeHtml(ch.source) + '</p>';
 
