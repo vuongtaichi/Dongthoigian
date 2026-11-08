@@ -627,7 +627,9 @@
   }
   function figureHtml(ch) {
     if (!ch.figure) return '';
-    return '<figure class="entry-card figure-card' + (ch.figure.illustration ? ' is-illustration' : '') + '">' + ch.figure.svg +
+    var fg = ch.figure;
+    var pic = fg.img ? '<img class="figure-img" src="' + escapeHtml(fg.img.src) + '" alt="' + escapeHtml(fg.img.alt || '') + '" width="' + (fg.img.w || 1200) + '" height="' + (fg.img.h || 906) + '" loading="lazy" decoding="async">' : fg.svg;
+    return '<figure class="entry-card figure-card' + (fg.illustration ? ' is-illustration' : '') + '">' + pic +
       (ch.figure.legend ? '<ul class="dg-legend figure-legend">' + ch.figure.legend.map(function (it) {
         return '<li>' + (it[2] ? '<span class="dg-chip ' + it[2] + '"></span>' : '') + '<b>' + escapeHtml(it[0]) + '</b><span>' + escapeHtml(it[1] || '') + '</span></li>';
       }).join('') + '</ul>' : '') +

@@ -4779,4 +4779,6 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
   border-radius: 4px;
   box-shadow: 6px 6px 0 var(--comic-ink);
 }
+/* painted storybook pictures (figure.img): rounded, soft shadow */
+.figure-card .figure-img { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 10px 28px rgba(15, 27, 51, .18); }
 .figure-card.is-illustration figcaption { margin-top: 1.2rem; text-align: justify; color: var(--ink); }
