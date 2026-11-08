@@ -4696,6 +4696,8 @@
     _topic = t;
     chapters = TOPICS[t].list;
     if (mastheadTitleEl) mastheadTitleEl.textContent = TOPICS[t].title;
+    var privacyNote = document.getElementById('privacyNote');   // the diary's privacy note doesn't apply to Sử Việt
+    if (privacyNote) privacyNote.hidden = t !== 0;
     if (mastheadCountEl) mastheadCountEl.textContent = chapters.filter(function (c) { return !c.pin; }).length + ' chương';
     if (topicTabsEl) Array.prototype.forEach.call(topicTabsEl.children, function (b, i) {
       b.setAttribute('aria-selected', String(i === t));
