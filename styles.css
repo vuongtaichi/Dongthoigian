@@ -4705,6 +4705,8 @@ body:has(#profileModal:not([hidden])) .chat-widget { visibility: hidden; }
 .dg-to::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6.5px solid transparent; border-left: 9px solid var(--accent); border-right: 0; }
 .dg-tree .dg-row { display: flex; justify-content: center; gap: .75rem; }
 .dg-tree .dg-row > .dg-card { flex: 1 1 0; max-width: 18rem; }
+.dg-portrait { display: block; width: 4.6rem; height: 4.6rem; margin: .1rem auto .5rem; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 10px rgba(15, 27, 51, .18); }
+@media (max-width: 560px) { .dg-portrait { width: 3.2rem; height: 3.2rem; } .dg-tree .dg-row > .dg-card:has(.dg-portrait) { padding-left: .4rem; padding-right: .4rem; } }
 .dg-link { display: flex; flex-direction: column; align-items: center; padding: .35rem 0; }
 .dg-link::before { content: ""; width: 3px; height: 1.1rem; border-radius: 2px; background: var(--accent); opacity: .45; }
 .dg-link span { color: var(--ink-soft); font-style: italic; padding: .15rem 0; text-align: center; }

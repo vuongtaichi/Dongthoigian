@@ -574,8 +574,11 @@
   //   hub:   center [title, sub], items      gradient centre card + item cards
   //   flow:  rows [[[from], [to, sub]]], result   "from → to" rows
   //   tree:  rows [{label?, items: [[title, sub, main?]]}], result
+  // it[3] (tree rows only): a square portrait, drawn as a round picture above the name
   function dgCard(it, cls) {
-    return '<div class="dg-card' + (cls ? ' ' + cls : '') + '"><b>' + escapeHtml(it[0]) + '</b>' +
+    return '<div class="dg-card' + (cls ? ' ' + cls : '') + '">' +
+      (it[3] ? '<img class="dg-portrait" src="' + escapeHtml(it[3]) + '" alt="" width="320" height="320" loading="lazy" decoding="async">' : '') +
+      '<b>' + escapeHtml(it[0]) + '</b>' +
       (it[1] ? '<span>' + escapeHtml(it[1]) + '</span>' : '') + '</div>';
   }
   function dgResult(r) {
